@@ -1,5 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@300;400;500&display=swap');
 
+/* Markdown article styles */
+.prose-portfolio { color: hsl(var(--ink-2)); font-size: 16px; line-height: 1.8; }
+.prose-portfolio h1, .prose-portfolio h2, .prose-portfolio h3 { font-family: 'Syne', sans-serif; color: hsl(var(--ink)); font-weight: 800; letter-spacing: -0.02em; margin: 2em 0 0.6em; }
+.prose-portfolio h1 { font-size: 2rem; }
+.prose-portfolio h2 { font-size: 1.6rem; }
+.prose-portfolio h3 { font-size: 1.25rem; }
+.prose-portfolio p { margin: 0 0 1.25em; }
+.prose-portfolio a { color: hsl(var(--acid)); border-bottom: 1px solid hsl(var(--acid) / 0.4); }
+.prose-portfolio a:hover { border-color: hsl(var(--acid)); }
+.prose-portfolio strong { color: hsl(var(--ink)); }
+.prose-portfolio ul, .prose-portfolio ol { margin: 0 0 1.25em; padding-left: 1.4em; }
+.prose-portfolio li { margin: 0.4em 0; }
+.prose-portfolio code { font-family: 'JetBrains Mono', monospace; font-size: 0.88em; background: hsl(var(--raised)); border: 1px solid hsl(var(--ink) / 0.08); padding: 0.1em 0.4em; border-radius: 4px; color: hsl(var(--acid)); }
+.prose-portfolio pre { background: hsl(var(--card)); border: 1px solid hsl(var(--ink) / 0.08); border-radius: 12px; padding: 1.1em 1.2em; overflow-x: auto; margin: 1.5em 0; }
+.prose-portfolio pre code { background: transparent; border: 0; padding: 0; color: hsl(var(--ink-2)); font-size: 13px; line-height: 1.65; }
+.prose-portfolio blockquote { border-left: 3px solid hsl(var(--acid)); padding: 0.2em 0 0.2em 1.2em; color: hsl(var(--ink-2)); font-style: italic; margin: 1.5em 0; }
+.prose-portfolio hr { border: 0; border-top: 1px solid hsl(var(--ink) / 0.1); margin: 2em 0; }
+.prose-portfolio img { border-radius: 12px; margin: 1.5em 0; }
+.prose-portfolio table { width: 100%; border-collapse: collapse; margin: 1.5em 0; font-size: 14px; }
+.prose-portfolio th, .prose-portfolio td { border: 1px solid hsl(var(--ink) / 0.08); padding: 0.6em 0.9em; text-align: left; }
+.prose-portfolio th { background: hsl(var(--surface)); color: hsl(var(--ink)); font-family: 'JetBrains Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

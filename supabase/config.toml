@@ -1,1 +1,7 @@
 project_id = "aythaxlhuofeumylwric"
+
+[functions.send-contact]
+verify_jwt = false
+
+[functions.github-stats]
+verify_jwt = false
