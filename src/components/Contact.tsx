@@ -1,21 +1,75 @@
 import { useState } from "react";
 import { Github, Linkedin, Twitter, Code2 } from "lucide-react";
+import { toast } from "sonner";
+import { z } from "zod";
 import MagneticButton from "./MagneticButton";
+import { supabase } from "@/integrations/supabase/client";
+import { SITE } from "@/config";
+
+const Schema = z.object({
+  name: z.string().trim().min(1, "Name required").max(100),
+  email: z.string().trim().email("Valid email required").max(255),
+  subject: z.string().trim().max(150).optional(),
+  message: z.string().trim().min(1, "Message required").max(5000),
+});
 
 export default function Contact() {
-  const [toast, setToast] = useState(false);
+  const [copyToast, setCopyToast] = useState(false);
+  const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [sending, setSending] = useState(false);
 
   const copyEmail = async () => {
     try {
-      await navigator.clipboard.writeText("sandeepkumar.dev@gmail.com");
-      setToast(true);
-      setTimeout(() => setToast(false), 2200);
+      await navigator.clipboard.writeText(SITE.email);
+      setCopyToast(true);
+      setTimeout(() => setCopyToast(false), 2200);
     } catch {}
   };
 
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+    const parsed = Schema.safeParse(form);
+    if (!parsed.success) {
+      const flat = parsed.error.flatten().fieldErrors;
+      const e: Record<string, string> = {};
+      Object.keys(flat).forEach((k) => (e[k] = flat[k as keyof typeof flat]?.[0] ?? ""));
+      setErrors(e);
+      return;
+    }
+    setSending(true);
+    try {
+      // Persist
+      const { error: dbErr } = await supabase.from("contact_messages").insert({
+        name: parsed.data.name,
+        email: parsed.data.email,
+        subject: parsed.data.subject || null,
+        body: parsed.data.message,
+      });
+      if (dbErr) throw dbErr;
+
+      // Email
+      const { error: fnErr } = await supabase.functions.invoke("send-contact", {
+        body: parsed.data,
+      });
+      if (fnErr) throw fnErr;
+
+      toast.success("Message sent — I'll reply within 24 hours.");
+      setForm({ name: "", email: "", subject: "", message: "" });
+    } catch (err: unknown) {
+      console.error(err);
+      toast.error(err instanceof Error ? err.message : "Couldn't send. Try again.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const upd = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setForm((f) => ({ ...f, [k]: e.target.value }));
+
   return (
     <section id="contact" className="relative overflow-hidden bg-base px-6 py-28 lg:py-40">
-      {/* animated mesh */}
       <div
         className="pointer-events-none absolute inset-0 opacity-40"
         style={{
@@ -25,9 +79,7 @@ export default function Contact() {
           animation: "mesh-shift 16s ease-in-out infinite",
         }}
       />
-      <div
-        className="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-acid/10 blur-3xl"
-      />
+      <div className="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-acid/10 blur-3xl" />
 
       <div className="relative mx-auto max-w-[1100px] text-center">
         <div className="reveal flex items-center justify-center gap-3">
@@ -49,12 +101,12 @@ export default function Contact() {
           onClick={copyEmail}
           className="reveal mt-10 inline-block border-b border-soft-2 pb-1 font-syne text-[18px] font-bold text-ink transition-colors hover:text-acid hover:border-acid"
         >
-          sandeepkumar.dev@gmail.com
+          {SITE.email}
         </button>
 
         <div className="reveal mt-8 flex flex-wrap items-center justify-center gap-3">
           {[
-            { icon: <Github size={16} />, label: "GitHub", href: "#" },
+            { icon: <Github size={16} />, label: "GitHub", href: `https://github.com/${SITE.github}` },
             { icon: <Linkedin size={16} />, label: "LinkedIn", href: "#" },
             { icon: <Twitter size={16} />, label: "Twitter", href: "#" },
             { icon: <Code2 size={16} />, label: "LeetCode", href: "#" },
@@ -62,6 +114,8 @@ export default function Contact() {
             <a
               key={s.label}
               href={s.href}
+              target="_blank"
+              rel="noreferrer"
               className="inline-flex items-center gap-2 rounded-full border border-soft-2 bg-card px-4 py-2 font-mono text-[12px] text-ink-2 transition-all hover:border-acid/50 hover:bg-acid/10 hover:text-acid"
             >
               {s.icon} {s.label}
@@ -69,22 +123,73 @@ export default function Contact() {
           ))}
         </div>
 
-        <div className="reveal mt-10 flex flex-wrap items-center justify-center gap-4">
-          <MagneticButton>
-            <a
-              href="mailto:sandeepkumar.dev@gmail.com"
-              className="inline-flex items-center rounded-lg bg-acid px-10 py-4 font-syne text-[16px] font-bold text-void transition-all hover:-translate-y-0.5 hover:glow-acid"
-            >
-              Start a Project →
-            </a>
-          </MagneticButton>
-          <a
-            href="#"
-            className="inline-flex items-center rounded-lg border border-soft-2 bg-card px-8 py-4 font-syne text-[16px] font-bold text-ink hover:border-acid/50 hover:text-acid"
-          >
-            Download CV
-          </a>
-        </div>
+        {/* Form */}
+        <form
+          onSubmit={onSubmit}
+          className="reveal mx-auto mt-14 max-w-[680px] rounded-2xl border border-soft-2 bg-card p-6 text-left lg:p-8"
+        >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Name" error={errors.name}>
+              <input
+                type="text"
+                value={form.name}
+                onChange={upd("name")}
+                placeholder="Jane Cooper"
+                maxLength={100}
+                className="w-full rounded-lg border border-soft-2 bg-surface px-4 py-3 font-sans text-[14px] text-ink placeholder:text-muted-foreground focus:border-acid/50 focus:outline-none"
+              />
+            </Field>
+            <Field label="Email" error={errors.email}>
+              <input
+                type="email"
+                value={form.email}
+                onChange={upd("email")}
+                placeholder="you@company.com"
+                maxLength={255}
+                className="w-full rounded-lg border border-soft-2 bg-surface px-4 py-3 font-sans text-[14px] text-ink placeholder:text-muted-foreground focus:border-acid/50 focus:outline-none"
+              />
+            </Field>
+          </div>
+          <div className="mt-4">
+            <Field label="Subject (optional)" error={errors.subject}>
+              <input
+                type="text"
+                value={form.subject}
+                onChange={upd("subject")}
+                placeholder="New project · SaaS build"
+                maxLength={150}
+                className="w-full rounded-lg border border-soft-2 bg-surface px-4 py-3 font-sans text-[14px] text-ink placeholder:text-muted-foreground focus:border-acid/50 focus:outline-none"
+              />
+            </Field>
+          </div>
+          <div className="mt-4">
+            <Field label="Message" error={errors.message}>
+              <textarea
+                value={form.message}
+                onChange={upd("message")}
+                placeholder="Tell me about what you're building..."
+                rows={5}
+                maxLength={5000}
+                className="w-full resize-y rounded-lg border border-soft-2 bg-surface px-4 py-3 font-sans text-[14px] text-ink placeholder:text-muted-foreground focus:border-acid/50 focus:outline-none"
+              />
+            </Field>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+              {form.message.length}/5000
+            </span>
+            <MagneticButton>
+              <button
+                type="submit"
+                disabled={sending}
+                className="inline-flex items-center rounded-lg bg-acid px-8 py-3.5 font-syne text-[14px] font-bold text-void transition-all hover:-translate-y-0.5 hover:glow-acid disabled:opacity-60"
+              >
+                {sending ? "Sending..." : "Send Message →"}
+              </button>
+            </MagneticButton>
+          </div>
+        </form>
 
         <div className="reveal mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
           <span>🌏 India · Remote Worldwide</span>
@@ -93,12 +198,23 @@ export default function Contact() {
         </div>
       </div>
 
-      {/* Toast */}
-      {toast && (
+      {copyToast && (
         <div className="fixed bottom-8 right-8 z-[90] rounded-lg bg-acid px-5 py-3 font-syne text-[14px] font-bold text-void shadow-[0_20px_40px_-10px_rgba(0,255,179,0.5)] animate-toast-in">
           ✓ Copied to clipboard
         </div>
       )}
     </section>
+  );
+}
+
+function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+        {label}
+      </span>
+      {children}
+      {error && <span className="mt-1.5 block font-mono text-[11px] text-nova">{error}</span>}
+    </label>
   );
 }
