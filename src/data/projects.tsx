@@ -1,8 +1,10 @@
+export type ProjectCategory = "SaaS" | "E-Commerce" | "Dev Tools" | "DevOps";
+
 export type Project = {
   slug: string;
   number: string;
   name: string;
-  category: string;
+  category: ProjectCategory;
   title: string;
   description: string;
   pills: string[];
@@ -13,6 +15,14 @@ export type Project = {
   githubUrl?: string;
   visual: React.ReactNode;
 };
+
+export const PROJECT_CATEGORIES: ("All" | ProjectCategory)[] = [
+  "All",
+  "SaaS",
+  "E-Commerce",
+  "Dev Tools",
+  "DevOps",
+];
 
 const featuredVisual = (
   <svg viewBox="0 0 600 480" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
