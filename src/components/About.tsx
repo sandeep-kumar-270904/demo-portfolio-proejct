@@ -1,3 +1,7 @@
+import { useState } from "react";
+import { Music2, MapPin, Globe2, Languages } from "lucide-react";
+import { SITE } from "@/config";
+
 function Trait({ icon, title, desc }: { icon: string; title: string; desc: string }) {
   return (
     <div className="reveal group flex items-start gap-4 rounded-xl border border-soft-2 bg-card p-5 transition-all duration-300 hover:border-acid/40 hover:bg-acid/5">
@@ -12,41 +16,71 @@ function Trait({ icon, title, desc }: { icon: string; title: string; desc: strin
   );
 }
 
+function NowPlaying() {
+  const [bars] = useState([1, 2, 3, 4]);
+  return (
+    <div className="mt-6 inline-flex items-center gap-3 rounded-xl border border-soft-2 bg-card px-4 py-3">
+      <div className="grid h-9 w-9 place-items-center rounded-lg bg-acid/10 text-acid">
+        <Music2 size={16} />
+      </div>
+      <div className="min-w-0">
+        <div className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
+          Now Playing
+        </div>
+        <div className="font-syne text-[13px] font-bold text-ink truncate">
+          {SITE.nowPlaying.title} <span className="text-ink-2 font-medium">— {SITE.nowPlaying.artist}</span>
+        </div>
+      </div>
+      <div className="ml-2 flex h-5 items-end gap-[2px]">
+        {bars.map((b) => (
+          <span
+            key={b}
+            className="w-[3px] rounded-sm bg-acid"
+            style={{
+              animation: `pulse-dot 0.9s ease-in-out ${b * 0.12}s infinite`,
+              height: `${30 + b * 15}%`,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function About() {
-  const rows = [
-    ["Location", "India · Remote"],
-    ["Experience", "3+ Years"],
-    ["Specialty", "Full Stack Systems"],
-    ["Education", "B.Tech CSE · 8.4+"],
-    ["Availability", "Immediate"],
-  ];
   return (
     <section id="about" className="relative bg-base px-6 py-28 lg:py-40">
       <div className="mx-auto grid max-w-[1320px] grid-cols-1 gap-16 lg:grid-cols-2 lg:gap-24">
-        {/* Left card */}
-        <div className="revl relative">
-          <div className="relative overflow-hidden rounded-2xl border border-soft-2 bg-card p-8 lg:p-10">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-acid/10 blur-3xl" />
+        {/* Left — profile photo with glowing ring */}
+        <div className="revl relative flex justify-center lg:justify-start">
+          <div className="relative">
+            {/* Outer glow ring */}
+            <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-acid/40 via-cyan/20 to-plasma/30 blur-2xl opacity-60 animate-pulse-dot" />
+            {/* Rotating ring */}
             <div
-              className="pointer-events-none absolute -left-2 top-2 select-none font-syne text-[96px] font-extrabold leading-none text-stroke-acid opacity-50"
-            >
-              ESK
+              className="absolute -inset-2 rounded-full border-2 border-acid/40"
+              style={{ animation: "spin 12s linear infinite" }}
+            />
+            <div className="relative h-[300px] w-[300px] overflow-hidden rounded-full border-4 border-acid/60 bg-surface shadow-[0_0_60px_-10px_hsl(var(--acid)/0.5)] lg:h-[360px] lg:w-[360px]">
+              {/* Initials placeholder — swap for real <img> later */}
+              <div className="absolute inset-0 grid place-items-center bg-gradient-to-br from-void via-surface to-base">
+                <span className="font-syne text-[120px] font-extrabold text-grad-acid">
+                  ES
+                </span>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-void/40 to-transparent" />
             </div>
 
-            <div className="relative mt-24 divide-y divide-soft-2">
-              {rows.map(([k, v]) => (
-                <div key={k} className="flex items-center justify-between py-4">
-                  <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-                    {k}
-                  </span>
-                  <span className="font-syne text-[15px] font-bold text-grad-acid">{v}</span>
-                </div>
-              ))}
+            {/* Available badge */}
+            <div className="absolute -bottom-2 left-1/2 inline-flex -translate-x-1/2 items-center gap-2 rounded-full border border-acid/40 bg-void px-4 py-2 shadow-[0_10px_30px_-5px_rgba(0,255,179,0.4)]">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-sonar rounded-full bg-acid" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-acid animate-pulse-dot" />
+              </span>
+              <span className="font-mono text-[10px] uppercase tracking-widest text-acid">
+                {SITE.isAvailable ? "Available" : "Booked"}
+              </span>
             </div>
-          </div>
-
-          <div className="absolute -bottom-5 right-6 inline-flex items-center gap-2 rounded-full bg-acid px-4 py-2 font-syne text-[12px] font-bold text-void shadow-[0_10px_30px_-5px_rgba(0,255,179,0.5)]">
-            ↑ Open to Offers
           </div>
         </div>
 
@@ -71,6 +105,21 @@ export default function About() {
             Currently pursuing B.Tech in CSE while shipping production-grade products for clients worldwide.
             I don't wait to graduate to start building.
           </p>
+
+          {/* Quick facts */}
+          <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3">
+            <div className="inline-flex items-center gap-2 font-mono text-[12px] text-ink-2">
+              <MapPin size={14} className="text-acid" /> {SITE.location}
+            </div>
+            <div className="inline-flex items-center gap-2 font-mono text-[12px] text-ink-2">
+              <Globe2 size={14} className="text-acid" /> {SITE.timezone}
+            </div>
+            <div className="inline-flex items-center gap-2 font-mono text-[12px] text-ink-2">
+              <Languages size={14} className="text-acid" /> {SITE.languages.join(" · ")}
+            </div>
+          </div>
+
+          <NowPlaying />
 
           <div className="mt-10 space-y-3">
             <Trait icon="⚡" title="Systems First" desc="Architecture before implementation. I design for 10x scale from day one." />

@@ -1,11 +1,21 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+export type PinnedRepo = {
+  name: string;
+  description: string | null;
+  language: string | null;
+  stargazers_count: number;
+  forks_count: number;
+  html_url: string;
+};
+
 export type GitHubStats = {
   user: { login: string; name: string | null; avatar_url: string; html_url: string; followers: number };
   stats: { publicRepos: number; stars: number; contributionsThisYear: number };
   languages: { name: string; pct: number }[];
   contributionCells: number[];
+  pinnedRepos?: PinnedRepo[];
   cachedAt: string;
 };
 
