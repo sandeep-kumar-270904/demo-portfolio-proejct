@@ -109,7 +109,7 @@ export const PROJECTS: Project[] = [
     slug: "buildflow",
     number: "01 · 2024",
     name: "BuildFlow",
-    category: "SaaS · Project Management",
+    category: "SaaS",
     title: "Full-Stack SaaS Platform",
     description:
       "Complete project management system with real-time collaboration, RBAC, Stripe billing, and a WebSocket notification engine. Serving 200+ active users at 99.9% uptime.",
@@ -161,7 +161,7 @@ export const PROJECTS: Project[] = [
     slug: "devpulse",
     number: "03 · 2023",
     name: "DevPulse",
-    category: "Developer Tools",
+    category: "Dev Tools",
     title: "Engineering Analytics",
     description:
       "Developer productivity analytics with GitHub integration and team performance insights.",
@@ -187,7 +187,7 @@ export const PROJECTS: Project[] = [
     slug: "cloudlink",
     number: "04 · 2024",
     name: "CloudLink",
-    category: "DevOps · Infrastructure",
+    category: "DevOps",
     title: "Microservices Orchestrator",
     description:
       "Microservices orchestration — deploy, monitor, and scale distributed systems from one UI.",
