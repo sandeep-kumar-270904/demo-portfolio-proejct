@@ -1,17 +1,32 @@
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+import { useActiveSection } from "@/hooks/useActiveSection";
 
 const links = [
-  { label: "About", href: "/#about" },
-  { label: "Projects", href: "/#projects" },
-  { label: "Skills", href: "/#skills" },
-  { label: "Blog", href: "/blog" },
-  { label: "Contact", href: "/#contact" },
+  { label: "About", href: "/#about", id: "about" },
+  { label: "Projects", href: "/#projects", id: "projects" },
+  { label: "Skills", href: "/#skills", id: "skills" },
+  { label: "Open Source", href: "/#opensource", id: "opensource" },
+  { label: "Blog", href: "/blog", id: "blog" },
+  { label: "Contact", href: "/#contact", id: "contact" },
 ];
+
+const titleMap: Record<string, string> = {
+  about: "About",
+  projects: "Projects",
+  skills: "Skills",
+  experience: "Experience",
+  opensource: "Open Source",
+  contact: "Contact",
+};
 
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const active = useActiveSection(
+    ["top", "about", "projects", "skills", "experience", "opensource", "contact"],
+    titleMap
+  );
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -23,7 +38,7 @@ export default function Nav() {
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 h-[66px] transition-all duration-300 ${
+        className={`sticky top-0 z-50 h-[66px] transition-all duration-300 ${
           scrolled ? "bg-void/90 backdrop-blur-xl border-b border-soft-2" : "bg-transparent"
         }`}
       >
@@ -33,30 +48,29 @@ export default function Nav() {
           </a>
 
           <ul className="hidden items-center gap-9 lg:flex">
-            {links.map((l) => (
-              <li key={l.href}>
-                <a
-                  href={l.href}
-                  className="group relative text-[14px] font-medium text-muted-foreground transition-colors hover:text-ink"
-                >
-                  {l.label}
-                  <span className="absolute -bottom-1 left-0 h-px w-full origin-left scale-x-0 bg-acid transition-transform duration-300 group-hover:scale-x-100" />
-                </a>
-              </li>
-            ))}
+            {links.map((l) => {
+              const isActive = active === l.id;
+              return (
+                <li key={l.href}>
+                  <a
+                    href={l.href}
+                    className={`group relative text-[14px] font-medium transition-colors ${
+                      isActive ? "text-acid" : "text-muted-foreground hover:text-ink"
+                    }`}
+                  >
+                    {l.label}
+                    <span
+                      className={`absolute -bottom-1 left-0 h-px w-full origin-left bg-acid transition-transform duration-300 ${
+                        isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                      }`}
+                    />
+                  </a>
+                </li>
+              );
+            })}
           </ul>
 
           <div className="flex items-center gap-3">
-            <div className="hidden items-center gap-2 rounded-full border border-acid/30 bg-acid/10 px-3 py-1.5 lg:flex relative">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-sonar rounded-full bg-acid" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-acid animate-pulse-dot" />
-              </span>
-              <span className="font-mono text-[10px] uppercase tracking-wider text-acid">
-                Available for Work
-              </span>
-            </div>
-
             <a
               href="#contact"
               className="hidden md:inline-flex items-center rounded-lg bg-acid px-4 py-2 font-syne text-[13px] font-bold text-void transition-all hover:-translate-y-0.5 hover:glow-acid"
