@@ -1,7 +1,9 @@
+import { Download } from "lucide-react";
 import Terminal from "./Terminal";
 import ParticleNetwork from "./ParticleNetwork";
 import { useCounter, useInView } from "@/hooks/useCounter";
 import MagneticButton from "./MagneticButton";
+import { SITE } from "@/config";
 
 function Stat({ value, suffix = "", label, start }: { value: number; suffix?: string; label: string; start: boolean }) {
   const v = useCounter(value, 1400, start);
@@ -21,7 +23,17 @@ export default function Hero() {
   const { ref, inView } = useInView<HTMLDivElement>(0.2);
 
   return (
-    <section id="top" className="relative min-h-screen overflow-hidden bg-void pt-[66px]">
+    <section id="top" className="relative min-h-screen overflow-hidden bg-void">
+      {/* Animated mesh gradient */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.06]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 20% 30%, #00ffb3 0%, transparent 40%), radial-gradient(circle at 80% 70%, #7c6fff 0%, transparent 45%), radial-gradient(circle at 50% 50%, #00b8ff 0%, transparent 50%)",
+          backgroundSize: "200% 200%",
+          animation: "mesh-shift 8s ease-in-out infinite",
+        }}
+      />
       {/* Dot grid */}
       <div
         className="absolute inset-0 opacity-[0.5]"
@@ -81,6 +93,13 @@ export default function Hero() {
                 View Projects →
               </a>
             </MagneticButton>
+            <a
+              href={SITE.resumeUrl}
+              download
+              className="inline-flex items-center gap-2 rounded-lg border border-soft-2 bg-surface/60 px-6 py-3.5 font-syne text-[14px] font-bold text-ink transition-all hover:border-acid/50 hover:bg-acid/10"
+            >
+              <Download size={15} /> Download Resume
+            </a>
             <a
               href="#contact"
               className="inline-flex items-center rounded-lg border border-soft-2 bg-surface/60 px-6 py-3.5 font-syne text-[14px] font-bold text-ink transition-all hover:border-acid/50 hover:bg-acid/10"

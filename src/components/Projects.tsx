@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { PROJECTS, type Project } from "@/data/projects";
+import { useMemo, useState } from "react";
+import { PROJECTS, PROJECT_CATEGORIES, type Project, type ProjectCategory } from "@/data/projects";
 import ProjectModal from "./ProjectModal";
 
 function FeaturedCard({ p, onOpen }: { p: Project; onOpen: () => void }) {
@@ -59,29 +59,11 @@ function FeaturedCard({ p, onOpen }: { p: Project; onOpen: () => void }) {
 }
 
 function GridCard({ p, onOpen, idx }: { p: Project; onOpen: () => void; idx: number }) {
-  const ref = useRef<HTMLButtonElement>(null);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-
-  const onMove = (e: React.MouseEvent) => {
-    const el = ref.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width - 0.5;
-    const py = (e.clientY - r.top) / r.height - 0.5;
-    setTilt({ x: -py * 6, y: px * 6 });
-  };
-
   return (
     <button
-      ref={ref}
       onClick={onOpen}
-      onMouseMove={onMove}
-      onMouseLeave={() => setTilt({ x: 0, y: 0 })}
       className="reveal group relative block overflow-hidden rounded-2xl border border-soft-2 bg-card text-left transition-all duration-500 hover:-translate-y-1.5 hover:border-acid/40 hover:shadow-[0_25px_60px_-20px_rgba(0,255,179,0.2)]"
-      style={{
-        transform: `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-        transitionDelay: `${idx * 60}ms`,
-      }}
+      style={{ transitionDelay: `${idx * 60}ms` }}
     >
       <div className="relative aspect-[4/3] overflow-hidden">
         {p.visual}
@@ -112,7 +94,13 @@ function GridCard({ p, onOpen, idx }: { p: Project; onOpen: () => void; idx: num
 
 export default function Projects() {
   const [active, setActive] = useState<Project | null>(null);
-  const [featured, ...rest] = PROJECTS;
+  const [filter, setFilter] = useState<"All" | ProjectCategory>("All");
+
+  const filtered = useMemo(
+    () => (filter === "All" ? PROJECTS : PROJECTS.filter((p) => p.category === filter)),
+    [filter]
+  );
+  const [featured, ...rest] = filtered;
 
   return (
     <section id="projects" className="relative bg-void px-6 py-28 lg:py-40">
@@ -129,15 +117,50 @@ export default function Projects() {
           <span className="text-grad-fire">Projects</span>
         </h2>
 
-        <div className="mt-14">
-          <FeaturedCard p={featured} onOpen={() => setActive(featured)} />
+        {/* Filter tabs */}
+        <div className="reveal mt-10 flex flex-wrap gap-2">
+          {PROJECT_CATEGORIES.map((c) => {
+            const isActive = c === filter;
+            const count = c === "All" ? PROJECTS.length : PROJECTS.filter((p) => p.category === c).length;
+            return (
+              <button
+                key={c}
+                onClick={() => setFilter(c)}
+                className={`group inline-flex items-center gap-2 rounded-full border px-4 py-2 font-mono text-[11px] uppercase tracking-wider transition-all ${
+                  isActive
+                    ? "border-acid bg-acid/10 text-acid"
+                    : "border-soft-2 bg-surface/60 text-ink-2 hover:border-acid/40 hover:text-acid"
+                }`}
+              >
+                {c}
+                <span className={`rounded-md bg-void/60 px-1.5 py-0.5 text-[9px] ${isActive ? "text-acid" : "text-muted-foreground"}`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {rest.map((p, i) => (
-            <GridCard key={p.slug} p={p} onOpen={() => setActive(p)} idx={i} />
-          ))}
-        </div>
+        {filtered.length === 0 ? (
+          <div className="mt-14 rounded-2xl border border-dashed border-soft-2 bg-card p-16 text-center">
+            <p className="font-mono text-[12px] uppercase tracking-widest text-muted-foreground">
+              No projects in this category yet.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="mt-14">
+              <FeaturedCard key={featured.slug} p={featured} onOpen={() => setActive(featured)} />
+            </div>
+            {rest.length > 0 && (
+              <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {rest.map((p, i) => (
+                  <GridCard key={p.slug} p={p} onOpen={() => setActive(p)} idx={i} />
+                ))}
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       <ProjectModal project={active} onClose={() => setActive(null)} />

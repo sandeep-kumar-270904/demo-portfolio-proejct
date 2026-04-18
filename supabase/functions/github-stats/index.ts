@@ -124,6 +124,19 @@ serve(async (req) => {
       }
     }
 
+    // Top pinned repos = top by stars among non-fork
+    const pinnedRepos = [...publicRepos]
+      .sort((a, b) => (b.stargazers_count || 0) - (a.stargazers_count || 0))
+      .slice(0, 4)
+      .map((r: any) => ({
+        name: r.name,
+        description: r.description,
+        language: r.language,
+        stargazers_count: r.stargazers_count || 0,
+        forks_count: r.forks_count || 0,
+        html_url: r.html_url,
+      }));
+
     const payload = {
       user: {
         login: user.login,
@@ -139,6 +152,7 @@ serve(async (req) => {
       },
       languages,
       contributionCells: cells,
+      pinnedRepos,
       cachedAt: new Date().toISOString(),
     };
 

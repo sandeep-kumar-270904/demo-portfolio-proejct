@@ -1,15 +1,38 @@
 import { useEffect, useState } from "react";
 
+const FULL_TEXT = "Welcome to my portfolio";
+
 export default function Preloader() {
   const [hidden, setHidden] = useState(false);
   const [fading, setFading] = useState(false);
+  const [typed, setTyped] = useState("");
 
   useEffect(() => {
-    const t1 = setTimeout(() => setFading(true), 1900);
-    const t2 = setTimeout(() => setHidden(true), 2400);
+    let i = 0;
+    const typer = setInterval(() => {
+      i++;
+      setTyped(FULL_TEXT.slice(0, i));
+      if (i >= FULL_TEXT.length) clearInterval(typer);
+    }, 55);
+
+    const skip = () => {
+      setTyped(FULL_TEXT);
+      setFading(true);
+      setTimeout(() => setHidden(true), 400);
+    };
+
+    const t1 = setTimeout(() => setFading(true), 2400);
+    const t2 = setTimeout(() => setHidden(true), 2900);
+
+    window.addEventListener("keydown", skip);
+    window.addEventListener("click", skip);
+
     return () => {
+      clearInterval(typer);
       clearTimeout(t1);
       clearTimeout(t2);
+      window.removeEventListener("keydown", skip);
+      window.removeEventListener("click", skip);
     };
   }, []);
 
@@ -21,24 +44,35 @@ export default function Preloader() {
         fading ? "opacity-0 scale-[1.02]" : "opacity-100 scale-100"
       }`}
     >
-      <div className="overflow-hidden">
-        <div className="flex font-syne font-extrabold text-[80px] leading-none tracking-tighter">
-          {["E", ".", "S"].map((ch, i) => (
-            <span
-              key={i}
-              className={`inline-block animate-slide-up ${ch === "." ? "text-acid text-glow-acid" : "text-ink"}`}
-              style={{ animationDelay: `${i * 0.1 + 0.05}s` }}
-            >
-              {ch}
+      {/* Particle dot grid backdrop */}
+      <div
+        className="absolute inset-0 opacity-40"
+        style={{
+          backgroundImage:
+            "radial-gradient(hsl(var(--acid)/0.18) 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+          maskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+          WebkitMaskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+        }}
+      />
+
+      <div className="relative flex items-baseline">
+        <span className="font-syne text-[clamp(28px,5vw,56px)] font-extrabold tracking-tight text-ink">
+          {typed.split("").map((ch, i) => (
+            <span key={i} className="inline-block animate-fade-up" style={{ animationDelay: `${i * 30}ms`, animationDuration: "400ms" }}>
+              {ch === " " ? "\u00A0" : ch}
             </span>
           ))}
-        </div>
+        </span>
+        <span className="ml-1 inline-block h-[0.9em] w-[3px] translate-y-1 bg-acid animate-blink glow-acid-sm" />
       </div>
-      <div className="mt-8 h-[2px] w-[200px] overflow-hidden bg-ink/5">
+
+      <div className="relative mt-10 h-[2px] w-[220px] overflow-hidden bg-ink/5">
         <div className="h-full origin-left bg-acid animate-line-grow glow-acid-sm" />
       </div>
-      <div className="mt-5 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-        Initializing
+
+      <div className="relative mt-5 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+        Press any key to skip
       </div>
     </div>
   );

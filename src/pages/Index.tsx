@@ -1,6 +1,9 @@
 import { useEffect } from "react";
 import Preloader from "@/components/Preloader";
 import Cursor from "@/components/Cursor";
+import AvailabilityBanner from "@/components/AvailabilityBanner";
+import ScrollProgress from "@/components/ScrollProgress";
+import BackToTop from "@/components/BackToTop";
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
 import Marquee from "@/components/Marquee";
@@ -10,6 +13,7 @@ import Skills from "@/components/Skills";
 import Experience from "@/components/Experience";
 import Testimonials from "@/components/Testimonials";
 import GitHub from "@/components/GitHub";
+import OpenSource from "@/components/OpenSource";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import SectionCounter from "@/components/SectionCounter";
@@ -18,7 +22,6 @@ import { initRevealAll } from "@/hooks/useReveal";
 const Index = () => {
   useEffect(() => {
     const cleanup = initRevealAll();
-    // Re-init on dynamic content
     const t = setTimeout(() => initRevealAll(), 500);
     return () => {
       if (cleanup) cleanup();
@@ -30,6 +33,8 @@ const Index = () => {
     <>
       <Preloader />
       <Cursor />
+      <ScrollProgress />
+      <AvailabilityBanner />
       <Nav />
       <SectionCounter />
       <main>
@@ -41,9 +46,11 @@ const Index = () => {
         <Experience />
         <Testimonials />
         <GitHub />
+        <OpenSource />
         <Contact />
       </main>
       <Footer />
+      <BackToTop />
     </>
   );
 };

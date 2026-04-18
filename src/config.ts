@@ -5,4 +5,11 @@ export const SITE = {
   github: "edhubilli-sandeep",
   twitter: "",
   linkedin: "",
+  resumeUrl: "/resume.pdf",
+  isAvailable: true,
+  availableUntil: "April 2026",
+  location: "India",
+  timezone: "IST (UTC+5:30)",
+  languages: ["English", "Telugu", "Hindi"],
+  nowPlaying: { title: "Midnight City", artist: "M83" },
 };
