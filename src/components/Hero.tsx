@@ -4,6 +4,7 @@ import ParticleNetwork from "./ParticleNetwork";
 import { useCounter, useInView } from "@/hooks/useCounter";
 import MagneticButton from "./MagneticButton";
 import { SITE } from "@/config";
+import { usePersonalInfo } from "@/hooks/useSupabase";
 
 function Stat({ value, suffix = "", label, start }: { value: number; suffix?: string; label: string; start: boolean }) {
   const v = useCounter(value, 1400, start);
@@ -21,6 +22,8 @@ function Stat({ value, suffix = "", label, start }: { value: number; suffix?: st
 
 export default function Hero() {
   const { ref, inView } = useInView<HTMLDivElement>(0.2);
+  const { data: info } = usePersonalInfo();
+  const resumeUrl = info?.resume_url || SITE.resumeUrl;
 
   return (
     <section id="top" className="relative min-h-screen overflow-hidden bg-void">
@@ -94,7 +97,7 @@ export default function Hero() {
               </a>
             </MagneticButton>
             <a
-              href={SITE.resumeUrl}
+              href={resumeUrl}
               download
               className="inline-flex items-center gap-2 rounded-lg border border-soft-2 bg-surface/60 px-6 py-3.5 font-syne text-[14px] font-bold text-ink transition-all hover:border-acid/50 hover:bg-acid/10"
             >

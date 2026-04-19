@@ -11,11 +11,22 @@ const Schema = z.object({
   email: z.string().trim().email("Valid email required").max(255),
   subject: z.string().trim().max(150).optional(),
   message: z.string().trim().min(1, "Message required").max(5000),
+  budget_range: z.string().trim().max(40).optional(),
 });
+
+const BUDGET_TIERS = [
+  "Not sure yet",
+  "< $1k",
+  "$1k – $5k",
+  "$5k – $15k",
+  "$15k – $50k",
+  "$50k+",
+];
 
 export default function Contact() {
   const [copyToast, setCopyToast] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
+  const [budgetIdx, setBudgetIdx] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sending, setSending] = useState(false);
 
@@ -30,7 +41,8 @@ export default function Contact() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    const parsed = Schema.safeParse(form);
+    const budget_range = BUDGET_TIERS[budgetIdx];
+    const parsed = Schema.safeParse({ ...form, budget_range });
     if (!parsed.success) {
       const flat = parsed.error.flatten().fieldErrors;
       const e: Record<string, string> = {};
@@ -40,16 +52,18 @@ export default function Contact() {
     }
     setSending(true);
     try {
-      // Persist
+      // Persist — write both 'message' (new column) and 'body' (legacy, kept for backward compat with Resend fn).
       const { error: dbErr } = await supabase.from("contact_messages").insert({
         name: parsed.data.name,
         email: parsed.data.email,
         subject: parsed.data.subject || null,
         body: parsed.data.message,
+        message: parsed.data.message,
+        budget_range: parsed.data.budget_range || null,
       });
       if (dbErr) throw dbErr;
 
-      // Email
+      // Email — pass everything so the Resend function can include budget if it chooses to.
       const { error: fnErr } = await supabase.functions.invoke("send-contact", {
         body: parsed.data,
       });
@@ -57,6 +71,7 @@ export default function Contact() {
 
       toast.success("Message sent — I'll reply within 24 hours.");
       setForm({ name: "", email: "", subject: "", message: "" });
+      setBudgetIdx(0);
     } catch (err: unknown) {
       console.error(err);
       toast.error(err instanceof Error ? err.message : "Couldn't send. Try again.");
@@ -173,6 +188,25 @@ export default function Contact() {
                 className="w-full resize-y rounded-lg border border-soft-2 bg-surface px-4 py-3 font-sans text-[14px] text-ink placeholder:text-muted-foreground focus:border-acid/50 focus:outline-none"
               />
             </Field>
+          </div>
+
+          <div className="mt-5">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                Budget (optional)
+              </span>
+              <span className="font-mono text-[11px] text-acid">{BUDGET_TIERS[budgetIdx]}</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={BUDGET_TIERS.length - 1}
+              step={1}
+              value={budgetIdx}
+              onChange={(e) => setBudgetIdx(Number(e.target.value))}
+              className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-surface accent-[hsl(var(--acid))]"
+              aria-label="Project budget range"
+            />
           </div>
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
