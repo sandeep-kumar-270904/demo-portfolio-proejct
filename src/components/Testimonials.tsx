@@ -70,7 +70,7 @@ export default function Testimonials() {
         className="reveal mt-14 [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]"
         aria-label="Client testimonials"
       >
-        <div className="flex w-max gap-6 animate-marquee hover:[animation-play-state:paused]">
+        <div className="flex w-max gap-6 px-6 animate-marquee-left hover:[animation-play-state:paused]">
           {loop.map((t, i) => (
             <Card key={`${t.id}-${i}`} t={t} idx={i} />
           ))}

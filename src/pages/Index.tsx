@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import Preloader from "@/components/Preloader";
+import EntryAnimation from "@/components/EntryAnimation";
 import Cursor from "@/components/Cursor";
 import AvailabilityBanner from "@/components/AvailabilityBanner";
 import ScrollProgress from "@/components/ScrollProgress";
@@ -14,6 +14,7 @@ import Experience from "@/components/Experience";
 import Testimonials from "@/components/Testimonials";
 import GitHub from "@/components/GitHub";
 import OpenSource from "@/components/OpenSource";
+import BlogSection from "@/components/BlogSection";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import SectionCounter from "@/components/SectionCounter";
@@ -31,7 +32,7 @@ const Index = () => {
 
   return (
     <>
-      <Preloader />
+      <EntryAnimation />
       <Cursor />
       <ScrollProgress />
       <AvailabilityBanner />
@@ -47,6 +48,7 @@ const Index = () => {
         <Testimonials />
         <GitHub />
         <OpenSource />
+        <BlogSection />
         <Contact />
       </main>
       <Footer />
