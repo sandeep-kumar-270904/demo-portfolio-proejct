@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { usePersonalInfo } from "@/hooks/useSupabase";
 import { SITE } from "@/config";
 
-const KEY = "availability-banner-dismissed-v1";
+const KEY = "banner_dismissed";
 
 export default function AvailabilityBanner() {
   const [dismissed, setDismissed] = useState(true);
+  const { data: info } = usePersonalInfo();
 
   useEffect(() => {
     setDismissed(localStorage.getItem(KEY) === "1");
@@ -18,13 +20,16 @@ export default function AvailabilityBanner() {
     setDismissed(true);
   };
 
-  const available = SITE.isAvailable;
+  // DB-driven with config fallback
+  const available = info?.is_available ? info.is_available === "true" : SITE.isAvailable;
+  const availableUntil = info?.available_until || SITE.availableUntil;
+
   const dot = available ? "bg-acid" : "bg-ember";
   const text = available ? "text-acid" : "text-ember";
   const ring = available ? "border-acid/25 bg-acid/5" : "border-ember/25 bg-ember/5";
   const message = available
-    ? `Currently available for freelance & full-time — ${SITE.availableUntil}`
-    : `Currently booked — next availability ${SITE.availableUntil}`;
+    ? `Currently available for freelance & full-time — ${availableUntil}`
+    : `Currently booked — next availability ${availableUntil}`;
 
   return (
     <div className={`relative z-[55] w-full border-b ${ring}`}>
@@ -33,9 +38,7 @@ export default function AvailabilityBanner() {
           <span className={`absolute inline-flex h-full w-full animate-sonar rounded-full ${dot}`} />
           <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${dot} animate-pulse-dot`} />
         </span>
-        <span className={`font-mono text-[10px] uppercase tracking-[0.18em] ${text}`}>
-          {message}
-        </span>
+        <span className={`font-mono text-[10px] uppercase tracking-[0.18em] ${text}`}>{message}</span>
         <button
           aria-label="Dismiss"
           onClick={dismiss}
