@@ -190,6 +190,25 @@ export default function Contact() {
             </Field>
           </div>
 
+          <div className="mt-5">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                Budget (optional)
+              </span>
+              <span className="font-mono text-[11px] text-acid">{BUDGET_TIERS[budgetIdx]}</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={BUDGET_TIERS.length - 1}
+              step={1}
+              value={budgetIdx}
+              onChange={(e) => setBudgetIdx(Number(e.target.value))}
+              className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-surface accent-[hsl(var(--acid))]"
+              aria-label="Project budget range"
+            />
+          </div>
+
           <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
             <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
               {form.message.length}/5000
