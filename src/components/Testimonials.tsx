@@ -1,37 +1,60 @@
-const T = [
-  {
-    quote:
-      "Sandeep doesn't just deliver features — he delivers systems. The architecture he designed handled 10x expected traffic on launch day without a single incident.",
-    name: "Rahul M.",
-    role: "CTO · TechVenture India",
-    initial: "R",
-    bg: "bg-grad-acid",
-  },
-  {
-    quote:
-      "Best freelance developer I've worked with. He asked the right questions before writing a line of code. Shipped ahead of schedule with zero production bugs.",
-    name: "Priya S.",
-    role: "Founder · E-Commerce Startup",
-    initial: "P",
-    bg: "bg-grad-fire",
-  },
-  {
-    quote:
-      "Sandeep's code is as clean as his communication. He understood our business logic better than we did. Will hire again without question.",
-    name: "Alex K.",
-    role: "PM · SaaS Company",
-    initial: "A",
-    bg: "bg-grad-plasma",
-  },
-];
+import { useTestimonials } from "@/hooks/useSupabase";
+import type { DbTestimonial } from "@/data/testimonialsFallback";
+
+const ACCENT_BG = ["bg-grad-acid", "bg-grad-fire", "bg-grad-plasma"];
+
+function Card({ t, idx }: { t: DbTestimonial; idx: number }) {
+  const initial = t.name.charAt(0).toUpperCase();
+  const bg = ACCENT_BG[idx % ACCENT_BG.length];
+  const meta = [t.role, t.company].filter(Boolean).join(" · ");
+  return (
+    <div className="group flex h-full w-[420px] shrink-0 flex-col rounded-2xl border border-soft-2 bg-card p-7 transition-all duration-300 hover:-translate-y-1 hover:border-acid/30">
+      <div className="font-syne text-[52px] font-extrabold leading-none text-grad-acid">"</div>
+      <p className="mt-2 italic text-[15px] leading-[1.75] text-ink-2 line-clamp-6">{t.quote}</p>
+      <div className="mt-7 flex items-center gap-3">
+        {t.avatar_url ? (
+          <img
+            src={t.avatar_url}
+            alt={t.name}
+            className="h-11 w-11 rounded-full object-cover"
+          />
+        ) : (
+          <div
+            className={`grid h-11 w-11 place-items-center rounded-full ${bg} font-syne text-[16px] font-extrabold text-void`}
+          >
+            {initial}
+          </div>
+        )}
+        <div>
+          <div className="font-syne text-[14px] font-bold text-ink">{t.name}</div>
+          {meta && (
+            <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              {meta}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="mt-4 text-acid text-[12px]">★★★★★</div>
+    </div>
+  );
+}
 
 export default function Testimonials() {
+  const { data: items = [] } = useTestimonials();
+
+  if (items.length === 0) return null;
+
+  // Duplicate the list to enable seamless marquee scrolling.
+  const loop = [...items, ...items];
+
   return (
-    <section className="relative bg-base px-6 py-28 lg:py-40">
+    <section className="relative overflow-hidden bg-base px-6 py-28 lg:py-40">
       <div className="mx-auto max-w-[1320px]">
         <div className="reveal flex items-center gap-3">
           <span className="h-px w-8 bg-acid" />
-          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">05 — Proof</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">
+            05 — Proof
+          </span>
         </div>
         <h2
           className="reveal mt-6 font-syne font-extrabold leading-[1.05]"
@@ -40,26 +63,16 @@ export default function Testimonials() {
           <span className="text-ink">What They </span>
           <span className="text-grad-acid">Say</span>
         </h2>
+      </div>
 
-        <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {T.map((t, i) => (
-            <div
-              key={i}
-              className="reveal group rounded-2xl border border-soft-2 bg-card p-7 transition-all duration-300 hover:-translate-y-1 hover:border-acid/30"
-            >
-              <div className="font-syne text-[52px] font-extrabold leading-none text-grad-acid">"</div>
-              <p className="mt-2 italic text-[15px] leading-[1.75] text-ink-2">{t.quote}</p>
-              <div className="mt-7 flex items-center gap-3">
-                <div className={`grid h-11 w-11 place-items-center rounded-full ${t.bg} font-syne text-[16px] font-extrabold text-void`}>
-                  {t.initial}
-                </div>
-                <div>
-                  <div className="font-syne text-[14px] font-bold text-ink">{t.name}</div>
-                  <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{t.role}</div>
-                </div>
-              </div>
-              <div className="mt-4 text-acid text-[12px]">★★★★★</div>
-            </div>
+      {/* Marquee track — pauses on hover */}
+      <div
+        className="reveal mt-14 [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]"
+        aria-label="Client testimonials"
+      >
+        <div className="flex w-max gap-6 animate-marquee hover:[animation-play-state:paused]">
+          {loop.map((t, i) => (
+            <Card key={`${t.id}-${i}`} t={t} idx={i} />
           ))}
         </div>
       </div>
