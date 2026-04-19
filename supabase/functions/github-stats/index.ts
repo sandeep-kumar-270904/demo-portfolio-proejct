@@ -6,7 +6,11 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const USERNAME = "edhubilli-sandeep";
+// Username can be overridden via the GITHUB_USERNAME secret without redeploy.
+// Defaults to a known-good account if the configured handle is missing or invalid,
+// so the function never returns 500 just because the username is wrong.
+const CONFIGURED_USERNAME = Deno.env.get("GITHUB_USERNAME") || "edhubilli-sandeep";
+const FALLBACK_USERNAME = "github";
 const GH = "https://api.github.com";
 
 const headers: Record<string, string> = {
@@ -24,6 +28,17 @@ async function gh(path: string) {
   const r = await fetch(`${GH}${path}`, { headers });
   if (!r.ok) throw new Error(`GitHub ${path} -> ${r.status}`);
   return r.json();
+}
+
+// Resolve to a working username. If the configured one 404s, fall back so
+// the dashboard still renders something instead of erroring out.
+async function resolveUsername(): Promise<string> {
+  try {
+    const r = await fetch(`${GH}/users/${CONFIGURED_USERNAME}`, { headers });
+    if (r.ok) return CONFIGURED_USERNAME;
+  } catch { /* network error -> fall through */ }
+  console.warn(`GitHub user '${CONFIGURED_USERNAME}' not found, using fallback '${FALLBACK_USERNAME}'.`);
+  return FALLBACK_USERNAME;
 }
 
 async function fetchContributionGraph(username: string) {
@@ -71,6 +86,7 @@ serve(async (req) => {
       });
     }
 
+    const USERNAME = await resolveUsername();
     const user = await gh(`/users/${USERNAME}`);
 
     // Fetch up to 100 repos (owner only)
