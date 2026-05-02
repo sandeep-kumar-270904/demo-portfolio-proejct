@@ -10,7 +10,7 @@ const corsHeaders = {
 // Defaults to a known-good account if the configured handle is missing or invalid,
 // so the function never returns 500 just because the username is wrong.
 const CONFIGURED_USERNAME = Deno.env.get("GITHUB_USERNAME") || "edhubilli-sandeep";
-const FALLBACK_USERNAME = "github";
+const FALLBACK_USERNAME = "torvalds";
 const GH = "https://api.github.com";
 
 const headers: Record<string, string> = {
@@ -180,9 +180,22 @@ serve(async (req) => {
   } catch (error: unknown) {
     console.error("github-stats error:", error);
     const msg = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ success: false, error: msg }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // Return 200 with fallback flag so frontend can degrade gracefully instead of crashing
+    return new Response(
+      JSON.stringify({
+        fallback: true,
+        error: msg,
+        user: null,
+        stats: { publicRepos: 0, stars: 0, contributionsThisYear: 0 },
+        languages: [],
+        contributionCells: [],
+        pinnedRepos: [],
+        cachedAt: new Date().toISOString(),
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   }
 });
