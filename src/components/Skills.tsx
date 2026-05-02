@@ -1,91 +1,45 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useSkills } from "@/hooks/useSupabase";
+import type { DbSkill } from "@/data/skillsFallback";
 
-type Skill = { name: string; level: number; tag: "EXPERT" | "ADVANCED" | "INTERMEDIATE"; icon: string };
+type Tab = { key: string; label: string; icon: string };
 
-const TABS: { key: string; label: string; icon: string; skills: Skill[] }[] = [
-  {
-    key: "frontend",
-    label: "Frontend",
-    icon: "⚛",
-    skills: [
-      { name: "React / Next.js", level: 95, tag: "EXPERT", icon: "⚛" },
-      { name: "TypeScript", level: 88, tag: "EXPERT", icon: "🟦" },
-      { name: "CSS / Tailwind", level: 92, tag: "EXPERT", icon: "🎨" },
-      { name: "Zustand / Redux", level: 85, tag: "ADVANCED", icon: "🗂" },
-      { name: "Framer Motion", level: 76, tag: "ADVANCED", icon: "🌀" },
-      { name: "Jest / Testing", level: 72, tag: "ADVANCED", icon: "🧪" },
-      { name: "Vite / Webpack", level: 80, tag: "ADVANCED", icon: "⚡" },
-    ],
-  },
-  {
-    key: "backend",
-    label: "Backend",
-    icon: "⚙️",
-    skills: [
-      { name: "Node.js", level: 93, tag: "EXPERT", icon: "🟢" },
-      { name: "Express / Fastify", level: 90, tag: "EXPERT", icon: "🚂" },
-      { name: "REST API", level: 95, tag: "EXPERT", icon: "🔗" },
-      { name: "GraphQL", level: 80, tag: "ADVANCED", icon: "◆" },
-      { name: "WebSockets", level: 82, tag: "ADVANCED", icon: "📡" },
-      { name: "Auth / JWT / OAuth", level: 88, tag: "EXPERT", icon: "🔐" },
-    ],
-  },
-  {
-    key: "database",
-    label: "Database",
-    icon: "🗄️",
-    skills: [
-      { name: "PostgreSQL", level: 87, tag: "EXPERT", icon: "🐘" },
-      { name: "MongoDB", level: 84, tag: "ADVANCED", icon: "🍃" },
-      { name: "Redis", level: 82, tag: "ADVANCED", icon: "🔴" },
-      { name: "Prisma ORM", level: 91, tag: "EXPERT", icon: "▲" },
-      { name: "SQL Optimization", level: 78, tag: "ADVANCED", icon: "📊" },
-    ],
-  },
-  {
-    key: "devops",
-    label: "DevOps",
-    icon: "🚀",
-    skills: [
-      { name: "Docker", level: 84, tag: "ADVANCED", icon: "🐳" },
-      { name: "AWS", level: 74, tag: "ADVANCED", icon: "☁️" },
-      { name: "GitHub Actions", level: 86, tag: "EXPERT", icon: "🛠" },
-      { name: "Nginx", level: 72, tag: "INTERMEDIATE", icon: "🟩" },
-      { name: "Vercel / Railway", level: 95, tag: "EXPERT", icon: "▲" },
-    ],
-  },
-  {
-    key: "tools",
-    label: "Tools",
-    icon: "🛠",
-    skills: [
-      { name: "Git / GitHub", level: 96, tag: "EXPERT", icon: "🌿" },
-      { name: "Figma", level: 70, tag: "INTERMEDIATE", icon: "🎯" },
-      { name: "Linear / Jira", level: 80, tag: "ADVANCED", icon: "📋" },
-      { name: "Postman", level: 93, tag: "EXPERT", icon: "📮" },
-    ],
-  },
+const TAB_DEFS: Tab[] = [
+  { key: "Frontend", label: "Frontend", icon: "⚛" },
+  { key: "Backend", label: "Backend", icon: "⚙️" },
+  { key: "Database", label: "Database", icon: "🗄️" },
+  { key: "DevOps", label: "DevOps", icon: "🚀" },
+  { key: "Tools", label: "Tools", icon: "🛠" },
 ];
 
-function SkillBar({ s, active }: { s: Skill; active: boolean }) {
+function tagFor(level: number | null): "EXPERT" | "ADVANCED" | "INTERMEDIATE" {
+  const l = level ?? 0;
+  if (l >= 88) return "EXPERT";
+  if (l >= 75) return "ADVANCED";
+  return "INTERMEDIATE";
+}
+
+function SkillBar({ s, active }: { s: DbSkill; active: boolean }) {
+  const tag = tagFor(s.level);
+  const level = s.level ?? 0;
   return (
     <div className="rounded-xl border border-soft-2 bg-card p-5">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-soft-2 bg-surface text-base">
-            {s.icon}
+            {s.icon ?? "•"}
           </div>
           <span className="font-syne text-[15px] font-bold text-ink truncate">{s.name}</span>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <span
             className={`font-mono text-[9px] uppercase tracking-widest ${
-              s.tag === "EXPERT" ? "text-acid" : s.tag === "ADVANCED" ? "text-cyan" : "text-muted-foreground"
+              tag === "EXPERT" ? "text-acid" : tag === "ADVANCED" ? "text-cyan" : "text-muted-foreground"
             }`}
           >
-            {s.tag}
+            {tag}
           </span>
-          <span className="font-mono text-[11px] text-ink-2">{s.level}%</span>
+          <span className="font-mono text-[11px] text-ink-2">{level}%</span>
         </div>
       </div>
       <div className="relative mt-4 h-1.5 w-full overflow-hidden rounded-full bg-void">
@@ -93,7 +47,7 @@ function SkillBar({ s, active }: { s: Skill; active: boolean }) {
           key={active ? "on" : "off"}
           className="relative h-full rounded-full bg-acid"
           style={{
-            width: active ? `${s.level}%` : "0%",
+            width: active ? `${level}%` : "0%",
             transition: "width 1.1s cubic-bezier(0.16, 1, 0.3, 1)",
             boxShadow: "0 0 12px hsl(var(--acid)/0.6)",
           }}
@@ -107,7 +61,19 @@ function SkillBar({ s, active }: { s: Skill; active: boolean }) {
 
 export default function Skills() {
   const [active, setActive] = useState(0);
-  const tab = TABS[active];
+  const { data: rows = [] } = useSkills();
+
+  // Build per-category groups using TAB_DEFS order, only showing tabs that have data.
+  const tabs = useMemo(() => {
+    return TAB_DEFS.map((t) => ({
+      ...t,
+      skills: rows.filter((r) => r.category === t.key),
+    })).filter((t) => t.skills.length > 0);
+  }, [rows]);
+
+  if (tabs.length === 0) return null;
+  const safeIdx = Math.min(active, tabs.length - 1);
+  const tab = tabs[safeIdx];
 
   return (
     <section id="skills" className="relative bg-base px-6 py-28 lg:py-40">
@@ -125,10 +91,9 @@ export default function Skills() {
         </h2>
 
         <div className="mt-14 grid grid-cols-1 gap-8 lg:grid-cols-[280px_1fr]">
-          {/* Tabs */}
           <ul className="flex flex-wrap gap-2 lg:flex-col lg:gap-1 lg:sticky lg:top-24 self-start">
-            {TABS.map((t, i) => {
-              const a = i === active;
+            {tabs.map((t, i) => {
+              const a = i === safeIdx;
               return (
                 <li key={t.key}>
                   <button
@@ -152,7 +117,6 @@ export default function Skills() {
             })}
           </ul>
 
-          {/* Panel */}
           <div>
             <h3 className="font-syne text-[24px] font-bold text-ink">{tab.label} Stack</h3>
             <p className="mt-1 text-[14px] text-muted-foreground">
@@ -160,7 +124,7 @@ export default function Skills() {
             </p>
             <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {tab.skills.map((s) => (
-                <SkillBar key={s.name} s={s} active={true} />
+                <SkillBar key={s.id} s={s} active={true} />
               ))}
             </div>
           </div>
