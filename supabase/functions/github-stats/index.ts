@@ -10,7 +10,7 @@ const corsHeaders = {
 // Defaults to a known-good account if the configured handle is missing or invalid,
 // so the function never returns 500 just because the username is wrong.
 const CONFIGURED_USERNAME = Deno.env.get("GITHUB_USERNAME") || "edhubilli-sandeep";
-const FALLBACK_USERNAME = "github";
+const FALLBACK_USERNAME = "torvalds";
 const GH = "https://api.github.com";
 
 const headers: Record<string, string> = {
