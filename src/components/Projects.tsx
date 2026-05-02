@@ -1,6 +1,41 @@
 import { useMemo, useState } from "react";
-import { PROJECTS, PROJECT_CATEGORIES, type Project, type ProjectCategory } from "@/data/projects";
+import { useProjects } from "@/hooks/useSupabase";
+import type { DbProject } from "@/data/projectsFallback";
+import { getProjectVisual } from "@/data/projectVisuals";
 import ProjectModal from "./ProjectModal";
+import type { Project, ProjectCategory } from "@/data/projects";
+
+const CATEGORIES: ("All" | string)[] = ["All", "SaaS", "E-Commerce", "Dev Tools", "DevOps"];
+
+// Adapt a DB row into the Project shape that ProjectModal expects.
+function toProject(p: DbProject, idx: number): Project {
+  const slug = (p.tags?.[0] ?? p.title.toLowerCase().replace(/\s+/g, "-")) as string;
+  const visual = p.image_url ? (
+    <img src={p.image_url} alt={p.title} className="h-full w-full object-cover" />
+  ) : (
+    getProjectVisual(slug)
+  );
+  // pills: skip the slug stored in tags[0]
+  const pills = (p.tags ?? []).slice(1);
+  return {
+    slug,
+    number: `${String(idx + 1).padStart(2, "0")}`,
+    name: p.title,
+    category: (p.category as ProjectCategory) ?? "SaaS",
+    title: p.title,
+    description: p.description ?? "",
+    pills,
+    metrics: p.stats ?? [],
+    features: (p.long_description ?? "")
+      .split(/\.\s+|\n+/)
+      .map((s) => s.trim())
+      .filter(Boolean),
+    stack: p.tech_stack ?? [],
+    liveUrl: p.live_url ?? undefined,
+    githubUrl: p.github_url ?? undefined,
+    visual,
+  };
+}
 
 function FeaturedCard({ p, onOpen }: { p: Project; onOpen: () => void }) {
   return (
@@ -94,11 +129,14 @@ function GridCard({ p, onOpen, idx }: { p: Project; onOpen: () => void; idx: num
 
 export default function Projects() {
   const [active, setActive] = useState<Project | null>(null);
-  const [filter, setFilter] = useState<"All" | ProjectCategory>("All");
+  const [filter, setFilter] = useState<string>("All");
+  const { data: dbRows = [] } = useProjects();
+
+  const projects = useMemo(() => dbRows.map((r, i) => toProject(r, i)), [dbRows]);
 
   const filtered = useMemo(
-    () => (filter === "All" ? PROJECTS : PROJECTS.filter((p) => p.category === filter)),
-    [filter]
+    () => (filter === "All" ? projects : projects.filter((p) => p.category === filter)),
+    [filter, projects]
   );
   const [featured, ...rest] = filtered;
 
@@ -119,9 +157,9 @@ export default function Projects() {
 
         {/* Filter tabs */}
         <div className="reveal mt-10 flex flex-wrap gap-2">
-          {PROJECT_CATEGORIES.map((c) => {
+          {CATEGORIES.map((c) => {
             const isActive = c === filter;
-            const count = c === "All" ? PROJECTS.length : PROJECTS.filter((p) => p.category === c).length;
+            const count = c === "All" ? projects.length : projects.filter((p) => p.category === c).length;
             return (
               <button
                 key={c}
