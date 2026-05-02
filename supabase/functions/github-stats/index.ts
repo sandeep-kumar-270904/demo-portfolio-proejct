@@ -180,9 +180,22 @@ serve(async (req) => {
   } catch (error: unknown) {
     console.error("github-stats error:", error);
     const msg = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ success: false, error: msg }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // Return 200 with fallback flag so frontend can degrade gracefully instead of crashing
+    return new Response(
+      JSON.stringify({
+        fallback: true,
+        error: msg,
+        user: null,
+        stats: { publicRepos: 0, stars: 0, contributionsThisYear: 0 },
+        languages: [],
+        contributionCells: [],
+        pinnedRepos: [],
+        cachedAt: new Date().toISOString(),
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   }
 });
