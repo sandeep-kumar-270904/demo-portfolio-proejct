@@ -6,13 +6,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-const session = {
-  user: { id: "user-1", email: "test@example.com" },
-};
-
 let mockHasRole = false;
 
 vi.mock("@/integrations/supabase/client", () => {
+  const session = { user: { id: "user-1", email: "test@example.com" } };
   return {
     supabase: {
       from: () => {
