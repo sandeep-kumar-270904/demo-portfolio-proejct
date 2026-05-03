@@ -123,12 +123,22 @@ export default function Admin() {
                 {session.user.email}
               </p>
             </div>
-            <button
-              onClick={signOut}
-              className="rounded-lg border border-soft-2 bg-surface px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-ink-2 hover:border-acid/50"
-            >
-              Sign out
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={handleReseed}
+                disabled={reseeding}
+                className="rounded-lg border border-acid/40 bg-acid/10 px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-acid hover:bg-acid/20 disabled:opacity-60"
+                title="Replace projects/skills/experience/testimonials with demo data"
+              >
+                {reseeding ? "Reseeding…" : "↻ Reseed demo data"}
+              </button>
+              <button
+                onClick={signOut}
+                className="rounded-lg border border-soft-2 bg-surface px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-ink-2 hover:border-acid/50"
+              >
+                Sign out
+              </button>
+            </div>
           </div>
 
           {/* Tab nav */}
