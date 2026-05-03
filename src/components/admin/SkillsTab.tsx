@@ -31,6 +31,17 @@ export default function SkillsTab() {
   const [editing, setEditing] = useState<Row | null>(null);
   const [draft, setDraft] = useState<Omit<Row, "id">>(empty);
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("All");
+
+  const categories = Array.from(
+    new Set(rows.map((r) => r.category).filter((c): c is string => Boolean(c))),
+  );
+  const visible = rows.filter((r) => {
+    if (categoryFilter !== "All" && r.category !== categoryFilter) return false;
+    if (!search.trim()) return true;
+    return r.name.toLowerCase().includes(search.toLowerCase());
+  });
 
   async function load() {
     const { data } = await supabase
@@ -100,7 +111,7 @@ export default function SkillsTab() {
       <div className="rounded-2xl border border-soft-2 bg-card p-4">
         <div className="mb-3 flex items-center justify-between">
           <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-            {rows.length} skill{rows.length === 1 ? "" : "s"}
+            {visible.length} / {rows.length}
           </span>
           <button
             onClick={startNew}
@@ -109,8 +120,32 @@ export default function SkillsTab() {
             + New
           </button>
         </div>
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search skill…"
+          className="mb-2 w-full rounded-lg border border-soft-2 bg-surface px-3 py-2 text-[12px] text-ink placeholder:text-muted-foreground focus:border-acid/50 focus:outline-none"
+        />
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          {["All", ...categories].map((c) => {
+            const active = c === categoryFilter;
+            return (
+              <button
+                key={c}
+                onClick={() => setCategoryFilter(c)}
+                className={`rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider ${
+                  active
+                    ? "bg-acid text-void"
+                    : "border border-soft-2 bg-surface text-ink-2 hover:border-acid/40"
+                }`}
+              >
+                {c}
+              </button>
+            );
+          })}
+        </div>
         <ul className="space-y-2">
-          {rows.map((r) => (
+          {visible.map((r) => (
             <li key={r.id} className="flex items-start gap-2">
               <button
                 onClick={() => startEdit(r)}
