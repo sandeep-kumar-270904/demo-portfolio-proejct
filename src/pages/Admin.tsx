@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
+import { toast } from "sonner";
 import Nav from "@/components/Nav";
 import ProjectsTab from "@/components/admin/ProjectsTab";
 import SkillsTab from "@/components/admin/SkillsTab";
@@ -10,6 +11,7 @@ import TestimonialsTab from "@/components/admin/TestimonialsTab";
 import BlogPostsTab from "@/components/admin/BlogPostsTab";
 import MessagesTab from "@/components/admin/MessagesTab";
 import PostsTab from "@/components/admin/PostsTab";
+import { reseedAll } from "@/lib/reseed";
 
 const TABS = [
   { key: "projects", label: "Projects" },
@@ -28,6 +30,31 @@ export default function Admin() {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [tab, setTab] = useState<TabKey>("projects");
+  const [reseeding, setReseeding] = useState(false);
+
+  async function handleReseed() {
+    if (
+      !confirm(
+        "Re-seed projects, skills, experience, and testimonials with demo data? This will REPLACE existing rows in those four tables.",
+      )
+    )
+      return;
+    setReseeding(true);
+    try {
+      const results = await reseedAll();
+      const failed = results.filter((r) => r.error);
+      if (failed.length) {
+        toast.error(`Reseed failed for: ${failed.map((f) => f.table).join(", ")}`);
+      } else {
+        const total = results.reduce((s, r) => s + r.inserted, 0);
+        toast.success(`Reseeded ${total} rows across ${results.length} tables`);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Reseed failed");
+    } finally {
+      setReseeding(false);
+    }
+  }
 
   useEffect(() => {
     document.title = "Admin Dashboard";
@@ -96,12 +123,22 @@ export default function Admin() {
                 {session.user.email}
               </p>
             </div>
-            <button
-              onClick={signOut}
-              className="rounded-lg border border-soft-2 bg-surface px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-ink-2 hover:border-acid/50"
-            >
-              Sign out
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={handleReseed}
+                disabled={reseeding}
+                className="rounded-lg border border-acid/40 bg-acid/10 px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-acid hover:bg-acid/20 disabled:opacity-60"
+                title="Replace projects/skills/experience/testimonials with demo data"
+              >
+                {reseeding ? "Reseeding…" : "↻ Reseed demo data"}
+              </button>
+              <button
+                onClick={signOut}
+                className="rounded-lg border border-soft-2 bg-surface px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-ink-2 hover:border-acid/50"
+              >
+                Sign out
+              </button>
+            </div>
           </div>
 
           {/* Tab nav */}
