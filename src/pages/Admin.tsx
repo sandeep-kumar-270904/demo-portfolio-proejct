@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
+import { toast } from "sonner";
 import Nav from "@/components/Nav";
 import ProjectsTab from "@/components/admin/ProjectsTab";
 import SkillsTab from "@/components/admin/SkillsTab";
@@ -10,6 +11,7 @@ import TestimonialsTab from "@/components/admin/TestimonialsTab";
 import BlogPostsTab from "@/components/admin/BlogPostsTab";
 import MessagesTab from "@/components/admin/MessagesTab";
 import PostsTab from "@/components/admin/PostsTab";
+import { reseedAll } from "@/lib/reseed";
 
 const TABS = [
   { key: "projects", label: "Projects" },
@@ -28,6 +30,31 @@ export default function Admin() {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [tab, setTab] = useState<TabKey>("projects");
+  const [reseeding, setReseeding] = useState(false);
+
+  async function handleReseed() {
+    if (
+      !confirm(
+        "Re-seed projects, skills, experience, and testimonials with demo data? This will REPLACE existing rows in those four tables.",
+      )
+    )
+      return;
+    setReseeding(true);
+    try {
+      const results = await reseedAll();
+      const failed = results.filter((r) => r.error);
+      if (failed.length) {
+        toast.error(`Reseed failed for: ${failed.map((f) => f.table).join(", ")}`);
+      } else {
+        const total = results.reduce((s, r) => s + r.inserted, 0);
+        toast.success(`Reseeded ${total} rows across ${results.length} tables`);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Reseed failed");
+    } finally {
+      setReseeding(false);
+    }
+  }
 
   useEffect(() => {
     document.title = "Admin Dashboard";
