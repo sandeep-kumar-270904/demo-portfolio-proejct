@@ -38,14 +38,13 @@ vi.mock("@/integrations/supabase/client", () => {
 // Stub Nav (uses scroll APIs not in jsdom).
 vi.mock("@/components/Nav", () => ({ default: () => <nav data-testid="nav" /> }));
 // Stub heavy admin tab modules (they all fetch on mount).
-const stubTab = (label: string) => ({ default: () => <div>{label}-TAB</div> });
-vi.mock("@/components/admin/ProjectsTab", () => stubTab("projects"));
-vi.mock("@/components/admin/SkillsTab", () => stubTab("skills"));
-vi.mock("@/components/admin/ExperienceTab", () => stubTab("experience"));
-vi.mock("@/components/admin/TestimonialsTab", () => stubTab("testimonials"));
-vi.mock("@/components/admin/BlogPostsTab", () => stubTab("blog_posts"));
-vi.mock("@/components/admin/MessagesTab", () => stubTab("messages"));
-vi.mock("@/components/admin/PostsTab", () => stubTab("posts"));
+vi.mock("@/components/admin/ProjectsTab", () => ({ default: () => <div>projects-TAB</div> }));
+vi.mock("@/components/admin/SkillsTab", () => ({ default: () => <div>skills-TAB</div> }));
+vi.mock("@/components/admin/ExperienceTab", () => ({ default: () => <div>experience-TAB</div> }));
+vi.mock("@/components/admin/TestimonialsTab", () => ({ default: () => <div>testimonials-TAB</div> }));
+vi.mock("@/components/admin/BlogPostsTab", () => ({ default: () => <div>blog_posts-TAB</div> }));
+vi.mock("@/components/admin/MessagesTab", () => ({ default: () => <div>messages-TAB</div> }));
+vi.mock("@/components/admin/PostsTab", () => ({ default: () => <div>posts-TAB</div> }));
 
 import Admin from "@/pages/Admin";
 
