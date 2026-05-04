@@ -5,6 +5,7 @@ import { z } from "zod";
 import MagneticButton from "./MagneticButton";
 import { supabase } from "@/integrations/supabase/client";
 import { SITE } from "@/config";
+import { useSiteCopy } from "@/hooks/useSiteCopy";
 
 const Schema = z.object({
   name: z.string().trim().min(1, "Name required").max(100),
