@@ -93,14 +93,17 @@ export default function SiteContentTab() {
   }, []);
 
   const grouped = useMemo(() => {
-    const map: Record<string, Row[]> = { Identity: [], Bio: [], Availability: [], Socials: [], Other: [] };
+    const map: Record<string, Row[]> = {};
+    Object.keys(GROUPS).forEach((g) => (map[g] = []));
+    map["Other"] = [];
     rows.forEach((r) => {
-      const g =
-        Object.keys(GROUPS).find((k) => GROUPS[k].includes(r.key)) ?? "Other";
+      const g = Object.keys(GROUPS).find((k) => GROUPS[k].includes(r.key)) ?? "Other";
       map[g].push(r);
     });
     return map;
   }, [rows]);
+
+  const groupOrder = useMemo(() => [...Object.keys(GROUPS), "Other"], []);
 
   async function saveAll() {
     const dirty = rows.filter((r) => edits[r.id] !== undefined && edits[r.id] !== r.value);
@@ -160,7 +163,7 @@ export default function SiteContentTab() {
         </div>
       </AdminPanel>
 
-      {(["Identity", "Bio", "Availability", "Socials", "Other"] as const).map((group) => {
+      {groupOrder.map((group) => {
         const list = grouped[group];
         if (!list?.length) return null;
         return (
