@@ -45,6 +45,7 @@ vi.mock("@/components/admin/TestimonialsTab", () => ({ default: () => <div>testi
 vi.mock("@/components/admin/BlogPostsTab", () => ({ default: () => <div>blog_posts-TAB</div> }));
 vi.mock("@/components/admin/MessagesTab", () => ({ default: () => <div>messages-TAB</div> }));
 vi.mock("@/components/admin/PostsTab", () => ({ default: () => <div>posts-TAB</div> }));
+vi.mock("@/components/admin/SiteContentTab", () => ({ default: () => <div>site-TAB</div> }));
 
 import Admin from "@/pages/Admin";
 
@@ -70,7 +71,7 @@ describe("/admin role gating", () => {
     await waitFor(() => {
       expect(screen.getByText(/Not an admin/i)).toBeInTheDocument();
     });
-    expect(screen.queryByText("projects-TAB")).toBeNull();
+    expect(screen.queryByText("site-TAB")).toBeNull();
   });
 
   it("admin users see the dashboard, tabs and the Reseed button", async () => {
@@ -79,7 +80,7 @@ describe("/admin role gating", () => {
     await waitFor(() => {
       expect(screen.getByText(/Admin Dashboard/i)).toBeInTheDocument();
     });
-    expect(screen.getByText("projects-TAB")).toBeInTheDocument();
+    expect(screen.getByText("site-TAB")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Reseed demo data/i })).toBeInTheDocument();
   });
 });
