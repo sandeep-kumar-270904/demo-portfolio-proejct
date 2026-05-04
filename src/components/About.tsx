@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Music2, MapPin, Globe2, Languages, Github, Linkedin, Twitter, Youtube, Instagram } from "lucide-react";
 import { SITE } from "@/config";
 import { usePersonalInfo } from "@/hooks/useSupabase";
+import { useSiteCopy } from "@/hooks/useSiteCopy";
 
 function Trait({ icon, title, desc }: { icon: string; title: string; desc: string }) {
   return (
@@ -58,6 +59,7 @@ const SOCIAL_DEFS: { key: string; label: string; Icon: typeof Github }[] = [
 
 export default function About() {
   const { data: info } = usePersonalInfo();
+  const { t } = useSiteCopy();
   const photoUrl = info?.profile_photo_url;
   const socials = SOCIAL_DEFS.filter((s) => info?.[s.key]);
 
@@ -114,22 +116,20 @@ export default function About() {
         <div className="revr">
           <div className="flex items-center gap-3">
             <span className="h-px w-8 bg-acid" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">01 — About</span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">{t("about_eyebrow")}</span>
           </div>
           <h2
             className="mt-6 font-syne font-extrabold leading-[1.05]"
             style={{ fontSize: "clamp(36px, 5.5vw, 70px)", letterSpacing: "-0.04em" }}
           >
-            <span className="text-ink">More than </span>
-            <span className="text-grad-acid">just code.</span>
+            <span className="text-ink">{t("about_title_a")}</span>
+            <span className="text-grad-acid">{t("about_title_b")}</span>
           </h2>
           <p className="mt-7 text-[16px] leading-[1.85] text-ink-2">
-            I'm a full stack engineer who takes ownership of the entire product. Before writing a single line,
-            I think in systems — data models, API contracts, edge cases, deployment strategies.
+            {t("about_body_1")}
           </p>
           <p className="mt-4 text-[16px] leading-[1.85] text-ink-2">
-            Currently pursuing B.Tech in CSE while shipping production-grade products for clients worldwide.
-            I don't wait to graduate to start building.
+            {t("about_body_2")}
           </p>
 
           {/* Quick facts */}
