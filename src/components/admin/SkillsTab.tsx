@@ -26,6 +26,8 @@ const empty: Omit<Row, "id"> = {
   sort_order: 0,
 };
 
+type SortKey = "sort_order" | "name" | "category" | "level";
+
 export default function SkillsTab() {
   const [rows, setRows] = useState<Row[]>([]);
   const [editing, setEditing] = useState<Row | null>(null);
@@ -33,15 +35,35 @@ export default function SkillsTab() {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
+  const [sortKey, setSortKey] = useState<SortKey>("sort_order");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const categories = Array.from(
     new Set(rows.map((r) => r.category).filter((c): c is string => Boolean(c))),
   );
-  const visible = rows.filter((r) => {
+  const filtered = rows.filter((r) => {
     if (categoryFilter !== "All" && r.category !== categoryFilter) return false;
     if (!search.trim()) return true;
     return r.name.toLowerCase().includes(search.toLowerCase());
   });
+  const sorted = [...filtered].sort((a, b) => {
+    const av = (a[sortKey] ?? "") as string | number;
+    const bv = (b[sortKey] ?? "") as string | number;
+    const cmp =
+      typeof av === "number" && typeof bv === "number"
+        ? av - bv
+        : String(av).localeCompare(String(bv));
+    return sortDir === "asc" ? cmp : -cmp;
+  });
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const visible = sorted.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, categoryFilter, sortKey, sortDir, pageSize]);
 
   async function load() {
     const { data } = await supabase
