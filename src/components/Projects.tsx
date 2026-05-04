@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useProjects } from "@/hooks/useSupabase";
+import { useSiteCopy } from "@/hooks/useSiteCopy";
 import type { DbProject } from "@/data/projectsFallback";
 import { getProjectVisual } from "@/data/projectVisuals";
 import ProjectModal from "./ProjectModal";
