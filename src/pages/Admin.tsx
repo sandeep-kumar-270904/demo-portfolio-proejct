@@ -11,9 +11,11 @@ import TestimonialsTab from "@/components/admin/TestimonialsTab";
 import BlogPostsTab from "@/components/admin/BlogPostsTab";
 import MessagesTab from "@/components/admin/MessagesTab";
 import PostsTab from "@/components/admin/PostsTab";
+import SiteContentTab from "@/components/admin/SiteContentTab";
 import { reseedAll } from "@/lib/reseed";
 
 const TABS = [
+  { key: "site", label: "Site Content" },
   { key: "projects", label: "Projects" },
   { key: "skills", label: "Skills" },
   { key: "experience", label: "Experience" },
