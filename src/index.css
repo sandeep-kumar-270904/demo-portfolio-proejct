@@ -126,15 +126,16 @@
   .border-soft-2 { border-color: hsl(var(--ink) / 0.10); }
 
   .reveal {
-    opacity: 0;
-    transform: translateY(36px);
+    opacity: 1;
+    transform: none;
     transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
   }
+  .reveal.is-pending { opacity: 0; transform: translateY(36px); }
   .reveal.is-visible { opacity: 1; transform: translateY(0); }
-  .revl { opacity: 0; transform: translateX(-50px); transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
-  .revl.is-visible { opacity: 1; transform: translateX(0); }
-  .revr { opacity: 0; transform: translateX(50px); transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
-  .revr.is-visible { opacity: 1; transform: translateX(0); }
+  .revl, .revr { opacity: 1; transform: none; transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
+  .revl.is-pending { opacity: 0; transform: translateX(-50px); }
+  .revr.is-pending { opacity: 0; transform: translateX(50px); }
+  .revl.is-visible, .revr.is-visible { opacity: 1; transform: translateX(0); }
 
   .marquee-mask {
     -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
