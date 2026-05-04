@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useSkills } from "@/hooks/useSupabase";
+import { useSiteCopy } from "@/hooks/useSiteCopy";
 import type { DbSkill } from "@/data/skillsFallback";
 
 type Tab = { key: string; label: string; icon: string };
