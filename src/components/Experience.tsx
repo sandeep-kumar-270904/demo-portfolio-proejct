@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useExperience } from "@/hooks/useSupabase";
+import { useSiteCopy } from "@/hooks/useSiteCopy";
 import type { DbExperience } from "@/data/experienceFallback";
 
 const colorMap: Record<string, { dot: string; text: string; pill: string; bg: string }> = {
