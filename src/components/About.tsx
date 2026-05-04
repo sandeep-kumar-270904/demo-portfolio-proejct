@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Music2, MapPin, Globe2, Languages } from "lucide-react";
+import { Music2, MapPin, Globe2, Languages, Github, Linkedin, Twitter, Youtube, Instagram } from "lucide-react";
 import { SITE } from "@/config";
+import { usePersonalInfo } from "@/hooks/useSupabase";
 
 function Trait({ icon, title, desc }: { icon: string; title: string; desc: string }) {
   return (
@@ -47,32 +48,38 @@ function NowPlaying() {
   );
 }
 
+const SOCIAL_DEFS: { key: string; label: string; Icon: typeof Github }[] = [
+  { key: "social_github", label: "GitHub", Icon: Github },
+  { key: "social_linkedin", label: "LinkedIn", Icon: Linkedin },
+  { key: "social_twitter", label: "Twitter", Icon: Twitter },
+  { key: "social_youtube", label: "YouTube", Icon: Youtube },
+  { key: "social_instagram", label: "Instagram", Icon: Instagram },
+];
+
 export default function About() {
+  const { data: info } = usePersonalInfo();
+  const photoUrl = info?.profile_photo_url;
+  const socials = SOCIAL_DEFS.filter((s) => info?.[s.key]);
+
   return (
     <section id="about" className="relative bg-base px-6 py-28 lg:py-40">
       <div className="mx-auto grid max-w-[1320px] grid-cols-1 gap-16 lg:grid-cols-2 lg:gap-24">
-        {/* Left — profile photo with glowing ring */}
-        <div className="revl relative flex justify-center lg:justify-start">
+        {/* Left — square profile photo */}
+        <div className="relative flex flex-col items-center lg:items-start">
           <div className="relative">
-            {/* Outer glow ring */}
-            <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-acid/40 via-cyan/20 to-plasma/30 blur-2xl opacity-60 animate-pulse-dot" />
-            {/* Rotating ring */}
-            <div
-              className="absolute -inset-2 rounded-full border-2 border-acid/40"
-              style={{ animation: "spin 12s linear infinite" }}
-            />
-            <div className="relative h-[300px] w-[300px] overflow-hidden rounded-full border-4 border-acid/60 bg-surface shadow-[0_0_60px_-10px_hsl(var(--acid)/0.5)] lg:h-[360px] lg:w-[360px]">
-              {/* Initials placeholder — swap for real <img> later */}
-              <div className="absolute inset-0 grid place-items-center bg-gradient-to-br from-void via-surface to-base">
-                <span className="font-syne text-[120px] font-extrabold text-grad-acid">
-                  ES
-                </span>
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-void/40 to-transparent" />
+            <div className="absolute -inset-3 rounded-2xl bg-gradient-to-br from-acid/30 via-cyan/10 to-plasma/20 blur-2xl opacity-60" />
+            <div className="relative h-[320px] w-[320px] overflow-hidden rounded-2xl border border-acid/40 bg-surface shadow-[0_20px_60px_-20px_hsl(var(--acid)/0.4)] lg:h-[380px] lg:w-[380px]">
+              {photoUrl ? (
+                <img src={photoUrl} alt={info?.name || "Profile"} className="h-full w-full object-cover" />
+              ) : (
+                <div className="absolute inset-0 grid place-items-center bg-gradient-to-br from-void via-surface to-base">
+                  <span className="font-syne text-[120px] font-extrabold text-grad-acid">ES</span>
+                </div>
+              )}
             </div>
 
             {/* Available badge */}
-            <div className="absolute -bottom-2 left-1/2 inline-flex -translate-x-1/2 items-center gap-2 rounded-full border border-acid/40 bg-void px-4 py-2 shadow-[0_10px_30px_-5px_rgba(0,255,179,0.4)]">
+            <div className="absolute -bottom-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-2 rounded-full border border-acid/40 bg-void px-4 py-2 shadow-[0_10px_30px_-5px_rgba(0,255,179,0.4)]">
               <span className="relative flex h-1.5 w-1.5">
                 <span className="absolute inline-flex h-full w-full animate-sonar rounded-full bg-acid" />
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-acid animate-pulse-dot" />
@@ -82,6 +89,25 @@ export default function About() {
               </span>
             </div>
           </div>
+
+          {/* Socials below photo */}
+          {socials.length > 0 && (
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+              {socials.map(({ key, label, Icon }) => (
+                <a
+                  key={key}
+                  href={info![key]}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={label}
+                  title={label}
+                  className="group grid h-11 w-11 place-items-center rounded-xl border border-soft-2 bg-card text-ink-2 transition-all hover:-translate-y-0.5 hover:border-acid/50 hover:text-acid hover:shadow-[0_10px_30px_-10px_hsl(var(--acid)/0.5)]"
+                >
+                  <Icon size={18} />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right text */}
