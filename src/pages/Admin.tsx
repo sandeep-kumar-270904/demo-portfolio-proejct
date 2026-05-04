@@ -31,7 +31,7 @@ export default function Admin() {
   const navigate = useNavigate();
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [tab, setTab] = useState<TabKey>("projects");
+  const [tab, setTab] = useState<TabKey>("site");
   const [reseeding, setReseeding] = useState(false);
 
   async function handleReseed() {
@@ -164,6 +164,7 @@ export default function Admin() {
           </div>
 
           <div className="mt-8">
+            {tab === "site" && <SiteContentTab />}
             {tab === "projects" && <ProjectsTab />}
             {tab === "skills" && <SkillsTab />}
             {tab === "experience" && <ExperienceTab />}
