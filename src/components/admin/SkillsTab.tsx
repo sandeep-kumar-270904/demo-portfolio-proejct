@@ -26,6 +26,8 @@ const empty: Omit<Row, "id"> = {
   sort_order: 0,
 };
 
+type SortKey = "sort_order" | "name" | "category" | "level";
+
 export default function SkillsTab() {
   const [rows, setRows] = useState<Row[]>([]);
   const [editing, setEditing] = useState<Row | null>(null);
@@ -33,15 +35,35 @@ export default function SkillsTab() {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
+  const [sortKey, setSortKey] = useState<SortKey>("sort_order");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const categories = Array.from(
     new Set(rows.map((r) => r.category).filter((c): c is string => Boolean(c))),
   );
-  const visible = rows.filter((r) => {
+  const filtered = rows.filter((r) => {
     if (categoryFilter !== "All" && r.category !== categoryFilter) return false;
     if (!search.trim()) return true;
     return r.name.toLowerCase().includes(search.toLowerCase());
   });
+  const sorted = [...filtered].sort((a, b) => {
+    const av = (a[sortKey] ?? "") as string | number;
+    const bv = (b[sortKey] ?? "") as string | number;
+    const cmp =
+      typeof av === "number" && typeof bv === "number"
+        ? av - bv
+        : String(av).localeCompare(String(bv));
+    return sortDir === "asc" ? cmp : -cmp;
+  });
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const visible = sorted.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, categoryFilter, sortKey, sortDir, pageSize]);
 
   async function load() {
     const { data } = await supabase
@@ -110,8 +132,11 @@ export default function SkillsTab() {
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[360px_1fr]">
       <div className="rounded-2xl border border-soft-2 bg-card p-4">
         <div className="mb-3 flex items-center justify-between">
-          <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-            {visible.length} / {rows.length}
+          <span
+            data-testid="skills-counter"
+            className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
+          >
+            {sorted.length} / {rows.length}
           </span>
           <button
             onClick={startNew}
@@ -121,6 +146,7 @@ export default function SkillsTab() {
           </button>
         </div>
         <input
+          aria-label="Search skills"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search skill…"
@@ -144,6 +170,40 @@ export default function SkillsTab() {
             );
           })}
         </div>
+        <div className="mb-3 grid grid-cols-3 gap-1.5">
+          <select
+            aria-label="Sort skills by"
+            value={sortKey}
+            onChange={(e) => setSortKey(e.target.value as SortKey)}
+            className="rounded-md border border-soft-2 bg-surface px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-ink-2"
+          >
+            <option value="sort_order">Order</option>
+            <option value="name">Name</option>
+            <option value="category">Category</option>
+            <option value="level">Level</option>
+          </select>
+          <select
+            aria-label="Sort direction"
+            value={sortDir}
+            onChange={(e) => setSortDir(e.target.value as "asc" | "desc")}
+            className="rounded-md border border-soft-2 bg-surface px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-ink-2"
+          >
+            <option value="asc">Asc</option>
+            <option value="desc">Desc</option>
+          </select>
+          <select
+            aria-label="Rows per page"
+            value={pageSize}
+            onChange={(e) => setPageSize(Number(e.target.value))}
+            className="rounded-md border border-soft-2 bg-surface px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-ink-2"
+          >
+            {[10, 25, 50, 100].map((n) => (
+              <option key={n} value={n}>
+                {n}/page
+              </option>
+            ))}
+          </select>
+        </div>
         <ul className="space-y-2">
           {visible.map((r) => (
             <li key={r.id} className="flex items-start gap-2">
@@ -166,6 +226,27 @@ export default function SkillsTab() {
             </li>
           ))}
         </ul>
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <button
+            aria-label="Previous page"
+            disabled={safePage <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            className="rounded-md border border-soft-2 bg-surface px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-ink-2 disabled:opacity-40"
+          >
+            ← Prev
+          </button>
+          <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+            Page {safePage} / {totalPages}
+          </span>
+          <button
+            aria-label="Next page"
+            disabled={safePage >= totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            className="rounded-md border border-soft-2 bg-surface px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-ink-2 disabled:opacity-40"
+          >
+            Next →
+          </button>
+        </div>
       </div>
 
       <AdminPanel>
