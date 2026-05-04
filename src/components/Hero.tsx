@@ -5,6 +5,7 @@ import { useCounter, useInView } from "@/hooks/useCounter";
 import MagneticButton from "./MagneticButton";
 import { SITE } from "@/config";
 import { usePersonalInfo } from "@/hooks/useSupabase";
+import { useSiteCopy } from "@/hooks/useSiteCopy";
 
 function Stat({ value, suffix = "", label, start }: { value: number; suffix?: string; label: string; start: boolean }) {
   const v = useCounter(value, 1400, start);
@@ -23,6 +24,7 @@ function Stat({ value, suffix = "", label, start }: { value: number; suffix?: st
 export default function Hero() {
   const { ref, inView } = useInView<HTMLDivElement>(0.2);
   const { data: info } = usePersonalInfo();
+  const { t } = useSiteCopy();
   const resumeUrl = info?.resume_url || SITE.resumeUrl;
 
   return (
@@ -59,7 +61,7 @@ export default function Hero() {
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-acid animate-pulse-dot" />
             </span>
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-acid">
-              Full Stack Engineer · India · Open to Work
+              {t("hero_eyebrow")}
             </span>
           </div>
 
@@ -72,19 +74,18 @@ export default function Hero() {
             }}
           >
             <span className="block overflow-hidden">
-              <span className="block animate-slide-up text-ink hover:text-glow-acid transition-all duration-700">EDHUBILLI</span>
+              <span className="block animate-slide-up text-ink hover:text-glow-acid transition-all duration-700">{t("hero_line1")}</span>
             </span>
             <span className="block overflow-hidden">
-              <span className="block animate-slide-up text-stroke" style={{ animationDelay: "0.1s" }}>SANDEEP</span>
+              <span className="block animate-slide-up text-stroke" style={{ animationDelay: "0.1s" }}>{t("hero_line2")}</span>
             </span>
             <span className="block overflow-hidden">
-              <span className="block animate-slide-up text-grad-acid" style={{ animationDelay: "0.2s" }}>KUMAR</span>
+              <span className="block animate-slide-up text-grad-acid" style={{ animationDelay: "0.2s" }}>{t("hero_line3")}</span>
             </span>
           </h1>
 
           <p className="mt-8 max-w-[540px] text-[17px] leading-[1.8] text-ink-2">
-            I architect full-stack systems that scale — from PostgreSQL schemas to Kubernetes clusters.
-            I turn complex business problems into clean, performant, production-grade products.
+            {t("hero_subtitle")}
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-4">
@@ -93,7 +94,7 @@ export default function Hero() {
                 href="#projects"
                 className="inline-flex items-center rounded-lg bg-acid px-6 py-3.5 font-syne text-[14px] font-bold text-void transition-all hover:-translate-y-0.5 hover:glow-acid"
               >
-                View Projects →
+                {t("hero_cta_primary")}
               </a>
             </MagneticButton>
             <a
@@ -101,13 +102,13 @@ export default function Hero() {
               download
               className="inline-flex items-center gap-2 rounded-lg border border-soft-2 bg-surface/60 px-6 py-3.5 font-syne text-[14px] font-bold text-ink transition-all hover:border-acid/50 hover:bg-acid/10"
             >
-              <Download size={15} /> Download Resume
+              <Download size={15} /> {t("hero_cta_secondary")}
             </a>
             <a
               href="#contact"
               className="inline-flex items-center rounded-lg border border-soft-2 bg-surface/60 px-6 py-3.5 font-syne text-[14px] font-bold text-ink transition-all hover:border-acid/50 hover:bg-acid/10"
             >
-              Let's Talk
+              {t("hero_cta_tertiary")}
             </a>
           </div>
 

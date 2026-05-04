@@ -1,4 +1,5 @@
 import { useTestimonials } from "@/hooks/useSupabase";
+import { useSiteCopy } from "@/hooks/useSiteCopy";
 import type { DbTestimonial } from "@/data/testimonialsFallback";
 
 const ACCENT_BG = ["bg-grad-acid", "bg-grad-fire", "bg-grad-plasma"];
@@ -41,6 +42,7 @@ function Card({ t, idx }: { t: DbTestimonial; idx: number }) {
 
 export default function Testimonials() {
   const { data: items = [] } = useTestimonials();
+  const { t: copy } = useSiteCopy();
 
   if (items.length === 0) return null;
 
@@ -53,15 +55,15 @@ export default function Testimonials() {
         <div className="reveal flex items-center gap-3">
           <span className="h-px w-8 bg-acid" />
           <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">
-            05 — Proof
+            {copy("testimonials_eyebrow")}
           </span>
         </div>
         <h2
           className="reveal mt-6 font-syne font-extrabold leading-[1.05]"
           style={{ fontSize: "clamp(36px, 5.5vw, 70px)", letterSpacing: "-0.04em" }}
         >
-          <span className="text-ink">What They </span>
-          <span className="text-grad-acid">Say</span>
+          <span className="text-ink">{copy("testimonials_title_a")}</span>
+          <span className="text-grad-acid">{copy("testimonials_title_b")}</span>
         </h2>
       </div>
 

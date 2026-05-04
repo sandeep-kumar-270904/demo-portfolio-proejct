@@ -28,9 +28,45 @@ const GROUPS: Record<string, string[]> = {
     "linkedin_url",
     "twitter_url",
   ],
+  Hero: [
+    "hero_eyebrow",
+    "hero_line1",
+    "hero_line2",
+    "hero_line3",
+    "hero_subtitle",
+    "hero_cta_primary",
+    "hero_cta_secondary",
+    "hero_cta_tertiary",
+  ],
+  About: ["about_eyebrow", "about_title_a", "about_title_b", "about_body_1", "about_body_2"],
+  "Projects Section": ["projects_eyebrow", "projects_title_a", "projects_title_b", "projects_empty"],
+  "Skills Section": ["skills_eyebrow", "skills_title_a", "skills_title_b"],
+  "Experience Section": [
+    "experience_eyebrow",
+    "experience_title_a",
+    "experience_title_b",
+    "experience_title_c",
+  ],
+  "Testimonials Section": ["testimonials_eyebrow", "testimonials_title_a", "testimonials_title_b"],
+  "Blog Section": ["blog_eyebrow", "blog_title_a", "blog_title_b"],
+  "Contact Section": [
+    "contact_eyebrow",
+    "contact_title_a",
+    "contact_title_b",
+    "contact_title_c",
+  ],
 };
 
-const LONG_KEYS = new Set(["bio_1", "bio_2", "bio_3", "tagline"]);
+const LONG_KEYS = new Set([
+  "bio_1",
+  "bio_2",
+  "bio_3",
+  "tagline",
+  "hero_subtitle",
+  "about_body_1",
+  "about_body_2",
+  "projects_empty",
+]);
 
 export default function SiteContentTab() {
   const [rows, setRows] = useState<Row[]>([]);
@@ -57,14 +93,17 @@ export default function SiteContentTab() {
   }, []);
 
   const grouped = useMemo(() => {
-    const map: Record<string, Row[]> = { Identity: [], Bio: [], Availability: [], Socials: [], Other: [] };
+    const map: Record<string, Row[]> = {};
+    Object.keys(GROUPS).forEach((g) => (map[g] = []));
+    map["Other"] = [];
     rows.forEach((r) => {
-      const g =
-        Object.keys(GROUPS).find((k) => GROUPS[k].includes(r.key)) ?? "Other";
+      const g = Object.keys(GROUPS).find((k) => GROUPS[k].includes(r.key)) ?? "Other";
       map[g].push(r);
     });
     return map;
   }, [rows]);
+
+  const groupOrder = useMemo(() => [...Object.keys(GROUPS), "Other"], []);
 
   async function saveAll() {
     const dirty = rows.filter((r) => edits[r.id] !== undefined && edits[r.id] !== r.value);
@@ -124,7 +163,7 @@ export default function SiteContentTab() {
         </div>
       </AdminPanel>
 
-      {(["Identity", "Bio", "Availability", "Socials", "Other"] as const).map((group) => {
+      {groupOrder.map((group) => {
         const list = grouped[group];
         if (!list?.length) return null;
         return (

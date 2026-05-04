@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useSkills } from "@/hooks/useSupabase";
+import { useSiteCopy } from "@/hooks/useSiteCopy";
 import type { DbSkill } from "@/data/skillsFallback";
 
 type Tab = { key: string; label: string; icon: string };
@@ -62,6 +63,7 @@ function SkillBar({ s, active }: { s: DbSkill; active: boolean }) {
 export default function Skills() {
   const [active, setActive] = useState(0);
   const { data: rows = [] } = useSkills();
+  const { t: copy } = useSiteCopy();
 
   // Build per-category groups using TAB_DEFS order, only showing tabs that have data.
   const tabs = useMemo(() => {
@@ -80,14 +82,14 @@ export default function Skills() {
       <div className="mx-auto max-w-[1320px]">
         <div className="reveal flex items-center gap-3">
           <span className="h-px w-8 bg-acid" />
-          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">03 — Arsenal</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">{copy("skills_eyebrow")}</span>
         </div>
         <h2
           className="reveal mt-6 font-syne font-extrabold leading-[1.05]"
           style={{ fontSize: "clamp(36px, 5.5vw, 70px)", letterSpacing: "-0.04em" }}
         >
-          <span className="text-ink">Technical </span>
-          <span className="text-grad-acid">Stack</span>
+          <span className="text-ink">{copy("skills_title_a")}</span>
+          <span className="text-grad-acid">{copy("skills_title_b")}</span>
         </h2>
 
         <div className="mt-14 grid grid-cols-1 gap-8 lg:grid-cols-[280px_1fr]">

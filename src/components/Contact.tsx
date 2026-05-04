@@ -5,6 +5,7 @@ import { z } from "zod";
 import MagneticButton from "./MagneticButton";
 import { supabase } from "@/integrations/supabase/client";
 import { SITE } from "@/config";
+import { useSiteCopy } from "@/hooks/useSiteCopy";
 
 const Schema = z.object({
   name: z.string().trim().min(1, "Name required").max(100),
@@ -29,6 +30,7 @@ export default function Contact() {
   const [budgetIdx, setBudgetIdx] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sending, setSending] = useState(false);
+  const { t } = useSiteCopy();
 
   const copyEmail = async () => {
     try {
@@ -99,7 +101,7 @@ export default function Contact() {
       <div className="relative mx-auto max-w-[1100px] text-center">
         <div className="reveal flex items-center justify-center gap-3">
           <span className="h-px w-8 bg-acid" />
-          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">07 — Let's Talk</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">{t("contact_eyebrow")}</span>
           <span className="h-px w-8 bg-acid" />
         </div>
 
@@ -107,9 +109,9 @@ export default function Contact() {
           className="reveal mt-8 font-syne font-extrabold"
           style={{ fontSize: "clamp(48px, 8.5vw, 116px)", letterSpacing: "-0.055em", lineHeight: 0.88 }}
         >
-          <span className="block text-ink">Let's Build</span>
-          <span className="block text-stroke">Something</span>
-          <span className="block text-grad-acid">Legendary.</span>
+          <span className="block text-ink">{t("contact_title_a")}</span>
+          <span className="block text-stroke">{t("contact_title_b")}</span>
+          <span className="block text-grad-acid">{t("contact_title_c")}</span>
         </h2>
 
         <button

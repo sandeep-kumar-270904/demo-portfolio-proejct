@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useExperience } from "@/hooks/useSupabase";
+import { useSiteCopy } from "@/hooks/useSiteCopy";
 import type { DbExperience } from "@/data/experienceFallback";
 
 const colorMap: Record<string, { dot: string; text: string; pill: string; bg: string }> = {
@@ -29,6 +30,7 @@ function badgeFor(item: DbExperience): string {
 export default function Experience() {
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["key"]>("all");
   const { data: rows = [] } = useExperience();
+  const { t } = useSiteCopy();
 
   const items = useMemo(() => {
     const list = filter === "all" ? rows : rows.filter((i) => i.type === filter);
@@ -62,15 +64,15 @@ export default function Experience() {
       <div className="mx-auto max-w-[1320px]">
         <div className="reveal flex items-center gap-3">
           <span className="h-px w-8 bg-acid" />
-          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">04 — Journey</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">{t("experience_eyebrow")}</span>
         </div>
         <h2
           className="reveal mt-6 font-syne font-extrabold leading-[1.05]"
           style={{ fontSize: "clamp(36px, 5.5vw, 70px)", letterSpacing: "-0.04em" }}
         >
-          <span className="text-ink">Milestones </span>
-          <span className="text-stroke">&amp;</span>{" "}
-          <span className="text-grad-acid">Experience</span>
+          <span className="text-ink">{t("experience_title_a")}</span>
+          <span className="text-stroke">{t("experience_title_b")}</span>{" "}
+          <span className="text-grad-acid">{t("experience_title_c")}</span>
         </h2>
 
         <div className="reveal mt-10 inline-flex rounded-full border border-soft-2 bg-card p-1">
