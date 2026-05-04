@@ -132,6 +132,7 @@ export default function Projects() {
   const [active, setActive] = useState<Project | null>(null);
   const [filter, setFilter] = useState<string>("All");
   const { data: dbRows = [] } = useProjects();
+  const { t } = useSiteCopy();
 
   const projects = useMemo(() => dbRows.map((r, i) => toProject(r, i)), [dbRows]);
 
@@ -146,14 +147,14 @@ export default function Projects() {
       <div className="mx-auto max-w-[1320px]">
         <div className="reveal flex items-center gap-3">
           <span className="h-px w-8 bg-acid" />
-          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">02 — Work</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">{t("projects_eyebrow")}</span>
         </div>
         <h2
           className="reveal mt-6 font-syne font-extrabold leading-[1.05]"
           style={{ fontSize: "clamp(36px, 5.5vw, 70px)", letterSpacing: "-0.04em" }}
         >
-          <span className="text-ink">Selected </span>
-          <span className="text-grad-fire">Projects</span>
+          <span className="text-ink">{t("projects_title_a")}</span>
+          <span className="text-grad-fire">{t("projects_title_b")}</span>
         </h2>
 
         {/* Filter tabs */}
@@ -183,7 +184,7 @@ export default function Projects() {
         {filtered.length === 0 ? (
           <div className="mt-14 rounded-2xl border border-dashed border-soft-2 bg-card p-16 text-center">
             <p className="font-mono text-[12px] uppercase tracking-widest text-muted-foreground">
-              No projects in this category yet.
+              {t("projects_empty")}
             </p>
           </div>
         ) : (
