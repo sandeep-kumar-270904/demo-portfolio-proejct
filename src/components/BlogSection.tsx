@@ -1,5 +1,6 @@
 import { ArrowUpRight, Clock, Calendar } from "lucide-react";
 import { useBlogPosts } from "@/hooks/useSupabase";
+import { useSiteCopy } from "@/hooks/useSiteCopy";
 
 /**
  * External-link blog highlights. Reads from blog_posts table.
@@ -7,6 +8,7 @@ import { useBlogPosts } from "@/hooks/useSupabase";
  */
 export default function BlogSection() {
   const { data: posts = [], isLoading } = useBlogPosts();
+  const { t } = useSiteCopy();
 
   if (!isLoading && posts.length === 0) return null;
 
@@ -16,15 +18,15 @@ export default function BlogSection() {
         <div className="reveal flex items-center gap-3">
           <span className="h-px w-8 bg-acid" />
           <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">
-            06 — Writing
+            {t("blog_eyebrow")}
           </span>
         </div>
         <h2
           className="reveal mt-6 font-syne font-extrabold leading-[1.05]"
           style={{ fontSize: "clamp(36px, 5.5vw, 70px)", letterSpacing: "-0.04em" }}
         >
-          <span className="text-ink">Recent </span>
-          <span className="text-grad-acid">Writing</span>
+          <span className="text-ink">{t("blog_title_a")}</span>
+          <span className="text-grad-acid">{t("blog_title_b")}</span>
         </h2>
 
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
