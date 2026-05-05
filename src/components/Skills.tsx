@@ -43,17 +43,17 @@ function SkillBar({ s, active }: { s: DbSkill; active: boolean }) {
           <span className="font-mono text-[11px] text-ink-2">{level}%</span>
         </div>
       </div>
-      <div className="relative mt-4 h-1.5 w-full overflow-hidden rounded-full bg-void">
+      <div className="group/bar relative mt-4 h-1.5 w-full overflow-hidden rounded-full bg-void">
         <div
           key={active ? "on" : "off"}
-          className="relative h-full rounded-full bg-acid"
+          className="relative h-full rounded-full bg-acid transition-shadow duration-300 group-hover/bar:shadow-[0_0_12px_hsl(var(--acid)/0.6)]"
           style={{
             width: active ? `${level}%` : "0%",
             transition: "width 1.1s cubic-bezier(0.16, 1, 0.3, 1)",
-            boxShadow: "0 0 12px hsl(var(--acid)/0.6)",
+            boxShadow: "0 0 12px hsl(var(--acid)/0.5)",
           }}
         >
-          <span className="absolute inset-y-0 right-0 w-8 bg-gradient-to-r from-transparent to-white/40 blur-sm" />
+          <span className="absolute inset-0 animate-shimmer bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.35)_50%,transparent_100%)] bg-[length:200%_100%]" />
         </div>
       </div>
     </div>
