@@ -35,6 +35,7 @@ const Index = () => {
     <>
       <EntryAnimation />
       <Cursor />
+      <CommandPalette />
       <ScrollProgress />
       <AvailabilityBanner />
       <Nav />
