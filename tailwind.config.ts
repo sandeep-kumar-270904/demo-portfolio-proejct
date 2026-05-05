@@ -107,6 +107,8 @@ export default {
         "mesh-shift": "mesh-shift 16s ease-in-out infinite",
         "scroll-wheel": "scroll-wheel 1.6s ease-in-out infinite",
         "toast-in": "toast-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
+        "shimmer": "shimmer 2.6s ease-in-out infinite",
+        "cta-pulse": "cta-pulse 2s ease-out infinite",
       },
     },
   },
