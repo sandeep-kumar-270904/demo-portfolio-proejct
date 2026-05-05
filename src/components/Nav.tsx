@@ -37,33 +37,31 @@ export default function Nav() {
 
   return (
     <>
+      {/* spacer so the fixed capsule never sits on top of content */}
+      <div aria-hidden className="h-[80px] w-full" />
       <header
-        className={`fixed left-1/2 z-50 h-[58px] -translate-x-1/2 transition-all duration-[400ms] [transition-timing-function:cubic-bezier(0.4,0,0.2,1)] ${
+        className={`fixed left-1/2 top-4 z-50 h-[46px] -translate-x-1/2 rounded-full border border-white/10 bg-void/70 backdrop-blur-2xl backdrop-saturate-150 transition-all duration-[400ms] [transition-timing-function:cubic-bezier(0.4,0,0.2,1)] ${
           scrolled
-            ? "top-4 w-auto max-w-[min(960px,calc(100vw-32px))] rounded-full border border-white/10 bg-void/65 px-2 backdrop-blur-2xl backdrop-saturate-150 shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_0_1px_hsl(var(--acid)/0.06)]"
-            : "top-0 w-full max-w-[1320px] bg-transparent px-0"
+            ? "shadow-[0_8px_32px_rgba(0,0,0,0.45),0_0_0_1px_hsl(var(--acid)/0.08)]"
+            : "shadow-[0_4px_18px_rgba(0,0,0,0.25)]"
         }`}
       >
-        <nav className={`flex h-full items-center justify-between gap-6 ${scrolled ? "px-4" : "px-6"}`}>
-          <a href="#top" className="font-syne text-[18px] font-extrabold tracking-tight">
-            SANDEEP<span className="text-acid text-glow-acid">.</span>
-          </a>
-
-          <ul className="hidden items-center gap-9 lg:flex">
+        <nav className="flex h-full items-center gap-1 px-2.5">
+          <ul className="hidden items-center gap-1 lg:flex">
             {links.map((l) => {
               const isActive = active === l.id;
               return (
                 <li key={l.href}>
                   <a
                     href={l.href}
-                    className={`group relative text-[14px] font-medium transition-colors ${
+                    className={`group relative inline-flex items-center rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
                       isActive ? "text-acid" : "text-muted-foreground hover:text-ink"
                     }`}
                   >
                     {l.label}
                     <span
-                      className={`absolute -bottom-1 left-0 h-px w-full origin-left bg-acid transition-transform duration-300 ${
-                        isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                      className={`absolute -bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-acid glow-acid-sm transition-opacity duration-300 ${
+                        isActive ? "opacity-100" : "opacity-0"
                       }`}
                     />
                   </a>
@@ -72,10 +70,10 @@ export default function Nav() {
             })}
           </ul>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 lg:ml-2 lg:border-l lg:border-white/10 lg:pl-2">
             <a
               href="#contact"
-              className="hidden md:inline-flex items-center rounded-lg bg-acid px-4 py-2 font-syne text-[13px] font-bold text-void transition-all hover:-translate-y-0.5 hover:glow-acid"
+              className="hidden md:inline-flex items-center rounded-full bg-acid px-3.5 py-1.5 font-syne text-[12px] font-bold text-void transition-all hover:-translate-y-0.5 hover:glow-acid"
             >
               Hire Me →
             </a>
@@ -83,9 +81,9 @@ export default function Nav() {
             <button
               aria-label="Open menu"
               onClick={() => setOpen(true)}
-              className="lg:hidden text-ink"
+              className="lg:hidden px-2 text-ink"
             >
-              <Menu size={22} />
+              <Menu size={20} />
             </button>
           </div>
         </nav>
