@@ -105,36 +105,47 @@ export default function GitHub() {
             </div>
           </div>
 
-          {/* Right — Heatmap */}
-          <div className="rounded-2xl border border-soft-2 bg-card p-6">
-            <div className="flex items-center justify-between">
-              <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-                Contribution Graph — {new Date().getFullYear()}
+          {/* Right — Heatmap in terminal IDE frame */}
+          <div className="overflow-hidden rounded-2xl border border-soft-2 bg-card">
+            <div className="flex items-center justify-between bg-[#1a1a1a] px-4 py-2.5">
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full" style={{ background: "#ff5f57" }} />
+                <span className="h-3 w-3 rounded-full" style={{ background: "#febc2e" }} />
+                <span className="h-3 w-3 rounded-full" style={{ background: "#28c840" }} />
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-mono text-[9px] text-muted-foreground">less</span>
-                {HEAT_COLORS.map((c, i) => (
-                  <span key={i} className="h-2.5 w-2.5 rounded-sm" style={{ background: c }} />
-                ))}
-                <span className="font-mono text-[9px] text-muted-foreground">more</span>
-              </div>
+              <span className="font-mono text-[11px] text-muted-foreground">~/sandeep/github-activity</span>
+              <span className="w-12" />
             </div>
+            <div className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+                  Contribution Graph — {new Date().getFullYear()}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-mono text-[9px] text-muted-foreground">less</span>
+                  {HEAT_COLORS.map((c, i) => (
+                    <span key={i} className="h-2.5 w-2.5 rounded-sm" style={{ background: c }} />
+                  ))}
+                  <span className="font-mono text-[9px] text-muted-foreground">more</span>
+                </div>
+              </div>
 
-            <div
-              className="mt-5 grid gap-[3px] overflow-hidden"
-              style={{ gridTemplateColumns: "repeat(53, minmax(0, 1fr))", gridAutoFlow: "column", gridTemplateRows: "repeat(7, 1fr)" }}
-            >
-              {cells.map((v, i) => (
-                <div
-                  key={i}
-                  className="aspect-square rounded-[2px] transition-transform duration-200 hover:scale-150"
-                  style={{
-                    background: HEAT_COLORS[v],
-                    opacity: inView ? 1 : 0,
-                    transition: `opacity 0.4s ease ${(i % 60) * 6}ms, transform 0.2s`,
-                  }}
-                />
-              ))}
+              <div
+                className="mt-5 grid gap-[3px] overflow-hidden"
+                style={{ gridTemplateColumns: "repeat(53, minmax(0, 1fr))", gridAutoFlow: "column", gridTemplateRows: "repeat(7, 1fr)" }}
+              >
+                {cells.map((v, i) => (
+                  <div
+                    key={i}
+                    className="aspect-square rounded-[2px] transition-transform duration-200 hover:scale-150"
+                    style={{
+                      background: HEAT_COLORS[v],
+                      opacity: inView ? 1 : 0,
+                      transition: `opacity 0.4s ease ${(i % 60) * 6}ms, transform 0.2s`,
+                    }}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
