@@ -38,6 +38,11 @@ export default function Footer() {
           <div className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
             Made in India 🇮🇳
           </div>
+          <div className="mt-3 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            <span>Press</span>
+            <kbd className="rounded border border-soft-2 bg-card px-1.5 py-0.5 text-ink-2">⌘</kbd>
+            <kbd className="rounded border border-soft-2 bg-card px-1.5 py-0.5 text-ink-2">K</kbd>
+          </div>
         </div>
       </div>
     </footer>
