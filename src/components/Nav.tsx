@@ -29,7 +29,7 @@ export default function Nav() {
   );
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
+    const onScroll = () => setScrolled(window.scrollY > 60);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -38,11 +38,13 @@ export default function Nav() {
   return (
     <>
       <header
-        className={`sticky top-0 z-50 h-[66px] transition-all duration-300 ${
-          scrolled ? "bg-void/90 backdrop-blur-xl border-b border-soft-2" : "bg-transparent"
+        className={`fixed left-1/2 z-50 h-[58px] -translate-x-1/2 transition-all duration-[400ms] [transition-timing-function:cubic-bezier(0.4,0,0.2,1)] ${
+          scrolled
+            ? "top-4 w-auto max-w-[min(960px,calc(100vw-32px))] rounded-full border border-white/10 bg-void/65 px-2 backdrop-blur-2xl backdrop-saturate-150 shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_0_1px_hsl(var(--acid)/0.06)]"
+            : "top-0 w-full max-w-[1320px] bg-transparent px-0"
         }`}
       >
-        <nav className="mx-auto flex h-full max-w-[1320px] items-center justify-between px-6">
+        <nav className={`flex h-full items-center justify-between gap-6 ${scrolled ? "px-4" : "px-6"}`}>
           <a href="#top" className="font-syne text-[18px] font-extrabold tracking-tight">
             SANDEEP<span className="text-acid text-glow-acid">.</span>
           </a>

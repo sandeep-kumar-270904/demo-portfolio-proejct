@@ -90,6 +90,8 @@ export default {
         "mesh-shift": { "0%, 100%": { backgroundPosition: "0% 0%, 100% 100%" }, "50%": { backgroundPosition: "100% 50%, 0% 50%" } },
         "scroll-wheel": { "0%": { transform: "translateY(0)", opacity: "1" }, "100%": { transform: "translateY(14px)", opacity: "0" } },
         "toast-in": { "0%": { transform: "translateY(100%) scale(0.9)", opacity: "0" }, "60%": { transform: "translateY(-8px) scale(1.02)", opacity: "1" }, "100%": { transform: "translateY(0) scale(1)", opacity: "1" } },
+        "shimmer": { "0%": { backgroundPosition: "200% 0" }, "100%": { backgroundPosition: "-200% 0" } },
+        "cta-pulse": { "0%, 100%": { boxShadow: "0 0 0 0 hsl(var(--acid)/0.4)" }, "70%": { boxShadow: "0 0 0 16px hsl(var(--acid)/0)" } },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -105,6 +107,8 @@ export default {
         "mesh-shift": "mesh-shift 16s ease-in-out infinite",
         "scroll-wheel": "scroll-wheel 1.6s ease-in-out infinite",
         "toast-in": "toast-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
+        "shimmer": "shimmer 2.6s ease-in-out infinite",
+        "cta-pulse": "cta-pulse 2s ease-out infinite",
       },
     },
   },
