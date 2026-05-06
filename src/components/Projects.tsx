@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useProjects } from "@/hooks/useSupabase";
 import { useSiteCopy } from "@/hooks/useSiteCopy";
 import type { DbProject } from "@/data/projectsFallback";
 import { getProjectVisual } from "@/data/projectVisuals";
-import ProjectModal from "./ProjectModal";
 import type { Project, ProjectCategory } from "@/data/projects";
 
 const CATEGORIES: ("All" | string)[] = ["All", "SaaS", "E-Commerce", "Dev Tools", "DevOps"];
@@ -38,10 +38,10 @@ function toProject(p: DbProject, idx: number): Project {
   };
 }
 
-function FeaturedCard({ p, onOpen }: { p: Project; onOpen: () => void }) {
+function FeaturedCard({ p }: { p: Project }) {
   return (
-    <button
-      onClick={onOpen}
+    <Link
+      to={`/projects/${p.slug}`}
       className="reveal group relative block w-full overflow-hidden rounded-2xl border border-soft-2 bg-card text-left transition-all duration-500 hover:border-acid/40 hover:shadow-[0_30px_80px_-20px_rgba(0,255,179,0.25)]"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2">
@@ -90,14 +90,14 @@ function FeaturedCard({ p, onOpen }: { p: Project; onOpen: () => void }) {
           </div>
         </div>
       </div>
-    </button>
+    </Link>
   );
 }
 
-function GridCard({ p, onOpen, idx }: { p: Project; onOpen: () => void; idx: number }) {
+function GridCard({ p, idx }: { p: Project; idx: number }) {
   return (
-    <button
-      onClick={onOpen}
+    <Link
+      to={`/projects/${p.slug}`}
       className="reveal group relative block overflow-hidden rounded-2xl border border-soft-2 bg-card text-left transition-all duration-500 hover:-translate-y-1.5 hover:border-acid/40 hover:shadow-[0_25px_60px_-20px_rgba(0,255,179,0.2)]"
       style={{ transitionDelay: `${idx * 60}ms` }}
     >
@@ -124,12 +124,11 @@ function GridCard({ p, onOpen, idx }: { p: Project; onOpen: () => void; idx: num
           ))}
         </div>
       </div>
-    </button>
+    </Link>
   );
 }
 
 export default function Projects() {
-  const [active, setActive] = useState<Project | null>(null);
   const [filter, setFilter] = useState<string>("All");
   const { data: dbRows = [] } = useProjects();
   const { t } = useSiteCopy();
@@ -190,20 +189,18 @@ export default function Projects() {
         ) : (
           <>
             <div className="mt-14">
-              <FeaturedCard key={featured.slug} p={featured} onOpen={() => setActive(featured)} />
+              <FeaturedCard key={featured.slug} p={featured} />
             </div>
             {rest.length > 0 && (
               <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {rest.map((p, i) => (
-                  <GridCard key={p.slug} p={p} onOpen={() => setActive(p)} idx={i} />
+                  <GridCard key={p.slug} p={p} idx={i} />
                 ))}
               </div>
             )}
           </>
         )}
       </div>
-
-      <ProjectModal project={active} onClose={() => setActive(null)} />
     </section>
   );
 }

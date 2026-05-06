@@ -10,6 +10,7 @@ import {
   AdminSecondaryButton,
   AdminTextarea,
 } from "./AdminUI";
+import ImageUploader from "./ImageUploader";
 
 type Row = { id: string; key: string; value: string };
 
@@ -173,13 +174,42 @@ export default function SiteContentTab() {
               {list.map((r) => {
                 const current = edits[r.id] ?? r.value;
                 const Field = LONG_KEYS.has(r.key) ? AdminTextarea : AdminInput;
+                const isPhoto = r.key === "profile_photo_url";
+                const isResume = r.key === "resume_url";
                 return (
                   <div key={r.id} className="relative">
-                    <Field
-                      label={r.key}
-                      value={current}
-                      onChange={(v) => setEdits((e) => ({ ...e, [r.id]: v }))}
-                    />
+                    {isPhoto || isResume ? (
+                      <>
+                        <ImageUploader
+                          bucket={isPhoto ? "avatars" : "resume"}
+                          label={r.key}
+                          value={current}
+                          prefix={isPhoto ? "profile" : "resume"}
+                          accept={
+                            isResume
+                              ? "application/pdf"
+                              : "image/jpeg,image/png,image/webp"
+                          }
+                          onChange={(url) =>
+                            setEdits((e) => ({ ...e, [r.id]: url }))
+                          }
+                        />
+                        <input
+                          aria-label={`${r.key} url`}
+                          value={current}
+                          onChange={(e) =>
+                            setEdits((ed) => ({ ...ed, [r.id]: e.target.value }))
+                          }
+                          className="mt-2 w-full rounded-md border border-soft-2 bg-surface px-2 py-1 font-mono text-[10px] text-ink-2"
+                        />
+                      </>
+                    ) : (
+                      <Field
+                        label={r.key}
+                        value={current}
+                        onChange={(v) => setEdits((e) => ({ ...e, [r.id]: v }))}
+                      />
+                    )}
                     <button
                       onClick={() => removeField(r.id)}
                       title="Delete field"
