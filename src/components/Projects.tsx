@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useProjects } from "@/hooks/useSupabase";
 import { useSiteCopy } from "@/hooks/useSiteCopy";
 import type { DbProject } from "@/data/projectsFallback";
 import { getProjectVisual } from "@/data/projectVisuals";
-import ProjectModal from "./ProjectModal";
 import type { Project, ProjectCategory } from "@/data/projects";
 
 const CATEGORIES: ("All" | string)[] = ["All", "SaaS", "E-Commerce", "Dev Tools", "DevOps"];
@@ -38,10 +38,10 @@ function toProject(p: DbProject, idx: number): Project {
   };
 }
 
-function FeaturedCard({ p, onOpen }: { p: Project; onOpen: () => void }) {
+function FeaturedCard({ p }: { p: Project }) {
   return (
-    <button
-      onClick={onOpen}
+    <Link
+      to={`/projects/${p.slug}`}
       className="reveal group relative block w-full overflow-hidden rounded-2xl border border-soft-2 bg-card text-left transition-all duration-500 hover:border-acid/40 hover:shadow-[0_30px_80px_-20px_rgba(0,255,179,0.25)]"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2">
