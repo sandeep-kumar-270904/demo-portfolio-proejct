@@ -9,6 +9,7 @@ import {
   AdminSecondaryButton,
   AdminTextarea,
 } from "./AdminUI";
+import ImageUploader from "./ImageUploader";
 
 type Row = {
   id: string;
@@ -359,12 +360,21 @@ export default function ProjectsTab() {
             onChange={(v) => setDraft({ ...draft, github_url: v })}
           />
         </div>
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="mt-4">
+          <ImageUploader
+            bucket="project-images"
+            label="Project image (overrides built-in art)"
+            value={draft.image_url ?? ""}
+            prefix={(draft.title || "project").toLowerCase().replace(/\s+/g, "-")}
+            onChange={(url) => setDraft({ ...draft, image_url: url })}
+          />
           <AdminInput
-            label="Image URL (overrides built-in art)"
+            label="…or paste an image URL"
             value={draft.image_url ?? ""}
             onChange={(v) => setDraft({ ...draft, image_url: v })}
           />
+        </div>
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <AdminInput
             label="Sort order"
             type="number"
