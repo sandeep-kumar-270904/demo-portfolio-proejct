@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Search, Mail, Copy, Archive, ArchiveRestore, Check } from "lucide-react";
+import { Search, Mail, Copy, Archive, ArchiveRestore, Check, ChevronLeft, ChevronRight, Bell } from "lucide-react";
 
 type Row = {
   id: string;
@@ -12,21 +12,11 @@ type Row = {
   message: string | null;
   budget_range: string | null;
   created_at: string;
+  read_at: string | null;
+  archived_at: string | null;
 };
 
-const READ_KEY = "admin.messages.read";
-const ARCHIVED_KEY = "admin.messages.archived";
-
-function loadSet(key: string): Set<string> {
-  try {
-    return new Set(JSON.parse(localStorage.getItem(key) ?? "[]"));
-  } catch {
-    return new Set();
-  }
-}
-function saveSet(key: string, s: Set<string>) {
-  localStorage.setItem(key, JSON.stringify([...s]));
-}
+const PAGE_SIZE = 20;
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -45,69 +35,148 @@ export default function MessagesTab() {
   const [open, setOpen] = useState<Row | null>(null);
   const [query, setQuery] = useState("");
   const [view, setView] = useState<"inbox" | "unread" | "archived">("inbox");
-  const [readSet, setReadSet] = useState<Set<string>>(() => loadSet(READ_KEY));
-  const [archivedSet, setArchivedSet] = useState<Set<string>>(() => loadSet(ARCHIVED_KEY));
+  const [page, setPage] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [unreadTotal, setUnreadTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [newCount, setNewCount] = useState(0);
+  const firstLoadRef = useRef(true);
 
-  async function load() {
-    const { data, error } = await supabase
+  async function loadUnreadCount() {
+    const { count } = await supabase
       .from("contact_messages")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) toast.error(error.message);
-    else setRows((data as unknown as Row[]) ?? []);
+      .select("id", { count: "exact", head: true })
+      .is("read_at", null)
+      .is("archived_at", null);
+    setUnreadTotal(count ?? 0);
   }
+
+  async function load(opts?: { silent?: boolean }) {
+    if (!opts?.silent) setLoading(true);
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+    let q = supabase
+      .from("contact_messages")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (view === "archived") q = q.not("archived_at", "is", null);
+    else q = q.is("archived_at", null);
+    if (view === "unread") q = q.is("read_at", null);
+
+    if (query.trim()) {
+      const like = `%${query.trim()}%`;
+      q = q.or(`name.ilike.${like},email.ilike.${like},subject.ilike.${like},message.ilike.${like},body.ilike.${like}`);
+    }
+
+    const { data, error, count } = await q;
+    if (error) toast.error(error.message);
+    else {
+      setRows((data as unknown as Row[]) ?? []);
+      setTotal(count ?? 0);
+    }
+    setLoading(false);
+    loadUnreadCount();
+  }
+
+  useEffect(() => {
+    setPage(0);
+  }, [view, query]);
+
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, query, page]);
+
+  // Realtime subscription
+  useEffect(() => {
+    const ch = supabase
+      .channel("contact_messages_inbox")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "contact_messages" },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            if (!firstLoadRef.current) {
+              setNewCount((n) => n + 1);
+              const row = payload.new as Row;
+              toast.message("New message", { description: `${row.name} — ${row.subject ?? row.email}` });
+            }
+            loadUnreadCount();
+          } else {
+            // UPDATE / DELETE — refresh quietly
+            load({ silent: true });
+          }
+        },
+      )
+      .subscribe();
+    firstLoadRef.current = false;
+    return () => {
+      supabase.removeChannel(ch);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function markRead(id: string) {
-    if (readSet.has(id)) return;
-    const next = new Set(readSet).add(id);
-    setReadSet(next);
-    saveSet(READ_KEY, next);
+  async function markRead(row: Row) {
+    if (row.read_at) return;
+    const { error } = await supabase
+      .from("contact_messages")
+      .update({ read_at: new Date().toISOString() })
+      .eq("id", row.id);
+    if (error) return toast.error(error.message);
+    setRows((rs) => rs.map((r) => (r.id === row.id ? { ...r, read_at: new Date().toISOString() } : r)));
+    if (open?.id === row.id) setOpen({ ...row, read_at: new Date().toISOString() });
+    loadUnreadCount();
   }
-  function toggleArchive(id: string) {
-    const next = new Set(archivedSet);
-    next.has(id) ? next.delete(id) : next.add(id);
-    setArchivedSet(next);
-    saveSet(ARCHIVED_KEY, next);
+
+  async function toggleArchive(row: Row) {
+    const next = row.archived_at ? null : new Date().toISOString();
+    const { error } = await supabase.from("contact_messages").update({ archived_at: next }).eq("id", row.id);
+    if (error) return toast.error(error.message);
+    toast.success(next ? "Archived" : "Unarchived");
+    if (open?.id === row.id) setOpen({ ...row, archived_at: next });
+    load({ silent: true });
   }
-  function markAllRead() {
-    const next = new Set([...readSet, ...rows.map((r) => r.id)]);
-    setReadSet(next);
-    saveSet(READ_KEY, next);
+
+  async function markAllRead() {
+    const { error } = await supabase
+      .from("contact_messages")
+      .update({ read_at: new Date().toISOString() })
+      .is("read_at", null)
+      .is("archived_at", null);
+    if (error) return toast.error(error.message);
     toast.success("All marked read");
+    load({ silent: true });
   }
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return rows.filter((r) => {
-      const archived = archivedSet.has(r.id);
-      const unread = !readSet.has(r.id);
-      if (view === "archived" && !archived) return false;
-      if (view !== "archived" && archived) return false;
-      if (view === "unread" && !unread) return false;
-      if (!q) return true;
-      return (
-        r.name.toLowerCase().includes(q) ||
-        r.email.toLowerCase().includes(q) ||
-        (r.subject ?? "").toLowerCase().includes(q) ||
-        (r.message ?? r.body ?? "").toLowerCase().includes(q)
-      );
-    });
-  }, [rows, query, view, readSet, archivedSet]);
-
-  const unreadCount = rows.filter((r) => !readSet.has(r.id) && !archivedSet.has(r.id)).length;
+  async function showNew() {
+    setNewCount(0);
+    setPage(0);
+    await load();
+  }
 
   function copyEmail(email: string) {
     navigator.clipboard.writeText(email);
     toast.success("Email copied");
   }
 
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const filtered = rows;
+
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[420px_1fr]">
       <div className="rounded-2xl border border-soft-2 bg-card p-4">
-        {/* Toolbar */}
+        {newCount > 0 && (
+          <button
+            onClick={showNew}
+            className="mb-3 flex w-full items-center justify-center gap-2 rounded-lg border border-acid/50 bg-acid/10 px-3 py-2 font-mono text-[11px] uppercase tracking-widest text-acid hover:bg-acid/20"
+          >
+            <Bell className="h-3.5 w-3.5" />
+            {newCount} new message{newCount > 1 ? "s" : ""} — click to refresh
+          </button>
+        )}
+
         <div className="mb-3 flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -120,7 +189,7 @@ export default function MessagesTab() {
           </div>
           <button
             onClick={markAllRead}
-            disabled={unreadCount === 0}
+            disabled={unreadTotal === 0}
             title="Mark all read"
             className="rounded-md border border-soft-2 bg-surface p-1.5 text-ink-2 hover:border-acid/40 hover:text-acid disabled:opacity-40"
           >
@@ -139,25 +208,30 @@ export default function MessagesTab() {
               }`}
             >
               {v}
-              {v === "unread" && unreadCount > 0 && ` · ${unreadCount}`}
+              {v === "unread" && unreadTotal > 0 && ` · ${unreadTotal}`}
             </button>
           ))}
         </div>
-        <ul className="space-y-2 max-h-[70vh] overflow-y-auto">
-          {filtered.length === 0 && (
+        <ul className="space-y-2 max-h-[60vh] overflow-y-auto">
+          {loading && (
+            <li className="px-2 py-8 text-center font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+              Loading…
+            </li>
+          )}
+          {!loading && filtered.length === 0 && (
             <li className="px-2 py-8 text-center font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               No messages
             </li>
           )}
           {filtered.map((r) => {
-            const unread = !readSet.has(r.id);
-            const archived = archivedSet.has(r.id);
+            const unread = !r.read_at;
+            const archived = !!r.archived_at;
             return (
               <li key={r.id}>
                 <button
                   onClick={() => {
                     setOpen(r);
-                    markRead(r.id);
+                    markRead(r);
                   }}
                   className={`group relative w-full rounded-lg border px-3 py-2 text-left transition ${
                     open?.id === r.id
@@ -185,6 +259,29 @@ export default function MessagesTab() {
             );
           })}
         </ul>
+
+        {/* Pagination */}
+        {total > PAGE_SIZE && (
+          <div className="mt-3 flex items-center justify-between border-t border-soft-2 pt-3">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="inline-flex items-center gap-1 rounded-md border border-soft-2 bg-surface px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-ink-2 hover:border-acid/40 disabled:opacity-40"
+            >
+              <ChevronLeft className="h-3 w-3" /> Prev
+            </button>
+            <span className="font-mono text-[10px] text-muted-foreground">
+              {page + 1} / {totalPages} · {total}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
+              className="inline-flex items-center gap-1 rounded-md border border-soft-2 bg-surface px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-ink-2 hover:border-acid/40 disabled:opacity-40"
+            >
+              Next <ChevronRight className="h-3 w-3" />
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="rounded-2xl border border-soft-2 bg-card p-6 lg:p-8">
@@ -225,7 +322,6 @@ export default function MessagesTab() {
               {open.message ?? open.body}
             </div>
 
-            {/* Action bar */}
             <div className="mt-6 flex flex-wrap items-center gap-2">
               <a
                 href={`mailto:${open.email}?subject=${encodeURIComponent(
@@ -236,10 +332,10 @@ export default function MessagesTab() {
                 <Mail className="h-3.5 w-3.5" /> Reply
               </a>
               <button
-                onClick={() => toggleArchive(open.id)}
+                onClick={() => toggleArchive(open)}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-soft-2 bg-surface px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-ink-2 hover:border-acid/50"
               >
-                {archivedSet.has(open.id) ? (
+                {open.archived_at ? (
                   <>
                     <ArchiveRestore className="h-3.5 w-3.5" /> Unarchive
                   </>

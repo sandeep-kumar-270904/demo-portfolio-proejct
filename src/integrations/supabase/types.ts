@@ -55,6 +55,7 @@ export type Database = {
       }
       contact_messages: {
         Row: {
+          archived_at: string | null
           body: string | null
           budget_range: string | null
           created_at: string
@@ -62,9 +63,11 @@ export type Database = {
           id: string
           message: string | null
           name: string
+          read_at: string | null
           subject: string | null
         }
         Insert: {
+          archived_at?: string | null
           body?: string | null
           budget_range?: string | null
           created_at?: string
@@ -72,9 +75,11 @@ export type Database = {
           id?: string
           message?: string | null
           name: string
+          read_at?: string | null
           subject?: string | null
         }
         Update: {
+          archived_at?: string | null
           body?: string | null
           budget_range?: string | null
           created_at?: string
@@ -82,6 +87,7 @@ export type Database = {
           id?: string
           message?: string | null
           name?: string
+          read_at?: string | null
           subject?: string | null
         }
         Relationships: []
