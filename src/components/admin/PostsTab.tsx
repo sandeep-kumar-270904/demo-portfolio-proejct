@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Session } from "@supabase/supabase-js";
+import CodeEditor from "./CodeEditor";
 
 type Post = {
   id: string;
@@ -201,12 +202,12 @@ export default function PostsTab({ session }: { session: Session }) {
           <label className="mb-2 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
             Body (Markdown supported)
           </label>
-          <textarea
+          <CodeEditor
             value={draft.body}
-            onChange={(e) => setDraft((d) => ({ ...d, body: e.target.value }))}
+            onChange={(v) => setDraft((d) => ({ ...d, body: v }))}
+            language="markdown"
+            placeholder={`# Heading\n\nWrite in **Markdown**.\n\n\`\`\`ts\nconst hello = "world";\n\`\`\``}
             rows={18}
-            className="w-full resize-y rounded-lg border border-soft-2 bg-surface px-4 py-3 font-mono text-[13px] text-ink placeholder:text-muted-foreground focus:border-acid/50 focus:outline-none"
-            placeholder={`# Heading\n\nWrite in **Markdown**.`}
           />
           <div className="mt-1 font-mono text-[10px] text-muted-foreground">
             ~{estimateReading(draft.body)} min read
