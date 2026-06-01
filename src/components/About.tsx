@@ -65,10 +65,10 @@ export default function About() {
           {/* Socials below photo */}
           {socials.length > 0 && (
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-              {socials.map(({ key, label, Icon }) => (
+              {socials.map(({ key, label, Icon, href }) => (
                 <a
                   key={key}
-                  href={info![key]}
+                  href={href}
                   target="_blank"
                   rel="noreferrer"
                   aria-label={label}
