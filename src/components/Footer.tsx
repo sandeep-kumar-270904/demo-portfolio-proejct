@@ -1,5 +1,6 @@
 import { Eye } from "lucide-react";
 import { useVisitorCount } from "@/hooks/useVisitorCount";
+import LiveUsers from "./LiveUsers";
 
 export default function Footer() {
   const visits = useVisitorCount();
@@ -13,10 +14,13 @@ export default function Footer() {
           <div className="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
             © 2025 Edhubilli Sandeep Kumar
           </div>
-          <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-soft-2 bg-card px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-ink-2">
-            <Eye size={12} className="text-acid" />
-            <span>Visitors:</span>
-            <span className="text-acid">{visits ?? "—"}</span>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center gap-2 rounded-full border border-soft-2 bg-card px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-ink-2">
+              <Eye size={12} className="text-acid" />
+              <span>Visitors:</span>
+              <span className="text-acid">{visits ?? "—"}</span>
+            </div>
+            <LiveUsers />
           </div>
         </div>
         <ul className="flex flex-wrap items-center justify-center gap-6">

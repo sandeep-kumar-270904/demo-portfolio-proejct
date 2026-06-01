@@ -10,7 +10,7 @@ const corsHeaders = {
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/resend";
 
 // Owner inbox (where messages are delivered). Update via env var if desired.
-const OWNER_EMAIL = Deno.env.get("OWNER_EMAIL") ?? "sandeepkumar1234@gmail.com";
+const OWNER_EMAIL = Deno.env.get("OWNER_EMAIL") ?? "edhubillisandeepkumar1234@gmail.com";
 
 const BodySchema = z.object({
   name: z.string().trim().min(1).max(100),

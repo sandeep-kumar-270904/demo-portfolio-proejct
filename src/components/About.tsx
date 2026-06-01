@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { Music2, MapPin, Globe2, Languages, Github, Linkedin, Twitter, Youtube, Instagram } from "lucide-react";
+import { MapPin, Globe2, Languages, Github, Linkedin, Twitter, Youtube, Instagram, Code2 } from "lucide-react";
 import { SITE } from "@/config";
 import { usePersonalInfo } from "@/hooks/useSupabase";
 import { useSiteCopy } from "@/hooks/useSiteCopy";
+import NowPlaying from "./NowPlaying";
 
 function Trait({ icon, title, desc }: { icon: string; title: string; desc: string }) {
   return (
@@ -18,50 +18,20 @@ function Trait({ icon, title, desc }: { icon: string; title: string; desc: strin
   );
 }
 
-function NowPlaying() {
-  const [bars] = useState([1, 2, 3, 4]);
-  return (
-    <div className="mt-6 inline-flex items-center gap-3 rounded-xl border border-soft-2 bg-card px-4 py-3">
-      <div className="grid h-9 w-9 place-items-center rounded-lg bg-acid/10 text-acid">
-        <Music2 size={16} />
-      </div>
-      <div className="min-w-0">
-        <div className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
-          Now Playing
-        </div>
-        <div className="font-syne text-[13px] font-bold text-ink truncate">
-          {SITE.nowPlaying.title} <span className="text-ink-2 font-medium">— {SITE.nowPlaying.artist}</span>
-        </div>
-      </div>
-      <div className="ml-2 flex h-5 items-end gap-[2px]">
-        {bars.map((b) => (
-          <span
-            key={b}
-            className="w-[3px] rounded-sm bg-acid"
-            style={{
-              animation: `pulse-dot 0.9s ease-in-out ${b * 0.12}s infinite`,
-              height: `${30 + b * 15}%`,
-            }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-const SOCIAL_DEFS: { key: string; label: string; Icon: typeof Github }[] = [
-  { key: "social_github", label: "GitHub", Icon: Github },
-  { key: "social_linkedin", label: "LinkedIn", Icon: Linkedin },
-  { key: "social_twitter", label: "Twitter", Icon: Twitter },
-  { key: "social_youtube", label: "YouTube", Icon: Youtube },
-  { key: "social_instagram", label: "Instagram", Icon: Instagram },
+const SOCIAL_DEFS: { key: string; fallback: string; label: string; Icon: typeof Github }[] = [
+  { key: "social_github", fallback: SITE.socials.github, label: "GitHub", Icon: Github },
+  { key: "social_linkedin", fallback: SITE.socials.linkedin, label: "LinkedIn", Icon: Linkedin },
+  { key: "social_leetcode", fallback: SITE.socials.leetcode, label: "LeetCode", Icon: Code2 },
+  { key: "social_twitter", fallback: SITE.socials.twitter, label: "X (Twitter)", Icon: Twitter },
+  { key: "social_instagram", fallback: SITE.socials.instagram, label: "Instagram", Icon: Instagram },
+  { key: "social_youtube", fallback: SITE.socials.youtube, label: "YouTube", Icon: Youtube },
 ];
 
 export default function About() {
   const { data: info } = usePersonalInfo();
   const { t } = useSiteCopy();
   const photoUrl = info?.profile_photo_url;
-  const socials = SOCIAL_DEFS.filter((s) => info?.[s.key]);
+  const socials = SOCIAL_DEFS.map((s) => ({ ...s, href: info?.[s.key] || s.fallback })).filter((s) => s.href);
 
   return (
     <section id="about" className="relative bg-base px-6 py-28 lg:py-40">
@@ -95,10 +65,10 @@ export default function About() {
           {/* Socials below photo */}
           {socials.length > 0 && (
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-              {socials.map(({ key, label, Icon }) => (
+              {socials.map(({ key, label, Icon, href }) => (
                 <a
                   key={key}
-                  href={info![key]}
+                  href={href}
                   target="_blank"
                   rel="noreferrer"
                   aria-label={label}

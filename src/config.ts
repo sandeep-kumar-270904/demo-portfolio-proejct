@@ -1,7 +1,7 @@
 // Site-wide config — edit values here.
 export const SITE = {
   name: "Edhubilli Sandeep Kumar",
-  email: "sandeepkumar.dev@gmail.com",
+  email: "edhubillisandeepkumar1234@gmail.com",
   github: "edhubilli-sandeep",
   twitter: "",
   linkedin: "",
@@ -11,5 +11,16 @@ export const SITE = {
   location: "India",
   timezone: "IST (UTC+5:30)",
   languages: ["English", "Telugu", "Hindi"],
-  nowPlaying: { title: "Midnight City", artist: "M83" },
+  // Spotify track to feature in the "Now Playing" widget.
+  // "Tadow" — FKJ & Masego
+  spotifyTrackId: "1eyekkPRDDtR0Bm0EYjvgs",
+  nowPlaying: { title: "Tadow", artist: "FKJ & Masego" },
+  socials: {
+    github: "https://github.com/edhubilli-sandeep",
+    linkedin: "https://www.linkedin.com/in/edhubilli-sandeep-kumar/",
+    twitter: "https://x.com/",
+    instagram: "https://instagram.com/",
+    youtube: "https://youtube.com/",
+    leetcode: "https://leetcode.com/",
+  },
 };

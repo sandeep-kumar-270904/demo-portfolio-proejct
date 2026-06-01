@@ -41,22 +41,20 @@ export default function Experience() {
     }));
   }, [filter, rows]);
 
-  const wrapRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
     const onScroll = () => {
-      const el = wrapRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const start = window.innerHeight * 0.85;
-      const end = -rect.height + window.innerHeight * 0.4;
-      const p = Math.min(1, Math.max(0, (start - rect.top) / (start - end)));
+      const max = el.scrollHeight - el.clientHeight;
+      const p = max > 0 ? Math.min(1, Math.max(0, el.scrollTop / max)) : 0;
       setProgress(p);
     };
     onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
   }, [items.length]);
 
   return (
@@ -92,19 +90,27 @@ export default function Experience() {
           })}
         </div>
 
-        <div ref={wrapRef} className="relative mt-16 space-y-10">
-          <div className="pointer-events-none absolute left-[124px] top-2 hidden h-full w-px bg-soft-2 md:block" style={{ left: "220px" }}>
-            <div
-              className="h-full w-full origin-top bg-gradient-to-b from-acid via-acid/70 to-acid/0"
-              style={{ transform: `scaleY(${progress})`, transition: "transform 0.2s linear" }}
-            />
+        {/* Scrollable timeline block — page length stays fixed regardless of milestone count */}
+        <div className="relative mt-10 rounded-2xl border border-soft-2 bg-card/30 p-4 md:p-6">
+          <div className="pointer-events-none absolute right-4 top-4 z-10 rounded-full border border-soft-2 bg-void/80 px-2.5 py-1 font-mono text-[9px] uppercase tracking-widest text-muted-foreground backdrop-blur">
+            {items.length} {items.length === 1 ? "entry" : "entries"} · scroll ↓
           </div>
-          <div className="pointer-events-none absolute left-[124px] top-2 h-full w-px bg-soft-2 md:hidden">
-            <div
-              className="h-full w-full origin-top bg-gradient-to-b from-acid via-acid/70 to-acid/0"
-              style={{ transform: `scaleY(${progress})`, transition: "transform 0.2s linear" }}
-            />
-          </div>
+          <div
+            ref={scrollRef}
+            className="relative max-h-[640px] space-y-10 overflow-y-auto pr-2 [scrollbar-color:hsl(var(--acid))_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-acid/40 [&::-webkit-scrollbar-track]:bg-transparent"
+          >
+            <div className="pointer-events-none absolute left-[124px] top-0 hidden h-full w-px bg-soft-2 md:block" style={{ left: "220px" }}>
+              <div
+                className="h-full w-full origin-top bg-gradient-to-b from-acid via-acid/70 to-acid/0"
+                style={{ transform: `scaleY(${progress})`, transition: "transform 0.2s linear" }}
+              />
+            </div>
+            <div className="pointer-events-none absolute left-[124px] top-0 h-full w-px bg-soft-2 md:hidden">
+              <div
+                className="h-full w-full origin-top bg-gradient-to-b from-acid via-acid/70 to-acid/0"
+                style={{ transform: `scaleY(${progress})`, transition: "transform 0.2s linear" }}
+              />
+            </div>
 
           {items.map((it, i) => {
             const c = colorMap[it.color] ?? colorMap.acid;
@@ -140,6 +146,7 @@ export default function Experience() {
               </div>
             );
           })}
+          </div>
         </div>
       </div>
     </section>
