@@ -57,18 +57,20 @@ export default function Cursor() {
     <>
       <div
         ref={dotRef}
-        className="pointer-events-none fixed left-0 top-0 z-[9998] rounded-full bg-acid glow-acid-sm transition-[width,height] duration-200"
+        className="pointer-events-none fixed left-0 top-0 z-[10000] rounded-full bg-white transition-[width,height] duration-200"
         style={{
-          width: hover ? 14 : 6,
-          height: hover ? 14 : 6,
+          width: hover ? 14 : 8,
+          height: hover ? 14 : 8,
+          mixBlendMode: "difference",
         }}
       />
       <div
         ref={ringRef}
-        className="pointer-events-none fixed left-0 top-0 z-[9998] rounded-full border border-acid/45 transition-[width,height] duration-200"
+        className="pointer-events-none fixed left-0 top-0 z-[10000] rounded-full border-2 border-acid transition-[width,height] duration-200"
         style={{
           width: hover ? 54 : 36,
           height: hover ? 54 : 36,
+          boxShadow: "0 0 12px hsl(var(--acid) / 0.8), 0 0 24px hsl(var(--acid) / 0.4)",
         }}
       />
     </>
