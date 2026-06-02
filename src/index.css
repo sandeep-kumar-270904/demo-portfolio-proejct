@@ -128,16 +128,40 @@
 
   .reveal {
     opacity: 0;
-    transform: translateY(36px);
-    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-    will-change: opacity, transform;
+    transform: translateY(44px) scale(0.985);
+    filter: blur(6px);
+    transition:
+      opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+      filter 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform, filter;
   }
-  .reveal.is-visible { opacity: 1; transform: translateY(0); }
-  .revl { opacity: 0; transform: translateX(-50px); transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
-  .revr { opacity: 0; transform: translateX(50px); transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
-  .revl.is-visible, .revr.is-visible { opacity: 1; transform: translateX(0); }
+  .reveal.is-visible { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  .revl { opacity: 0; transform: translateX(-60px); filter: blur(6px); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1), filter 0.7s cubic-bezier(0.16,1,0.3,1); }
+  .revr { opacity: 0; transform: translateX(60px); filter: blur(6px); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1), filter 0.7s cubic-bezier(0.16,1,0.3,1); }
+  .revl.is-visible, .revr.is-visible { opacity: 1; transform: translateX(0); filter: blur(0); }
   @media (prefers-reduced-motion: reduce) {
-    .reveal, .revl, .revr { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .reveal, .revl, .revr { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+  }
+
+  /* Hover float for cards */
+  .float-hover { transition: transform 0.5s cubic-bezier(0.16,1,0.3,1), box-shadow 0.5s cubic-bezier(0.16,1,0.3,1); }
+  .float-hover:hover { transform: translateY(-6px); }
+
+  /* Animated gradient sweep on text */
+  @keyframes gradient-sweep {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  .text-grad-acid, .text-grad-fire, .text-grad-plasma {
+    background-size: 200% 200%;
+    animation: gradient-sweep 7s ease infinite;
+  }
+
+  /* Subtle mesh shift used by hero */
+  @keyframes mesh-shift {
+    0%, 100% { background-position: 0% 0%; }
+    50% { background-position: 100% 100%; }
   }
 
   .marquee-mask {
