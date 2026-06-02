@@ -97,6 +97,7 @@ export default function Experience() {
           </div>
           <div
             ref={scrollRef}
+            data-lenis-prevent
             className="relative max-h-[640px] space-y-10 overflow-y-auto pr-2 [scrollbar-color:hsl(var(--acid))_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-acid/40 [&::-webkit-scrollbar-track]:bg-transparent"
           >
             <div className="pointer-events-none absolute left-[124px] top-0 hidden h-full w-px bg-soft-2 md:block" style={{ left: "220px" }}>

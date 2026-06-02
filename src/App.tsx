@@ -12,6 +12,7 @@ import Auth from "./pages/Auth.tsx";
 import Admin from "./pages/Admin.tsx";
 import ProjectDetail from "./pages/ProjectDetail.tsx";
 import PageTransition from "./components/PageTransition";
+import SmoothScroll from "./components/SmoothScroll";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <SmoothScroll />
         <AnimatedRoutes />
       </BrowserRouter>
     </TooltipProvider>
