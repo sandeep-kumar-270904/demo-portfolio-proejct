@@ -14,7 +14,12 @@ export const SITE = {
   // Spotify track to feature in the "Now Playing" widget.
   // "Tadow" — FKJ & Masego
   spotifyTrackId: "1eyekkPRDDtR0Bm0EYjvgs",
-  nowPlaying: { title: "Tadow", artist: "FKJ & Masego" },
+  nowPlaying: {
+    title: "Tadow",
+    artist: "FKJ & Masego",
+    // Either drop a file at public/audio/tadow.mp3, OR paste a direct .mp3 URL here.
+    audioUrl: "/audio/tadow.mp3",
+  },
   socials: {
     github: "https://github.com/sandeep-kumar-270904",
     linkedin: "https://www.linkedin.com/in/edhubilli-sandeep-kumar/",
