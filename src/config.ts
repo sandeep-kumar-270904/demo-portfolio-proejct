@@ -2,7 +2,7 @@
 export const SITE = {
   name: "Edhubilli Sandeep Kumar",
   email: "edhubillisandeepkumar1234@gmail.com",
-  github: "edhubilli-sandeep",
+  github: "sandeep-kumar-270904",
   twitter: "",
   linkedin: "",
   resumeUrl: "/resume.pdf",
@@ -16,7 +16,7 @@ export const SITE = {
   spotifyTrackId: "1eyekkPRDDtR0Bm0EYjvgs",
   nowPlaying: { title: "Tadow", artist: "FKJ & Masego" },
   socials: {
-    github: "https://github.com/edhubilli-sandeep",
+    github: "https://github.com/sandeep-kumar-270904",
     linkedin: "https://www.linkedin.com/in/edhubilli-sandeep-kumar/",
     twitter: "https://x.com/",
     instagram: "https://instagram.com/",
