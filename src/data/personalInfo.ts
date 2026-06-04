@@ -18,7 +18,7 @@ export const personalInfoFallback: PersonalInfo = {
   resume_url: "/resume.pdf",
   is_available: "true",
   available_until: "April 2026",
-  github_username: "edhubilli-sandeep",
+  github_username: "sandeep-kumar-270904",
   linkedin_url: "",
   twitter_url: "",
 
