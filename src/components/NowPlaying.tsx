@@ -14,7 +14,7 @@ export default function NowPlaying() {
   const bars = [1, 2, 3, 4];
 
   useEffect(() => {
-    const a = new Audio("/audio/tadow.mp3");
+    const a = new Audio(SITE.nowPlaying.audioUrl || "/audio/tadow.mp3");
     a.preload = "none";
     a.loop = true;
     a.volume = 0.7;
@@ -38,7 +38,7 @@ export default function NowPlaying() {
         a.pause();
       }
     } catch {
-      toast.error("Drop tadow.mp3 in /public/audio/ to enable playback.");
+      toast.error("Audio file missing. Upload tadow.mp3 to public/audio/ or set SITE.nowPlaying.audioUrl in src/config.ts to a direct .mp3 URL.");
     }
   };
 
