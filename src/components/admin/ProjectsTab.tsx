@@ -141,6 +141,13 @@ export default function ProjectsTab() {
       category: r.category ?? "SaaS",
       sort_order: r.sort_order,
       stats: r.stats ?? [],
+      problem: r.problem ?? "",
+      solution: r.solution ?? "",
+      key_features: r.key_features ?? [],
+      gallery: r.gallery ?? [],
+      video_url: r.video_url ?? "",
+      readme_url: r.readme_url ?? "",
+      docs_url: r.docs_url ?? "",
     });
     setTagsInput(csv(r.tags));
     setTechInput(csv(r.tech_stack));
