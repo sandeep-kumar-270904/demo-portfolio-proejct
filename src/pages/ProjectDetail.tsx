@@ -1,36 +1,68 @@
-import { useEffect, useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, ExternalLink, Github } from "lucide-react";
+import { useEffect, useMemo, useRef } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { ArrowLeft, ArrowRight, ExternalLink, FileText, Github, BookOpen, Play } from "lucide-react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { useProjects } from "@/hooks/useSupabase";
 import { getProjectVisual } from "@/data/projectVisuals";
 
+function slugOf(r: { tags?: string[]; title: string }) {
+  return (r.tags?.[0] ?? r.title.toLowerCase().replace(/\s+/g, "-")) as string;
+}
+
+const ease = [0.22, 1, 0.36, 1] as const;
+
+function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.8, ease, delay }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 export default function ProjectDetail() {
   const { slug = "" } = useParams();
+  const navigate = useNavigate();
   const { data: rows = [], isLoading } = useProjects();
+  const heroRef = useRef<HTMLDivElement>(null);
 
-  const project = useMemo(
-    () =>
-      rows.find((r) => {
-        const s = (r.tags?.[0] ?? r.title.toLowerCase().replace(/\s+/g, "-")) as string;
-        return s.toLowerCase() === slug.toLowerCase();
-      }),
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.12]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0.2]);
+
+  const index = useMemo(
+    () => rows.findIndex((r) => slugOf(r).toLowerCase() === slug.toLowerCase()),
     [rows, slug],
   );
+  const project = index >= 0 ? rows[index] : undefined;
+  const prev = index > 0 ? rows[index - 1] : rows[rows.length - 1];
+  const next = index >= 0 && index < rows.length - 1 ? rows[index + 1] : rows[0];
 
   useEffect(() => {
     if (project) document.title = `${project.title} — Project`;
     window.scrollTo(0, 0);
   }, [project]);
 
-  const related = useMemo(() => {
-    if (!project) return [];
-    return rows
-      .filter((r) => r.id !== project.id)
-      .sort((a, b) => (a.category === project.category ? -1 : 1))
-      .slice(0, 3);
-  }, [rows, project]);
+  // Keyboard nav between projects
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === "ArrowLeft" && prev) navigate(`/projects/${slugOf(prev)}`);
+      if (e.key === "ArrowRight" && next) navigate(`/projects/${slugOf(next)}`);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [prev, next, navigate]);
 
   if (isLoading) {
     return (
@@ -58,86 +90,225 @@ export default function ProjectDetail() {
     );
   }
 
-  const heroSlug = (project.tags?.[0] ?? project.title.toLowerCase().replace(/\s+/g, "-")) as string;
+  const heroSlug = slugOf(project);
   const hero = project.image_url ? (
     <img src={project.image_url} alt={project.title} className="h-full w-full object-cover" />
   ) : (
     getProjectVisual(heroSlug)
   );
-  const features = (project.long_description ?? "")
-    .split(/\.\s+|\n+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
+
+  const features =
+    project.key_features && project.key_features.length > 0
+      ? project.key_features
+      : (project.long_description ?? "")
+          .split(/\.\s+|\n+/)
+          .map((s) => s.trim())
+          .filter(Boolean);
+
+  const gallery = project.gallery ?? [];
+  const videoUrl = project.video_url ?? null;
+  const isEmbed = videoUrl && /youtube\.com|youtu\.be|vimeo\.com/.test(videoUrl);
+  const embedSrc = videoUrl
+    ? videoUrl
+        .replace("youtu.be/", "www.youtube.com/embed/")
+        .replace("watch?v=", "embed/")
+        .replace("vimeo.com/", "player.vimeo.com/video/")
+    : "";
 
   return (
     <>
       <Nav />
       <main className="bg-void">
-        {/* Banner */}
-        <section className="relative h-[420px] w-full overflow-hidden">
-          <div className="absolute inset-0">{hero}</div>
-          <div className="absolute inset-0 bg-gradient-to-t from-void via-void/70 to-transparent" />
-          <div className="relative mx-auto flex h-full max-w-[1320px] flex-col justify-end px-6 pb-12">
-            <Link
-              to="/#projects"
-              className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-soft-2 bg-void/60 px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest text-ink-2 backdrop-blur hover:border-acid/40 hover:text-acid"
-            >
-              <ArrowLeft size={13} /> All projects
-            </Link>
-            <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-acid">
-              {project.category ?? "Project"}
-            </span>
-            <h1
-              className="mt-3 font-syne font-extrabold uppercase text-ink"
-              style={{ fontSize: "clamp(36px, 6vw, 80px)", letterSpacing: "-0.04em", lineHeight: 0.95 }}
-            >
-              {project.title}
-            </h1>
+        {/* HERO with parallax */}
+        <section ref={heroRef} className="relative h-[520px] w-full overflow-hidden">
+          <motion.div className="absolute inset-0" style={{ y: heroY, scale: heroScale }}>
+            {hero}
+          </motion.div>
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-t from-void via-void/70 to-transparent"
+            style={{ opacity: heroOpacity }}
+          />
+          <div className="relative mx-auto flex h-full max-w-[1320px] flex-col justify-end px-6 pb-14">
+            <Reveal>
+              <Link
+                to="/#projects"
+                className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-soft-2 bg-void/60 px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest text-ink-2 backdrop-blur hover:border-acid/40 hover:text-acid"
+              >
+                <ArrowLeft size={13} /> All projects
+              </Link>
+            </Reveal>
+            <Reveal delay={0.05}>
+              <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-acid">
+                {project.category ?? "Project"} {index >= 0 && `· ${String(index + 1).padStart(2, "0")} / ${String(rows.length).padStart(2, "0")}`}
+              </span>
+            </Reveal>
+            <Reveal delay={0.1}>
+              <h1
+                className="mt-3 font-syne font-extrabold uppercase text-ink"
+                style={{ fontSize: "clamp(36px, 6vw, 84px)", letterSpacing: "-0.04em", lineHeight: 0.95 }}
+              >
+                {project.title}
+              </h1>
+            </Reveal>
             {project.description && (
-              <p className="mt-4 max-w-[700px] text-[16px] leading-relaxed text-ink-2">
-                {project.description}
-              </p>
+              <Reveal delay={0.18}>
+                <p className="mt-4 max-w-[720px] text-[16px] leading-relaxed text-ink-2">
+                  {project.description}
+                </p>
+              </Reveal>
             )}
-            <div className="mt-7 flex flex-wrap gap-3">
-              {project.live_url && (
-                <a
-                  href={project.live_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg bg-acid px-5 py-2.5 font-syne text-[13px] font-bold text-void hover:glow-acid"
-                >
-                  Live demo <ExternalLink size={14} />
-                </a>
-              )}
-              {project.github_url && (
-                <a
-                  href={project.github_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg border border-soft-2 bg-surface/60 px-5 py-2.5 font-syne text-[13px] font-bold text-ink hover:border-acid/40 hover:text-acid"
-                >
-                  GitHub <Github size={14} />
-                </a>
-              )}
-            </div>
+            <Reveal delay={0.25}>
+              <div className="mt-7 flex flex-wrap gap-3">
+                {project.live_url && (
+                  <a
+                    href={project.live_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-lg bg-acid px-5 py-2.5 font-syne text-[13px] font-bold text-void hover:glow-acid"
+                  >
+                    Live demo <ExternalLink size={14} />
+                  </a>
+                )}
+                {project.github_url && (
+                  <a
+                    href={project.github_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-lg border border-soft-2 bg-surface/60 px-5 py-2.5 font-syne text-[13px] font-bold text-ink hover:border-acid/40 hover:text-acid"
+                  >
+                    GitHub <Github size={14} />
+                  </a>
+                )}
+                {project.readme_url && (
+                  <a
+                    href={project.readme_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-lg border border-soft-2 bg-surface/60 px-5 py-2.5 font-syne text-[13px] font-bold text-ink hover:border-acid/40 hover:text-acid"
+                  >
+                    README <FileText size={14} />
+                  </a>
+                )}
+                {project.docs_url && (
+                  <a
+                    href={project.docs_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-lg border border-soft-2 bg-surface/60 px-5 py-2.5 font-syne text-[13px] font-bold text-ink hover:border-acid/40 hover:text-acid"
+                  >
+                    Docs <BookOpen size={14} />
+                  </a>
+                )}
+              </div>
+            </Reveal>
           </div>
         </section>
 
-        {/* Body */}
+        {/* BODY */}
         <section className="mx-auto grid max-w-[1320px] grid-cols-1 gap-12 px-6 py-20 lg:grid-cols-[1.7fr_1fr]">
-          <div>
-            <h2 className="font-syne text-[28px] font-bold text-ink">About this project</h2>
-            <p className="mt-5 whitespace-pre-line text-[16px] leading-[1.85] text-ink-2">
-              {project.long_description || project.description || "No description yet."}
-            </p>
-            {features.length > 1 && (
-              <ul className="mt-8 space-y-3">
-                {features.map((f, i) => (
-                  <li key={i} className="flex gap-3 text-[15px] text-ink-2">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-acid" /> {f}
-                  </li>
-                ))}
-              </ul>
+          <div className="space-y-14">
+            {/* Problem / Solution */}
+            {(project.problem || project.solution) && (
+              <Reveal>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  {project.problem && (
+                    <div className="rounded-2xl border border-soft-2 bg-card p-6">
+                      <h3 className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">Problem</h3>
+                      <p className="mt-4 whitespace-pre-line text-[15px] leading-[1.75] text-ink-2">
+                        {project.problem}
+                      </p>
+                    </div>
+                  )}
+                  {project.solution && (
+                    <div className="rounded-2xl border border-soft-2 bg-card p-6">
+                      <h3 className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">Solution</h3>
+                      <p className="mt-4 whitespace-pre-line text-[15px] leading-[1.75] text-ink-2">
+                        {project.solution}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </Reveal>
+            )}
+
+            {/* About */}
+            <Reveal>
+              <h2 className="font-syne text-[28px] font-bold text-ink">About this project</h2>
+              <p className="mt-5 whitespace-pre-line text-[16px] leading-[1.85] text-ink-2">
+                {project.long_description || project.description || "No description yet."}
+              </p>
+            </Reveal>
+
+            {/* Key features */}
+            {features.length > 0 && (
+              <Reveal>
+                <h2 className="font-syne text-[24px] font-bold text-ink">Key features</h2>
+                <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {features.map((f, i) => (
+                    <motion.li
+                      key={i}
+                      initial={{ opacity: 0, y: 14 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.05, duration: 0.5, ease }}
+                      className="flex gap-3 rounded-xl border border-soft-2 bg-card p-4 text-[14px] leading-relaxed text-ink-2"
+                    >
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-acid" /> {f}
+                    </motion.li>
+                  ))}
+                </ul>
+              </Reveal>
+            )}
+
+            {/* Video */}
+            {videoUrl && (
+              <Reveal>
+                <h2 className="font-syne text-[24px] font-bold text-ink flex items-center gap-2">
+                  <Play size={18} className="text-acid" /> Demo
+                </h2>
+                <div className="mt-6 aspect-video overflow-hidden rounded-2xl border border-soft-2 bg-black">
+                  {isEmbed ? (
+                    <iframe
+                      src={embedSrc}
+                      title={`${project.title} demo`}
+                      className="h-full w-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <video src={videoUrl} controls className="h-full w-full" />
+                  )}
+                </div>
+              </Reveal>
+            )}
+
+            {/* Gallery */}
+            {gallery.length > 0 && (
+              <Reveal>
+                <h2 className="font-syne text-[24px] font-bold text-ink">Gallery</h2>
+                <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {gallery.map((src, i) => (
+                    <motion.a
+                      key={src + i}
+                      href={src}
+                      target="_blank"
+                      rel="noreferrer"
+                      initial={{ opacity: 0, y: 24 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.06, duration: 0.7, ease }}
+                      className="group block overflow-hidden rounded-2xl border border-soft-2 bg-card"
+                    >
+                      <img
+                        src={src}
+                        alt={`${project.title} screenshot ${i + 1}`}
+                        loading="lazy"
+                        className="aspect-[16/10] w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                    </motion.a>
+                  ))}
+                </div>
+              </Reveal>
             )}
           </div>
 
@@ -176,38 +347,53 @@ export default function ProjectDetail() {
                 </div>
               </div>
             )}
+            <div className="rounded-2xl border border-soft-2 bg-card p-6">
+              <h3 className="font-syne text-[14px] font-bold uppercase tracking-widest text-acid">
+                Browse
+              </h3>
+              <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                Use ← → keys to move between projects
+              </p>
+            </div>
           </aside>
         </section>
 
-        {/* Related */}
-        {related.length > 0 && (
-          <section className="mx-auto max-w-[1320px] px-6 pb-28">
-            <h2 className="font-syne text-[24px] font-bold text-ink">More projects</h2>
-            <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {related.map((r) => {
-                const rs = (r.tags?.[0] ?? r.title.toLowerCase().replace(/\s+/g, "-")) as string;
-                const visual = r.image_url ? (
-                  <img src={r.image_url} alt={r.title} className="h-full w-full object-cover" />
-                ) : (
-                  getProjectVisual(rs)
-                );
-                return (
-                  <Link
-                    key={r.id}
-                    to={`/projects/${rs}`}
-                    className="group relative block overflow-hidden rounded-2xl border border-soft-2 bg-card transition-all hover:-translate-y-1 hover:border-acid/40"
-                  >
-                    <div className="relative aspect-[4/3] overflow-hidden">
-                      {visual}
-                      <div className="absolute inset-0 bg-gradient-to-t from-void/80 to-transparent" />
-                      <span className="absolute bottom-4 left-5 font-syne text-[20px] font-extrabold text-ink">
-                        {r.title}
-                      </span>
+        {/* PREV / NEXT — gallery navigation */}
+        {(prev || next) && (
+          <section className="mx-auto max-w-[1320px] px-6 pb-20">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {prev && (
+                <Link
+                  to={`/projects/${slugOf(prev)}`}
+                  className="group relative flex items-center justify-between overflow-hidden rounded-2xl border border-soft-2 bg-card p-6 transition-all hover:-translate-y-1 hover:border-acid/40"
+                >
+                  <div>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                      ← Previous
+                    </span>
+                    <div className="mt-2 font-syne text-[22px] font-extrabold text-ink transition-colors group-hover:text-acid">
+                      {prev.title}
                     </div>
-                    <p className="p-5 text-[13px] text-ink-2 line-clamp-2">{r.description}</p>
-                  </Link>
-                );
-              })}
+                  </div>
+                  <ArrowLeft className="text-ink-2 transition-transform group-hover:-translate-x-1" />
+                </Link>
+              )}
+              {next && (
+                <Link
+                  to={`/projects/${slugOf(next)}`}
+                  className="group relative flex items-center justify-between overflow-hidden rounded-2xl border border-soft-2 bg-card p-6 text-right transition-all hover:-translate-y-1 hover:border-acid/40 md:col-start-2"
+                >
+                  <ArrowRight className="text-ink-2 transition-transform group-hover:translate-x-1" />
+                  <div>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                      Next →
+                    </span>
+                    <div className="mt-2 font-syne text-[22px] font-extrabold text-ink transition-colors group-hover:text-acid">
+                      {next.title}
+                    </div>
+                  </div>
+                </Link>
+              )}
             </div>
           </section>
         )}
