@@ -410,6 +410,61 @@ export default function ProjectsTab() {
             onChange={(v) => setDraft({ ...draft, image_url: v })}
           />
         </div>
+
+        {/* Detail-page fields */}
+        <div className="mt-6 rounded-xl border border-soft-2 bg-surface/40 p-4">
+          <h4 className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">
+            Detail page content
+          </h4>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <AdminTextarea
+              label="Problem"
+              value={draft.problem ?? ""}
+              onChange={(v) => setDraft({ ...draft, problem: v })}
+              rows={3}
+            />
+            <AdminTextarea
+              label="Solution"
+              value={draft.solution ?? ""}
+              onChange={(v) => setDraft({ ...draft, solution: v })}
+              rows={3}
+            />
+          </div>
+          <div className="mt-4">
+            <AdminTextarea
+              label="Key features (one per line)"
+              value={featuresInput}
+              onChange={setFeaturesInput}
+              rows={4}
+            />
+          </div>
+          <div className="mt-4">
+            <AdminTextarea
+              label="Gallery image URLs (one per line)"
+              value={galleryInput}
+              onChange={setGalleryInput}
+              rows={3}
+            />
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <AdminInput
+              label="Video URL (YouTube / Vimeo / .mp4)"
+              value={draft.video_url ?? ""}
+              onChange={(v) => setDraft({ ...draft, video_url: v })}
+            />
+            <AdminInput
+              label="README URL"
+              value={draft.readme_url ?? ""}
+              onChange={(v) => setDraft({ ...draft, readme_url: v })}
+            />
+            <AdminInput
+              label="Docs URL"
+              value={draft.docs_url ?? ""}
+              onChange={(v) => setDraft({ ...draft, docs_url: v })}
+            />
+          </div>
+        </div>
+
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <AdminInput
             label="Sort order"
