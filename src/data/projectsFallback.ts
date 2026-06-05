@@ -15,6 +15,13 @@ export type DbProject = {
   category: "SaaS" | "Ecommerce" | "DevTools" | "AI" | "Other" | null;
   sort_order: number;
   stats: { value: string; label: string }[];
+  problem?: string | null;
+  solution?: string | null;
+  key_features?: string[];
+  gallery?: string[];
+  video_url?: string | null;
+  readme_url?: string | null;
+  docs_url?: string | null;
 };
 
 export const projectsFallback: DbProject[] = [];
