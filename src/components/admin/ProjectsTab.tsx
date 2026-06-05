@@ -25,6 +25,13 @@ type Row = {
   category: string | null;
   sort_order: number;
   stats: { value: string; label: string }[];
+  problem: string | null;
+  solution: string | null;
+  key_features: string[];
+  gallery: string[];
+  video_url: string | null;
+  readme_url: string | null;
+  docs_url: string | null;
 };
 
 const empty: Omit<Row, "id"> = {
@@ -40,6 +47,13 @@ const empty: Omit<Row, "id"> = {
   category: "SaaS",
   sort_order: 0,
   stats: [],
+  problem: "",
+  solution: "",
+  key_features: [],
+  gallery: [],
+  video_url: "",
+  readme_url: "",
+  docs_url: "",
 };
 
 function csv(arr: string[]) {
