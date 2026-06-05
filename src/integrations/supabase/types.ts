@@ -199,52 +199,73 @@ export type Database = {
           category: string | null
           created_at: string
           description: string | null
+          docs_url: string | null
           featured: boolean
+          gallery: string[]
           github_url: string | null
           id: string
           image_url: string | null
+          key_features: string[]
           live_url: string | null
           long_description: string | null
+          problem: string | null
+          readme_url: string | null
+          solution: string | null
           sort_order: number
           stats: Json
           tags: string[]
           tech_stack: string[]
           title: string
           updated_at: string
+          video_url: string | null
         }
         Insert: {
           category?: string | null
           created_at?: string
           description?: string | null
+          docs_url?: string | null
           featured?: boolean
+          gallery?: string[]
           github_url?: string | null
           id?: string
           image_url?: string | null
+          key_features?: string[]
           live_url?: string | null
           long_description?: string | null
+          problem?: string | null
+          readme_url?: string | null
+          solution?: string | null
           sort_order?: number
           stats?: Json
           tags?: string[]
           tech_stack?: string[]
           title: string
           updated_at?: string
+          video_url?: string | null
         }
         Update: {
           category?: string | null
           created_at?: string
           description?: string | null
+          docs_url?: string | null
           featured?: boolean
+          gallery?: string[]
           github_url?: string | null
           id?: string
           image_url?: string | null
+          key_features?: string[]
           live_url?: string | null
           long_description?: string | null
+          problem?: string | null
+          readme_url?: string | null
+          solution?: string | null
           sort_order?: number
           stats?: Json
           tags?: string[]
           tech_stack?: string[]
           title?: string
           updated_at?: string
+          video_url?: string | null
         }
         Relationships: []
       }
