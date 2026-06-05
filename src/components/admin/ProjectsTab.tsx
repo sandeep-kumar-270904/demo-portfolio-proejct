@@ -126,6 +126,8 @@ export default function ProjectsTab() {
     setDraft(empty);
     setTagsInput("");
     setTechInput("");
+    setFeaturesInput("");
+    setGalleryInput("");
     setStatsJson("[]");
   }
   function startEdit(r: Row) {
@@ -153,6 +155,8 @@ export default function ProjectsTab() {
     });
     setTagsInput(csv(r.tags));
     setTechInput(csv(r.tech_stack));
+    setFeaturesInput((r.key_features ?? []).join("\n"));
+    setGalleryInput((r.gallery ?? []).join("\n"));
     setStatsJson(JSON.stringify(r.stats ?? [], null, 2));
   }
 
@@ -170,16 +174,25 @@ export default function ProjectsTab() {
       return;
     }
     setSaving(true);
+    const splitLines = (s: string) =>
+      s.split("\n").map((x) => x.trim()).filter(Boolean);
     const payload = {
       ...draft,
       tags: fromCsv(tagsInput),
       tech_stack: fromCsv(techInput),
+      key_features: splitLines(featuresInput),
+      gallery: splitLines(galleryInput),
       stats,
       live_url: draft.live_url || null,
       github_url: draft.github_url || null,
       image_url: draft.image_url || null,
       description: draft.description || null,
       long_description: draft.long_description || null,
+      problem: draft.problem || null,
+      solution: draft.solution || null,
+      video_url: draft.video_url || null,
+      readme_url: draft.readme_url || null,
+      docs_url: draft.docs_url || null,
     };
     try {
       if (editing) {
