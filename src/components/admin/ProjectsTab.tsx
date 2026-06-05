@@ -71,6 +71,8 @@ export default function ProjectsTab() {
   const [draft, setDraft] = useState<Omit<Row, "id">>(empty);
   const [tagsInput, setTagsInput] = useState("");
   const [techInput, setTechInput] = useState("");
+  const [featuresInput, setFeaturesInput] = useState("");
+  const [galleryInput, setGalleryInput] = useState("");
   const [statsJson, setStatsJson] = useState("[]");
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
