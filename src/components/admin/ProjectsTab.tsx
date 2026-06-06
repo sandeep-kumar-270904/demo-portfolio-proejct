@@ -470,7 +470,7 @@ export default function ProjectsTab() {
               rows={3}
             />
           </div>
-          <div class-placeholder="meta" className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
             <AdminInput
               label="My role"
               value={draft.my_role ?? ""}
