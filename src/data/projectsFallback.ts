@@ -22,6 +22,12 @@ export type DbProject = {
   video_url?: string | null;
   readme_url?: string | null;
   docs_url?: string | null;
+  my_role?: string | null;
+  duration?: string | null;
+  team_size?: string | null;
+  challenges?: string | null;
+  results?: string | null;
+  lessons?: string | null;
 };
 
 export const projectsFallback: DbProject[] = [];
