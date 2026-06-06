@@ -32,6 +32,12 @@ type Row = {
   video_url: string | null;
   readme_url: string | null;
   docs_url: string | null;
+  my_role: string | null;
+  duration: string | null;
+  team_size: string | null;
+  challenges: string | null;
+  results: string | null;
+  lessons: string | null;
 };
 
 const empty: Omit<Row, "id"> = {
@@ -54,6 +60,12 @@ const empty: Omit<Row, "id"> = {
   video_url: "",
   readme_url: "",
   docs_url: "",
+  my_role: "",
+  duration: "",
+  team_size: "",
+  challenges: "",
+  results: "",
+  lessons: "",
 };
 
 function csv(arr: string[]) {
@@ -152,6 +164,12 @@ export default function ProjectsTab() {
       video_url: r.video_url ?? "",
       readme_url: r.readme_url ?? "",
       docs_url: r.docs_url ?? "",
+      my_role: r.my_role ?? "",
+      duration: r.duration ?? "",
+      team_size: r.team_size ?? "",
+      challenges: r.challenges ?? "",
+      results: r.results ?? "",
+      lessons: r.lessons ?? "",
     });
     setTagsInput(csv(r.tags));
     setTechInput(csv(r.tech_stack));
@@ -193,6 +211,12 @@ export default function ProjectsTab() {
       video_url: draft.video_url || null,
       readme_url: draft.readme_url || null,
       docs_url: draft.docs_url || null,
+      my_role: draft.my_role || null,
+      duration: draft.duration || null,
+      team_size: draft.team_size || null,
+      challenges: draft.challenges || null,
+      results: draft.results || null,
+      lessons: draft.lessons || null,
     };
     try {
       if (editing) {
@@ -443,6 +467,46 @@ export default function ProjectsTab() {
               label="Gallery image URLs (one per line)"
               value={galleryInput}
               onChange={setGalleryInput}
+              rows={3}
+            />
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <AdminInput
+              label="My role"
+              value={draft.my_role ?? ""}
+              onChange={(v) => setDraft({ ...draft, my_role: v })}
+              placeholder="Lead Engineer"
+            />
+            <AdminInput
+              label="Duration"
+              value={draft.duration ?? ""}
+              onChange={(v) => setDraft({ ...draft, duration: v })}
+              placeholder="3 months"
+            />
+            <AdminInput
+              label="Team size"
+              value={draft.team_size ?? ""}
+              onChange={(v) => setDraft({ ...draft, team_size: v })}
+              placeholder="Solo / 4 engineers"
+            />
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <AdminTextarea
+              label="Challenges"
+              value={draft.challenges ?? ""}
+              onChange={(v) => setDraft({ ...draft, challenges: v })}
+              rows={3}
+            />
+            <AdminTextarea
+              label="Results / Outcome"
+              value={draft.results ?? ""}
+              onChange={(v) => setDraft({ ...draft, results: v })}
+              rows={3}
+            />
+            <AdminTextarea
+              label="Lessons learned"
+              value={draft.lessons ?? ""}
+              onChange={(v) => setDraft({ ...draft, lessons: v })}
               rows={3}
             />
           </div>

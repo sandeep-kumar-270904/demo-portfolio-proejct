@@ -197,23 +197,29 @@ export type Database = {
       projects: {
         Row: {
           category: string | null
+          challenges: string | null
           created_at: string
           description: string | null
           docs_url: string | null
+          duration: string | null
           featured: boolean
           gallery: string[]
           github_url: string | null
           id: string
           image_url: string | null
           key_features: string[]
+          lessons: string | null
           live_url: string | null
           long_description: string | null
+          my_role: string | null
           problem: string | null
           readme_url: string | null
+          results: string | null
           solution: string | null
           sort_order: number
           stats: Json
           tags: string[]
+          team_size: string | null
           tech_stack: string[]
           title: string
           updated_at: string
@@ -221,23 +227,29 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          challenges?: string | null
           created_at?: string
           description?: string | null
           docs_url?: string | null
+          duration?: string | null
           featured?: boolean
           gallery?: string[]
           github_url?: string | null
           id?: string
           image_url?: string | null
           key_features?: string[]
+          lessons?: string | null
           live_url?: string | null
           long_description?: string | null
+          my_role?: string | null
           problem?: string | null
           readme_url?: string | null
+          results?: string | null
           solution?: string | null
           sort_order?: number
           stats?: Json
           tags?: string[]
+          team_size?: string | null
           tech_stack?: string[]
           title: string
           updated_at?: string
@@ -245,23 +257,29 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          challenges?: string | null
           created_at?: string
           description?: string | null
           docs_url?: string | null
+          duration?: string | null
           featured?: boolean
           gallery?: string[]
           github_url?: string | null
           id?: string
           image_url?: string | null
           key_features?: string[]
+          lessons?: string | null
           live_url?: string | null
           long_description?: string | null
+          my_role?: string | null
           problem?: string | null
           readme_url?: string | null
+          results?: string | null
           solution?: string | null
           sort_order?: number
           stats?: Json
           tags?: string[]
+          team_size?: string | null
           tech_stack?: string[]
           title?: string
           updated_at?: string
