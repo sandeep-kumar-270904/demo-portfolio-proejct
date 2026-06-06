@@ -16,6 +16,13 @@ export default function EntryAnimation() {
 
   useEffect(() => {
     if (!show) return;
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      setShow(false);
+      return;
+    }
     document.body.style.overflow = "hidden";
 
     const timers: number[] = [];
