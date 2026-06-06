@@ -204,6 +204,35 @@ export default function ProjectDetail() {
           </div>
         </section>
 
+        {/* META STRIP */}
+        {(project.my_role || project.duration || project.team_size || project.category) && (
+          <section className="border-y border-soft-2 bg-surface/30">
+            <div className="mx-auto grid max-w-[1320px] grid-cols-2 gap-y-6 px-6 py-8 sm:grid-cols-4">
+              {[
+                { label: "Role", value: project.my_role },
+                { label: "Duration", value: project.duration },
+                { label: "Team", value: project.team_size },
+                { label: "Category", value: project.category },
+              ]
+                .filter((m) => m.value)
+                .map((m, i) => (
+                  <motion.div
+                    key={m.label}
+                    initial={{ opacity: 0, y: 12 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.06, duration: 0.5, ease }}
+                  >
+                    <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                      {m.label}
+                    </div>
+                    <div className="mt-1.5 font-syne text-[15px] font-bold text-ink">{m.value}</div>
+                  </motion.div>
+                ))}
+            </div>
+          </section>
+        )}
+
         {/* BODY */}
         <section className="mx-auto grid max-w-[1320px] grid-cols-1 gap-12 px-6 py-20 lg:grid-cols-[1.7fr_1fr]">
           <div className="space-y-14">
