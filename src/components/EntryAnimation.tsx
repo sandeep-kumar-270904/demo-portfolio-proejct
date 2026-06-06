@@ -16,6 +16,13 @@ export default function EntryAnimation() {
 
   useEffect(() => {
     if (!show) return;
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      setShow(false);
+      return;
+    }
     document.body.style.overflow = "hidden";
 
     const timers: number[] = [];
@@ -47,7 +54,7 @@ export default function EntryAnimation() {
   }, []);
 
   const ease = [0.22, 1, 0.36, 1] as const;
-  const nameWords = ["SANJU", "SANDY"];
+  const nameWords = ["EDHUBILLI", "SANDEEP", "KUMAR"];
 
   return (
     <AnimatePresence>
