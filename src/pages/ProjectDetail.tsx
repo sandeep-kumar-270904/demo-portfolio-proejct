@@ -289,6 +289,37 @@ export default function ProjectDetail() {
               </Reveal>
             )}
 
+            {/* Challenges / Results / Lessons */}
+            {(project.challenges || project.results || project.lessons) && (
+              <Reveal>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                  {[
+                    { label: "Challenges", value: project.challenges },
+                    { label: "Results", value: project.results },
+                    { label: "Lessons learned", value: project.lessons },
+                  ]
+                    .filter((b) => b.value)
+                    .map((b, i) => (
+                      <motion.div
+                        key={b.label}
+                        initial={{ opacity: 0, y: 18 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: i * 0.08, duration: 0.6, ease }}
+                        className="rounded-2xl border border-soft-2 bg-card p-6"
+                      >
+                        <h3 className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">
+                          {b.label}
+                        </h3>
+                        <p className="mt-4 whitespace-pre-line text-[14px] leading-[1.75] text-ink-2">
+                          {b.value}
+                        </p>
+                      </motion.div>
+                    ))}
+                </div>
+              </Reveal>
+            )}
+
             {/* Video */}
             {videoUrl && (
               <Reveal>
