@@ -47,7 +47,7 @@ export default function EntryAnimation() {
   }, []);
 
   const ease = [0.22, 1, 0.36, 1] as const;
-  const nameWords = ["SANJU", "SANDY"];
+  const nameWords = ["EDHUBILLI", "SANDEEP", "KUMAR"];
 
   return (
     <AnimatePresence>
