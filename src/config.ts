@@ -17,8 +17,8 @@ export const SITE = {
   nowPlaying: {
     title: "Tadow",
     artist: "FKJ & Masego",
-    // Either drop a file at public/audio/tadow.mp3, OR paste a direct .mp3 URL here.
-    audioUrl: "/audio/tadow.mp3",
+    // Hosted on Lovable CDN
+    audioUrl: "/__l5e/assets-v1/a1841f68-3723-4285-b96f-567f4b95f17e/tadow.mp3",
   },
   socials: {
     github: "https://github.com/sandeep-kumar-270904",
