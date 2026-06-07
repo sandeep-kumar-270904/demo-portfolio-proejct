@@ -440,23 +440,6 @@ export default function ProjectDetail() {
           </div>
 
           <aside className="space-y-6 lg:sticky lg:top-32 lg:self-start">
-            {project.stats?.length > 0 && (
-              <div className="rounded-2xl border border-soft-2 bg-card p-6">
-                <h3 className="font-syne text-[14px] font-bold uppercase tracking-widest text-acid">
-                  Impact
-                </h3>
-                <div className="mt-4 grid grid-cols-2 gap-4">
-                  {project.stats.map((s, i) => (
-                    <div key={i}>
-                      <div className="font-syne text-[24px] font-extrabold text-grad-acid">{s.value}</div>
-                      <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                        {s.label}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
             {project.tech_stack?.length > 0 && (
               <div className="rounded-2xl border border-soft-2 bg-card p-6">
                 <h3 className="font-syne text-[14px] font-bold uppercase tracking-widest text-acid">
@@ -484,6 +467,91 @@ export default function ProjectDetail() {
             </div>
           </aside>
         </section>
+
+        {/* TECHNICAL STACK BREAKDOWN */}
+        {project.tech_stack?.length > 0 && (
+          <section className="border-y border-soft-2 bg-surface/20">
+            <div className="mx-auto max-w-[1320px] px-6 py-16">
+              <Reveal>
+                <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">
+                  Technical stack
+                </span>
+                <h2 className="mt-3 font-syne text-[28px] font-bold text-ink">
+                  How it's built
+                </h2>
+              </Reveal>
+              <motion.div
+                variants={staggerParent(stagger.base)}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, margin: "-60px" }}
+                className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
+              >
+                {Object.entries(groupStack(project.tech_stack))
+                  .filter(([, v]) => v.length > 0)
+                  .map(([group, items]) => (
+                    <motion.div
+                      key={group}
+                      variants={item}
+                      className="rounded-2xl border border-soft-2 bg-card p-5"
+                    >
+                      <div className="flex items-baseline justify-between">
+                        <h3 className="font-syne text-[14px] font-bold uppercase tracking-widest text-ink">
+                          {group}
+                        </h3>
+                        <span className="font-mono text-[10px] text-muted-foreground">
+                          {items.length}
+                        </span>
+                      </div>
+                      <ul className="mt-3 space-y-1.5">
+                        {items.map((t) => (
+                          <li
+                            key={t}
+                            className="font-mono text-[12px] text-ink-2 before:mr-2 before:text-acid before:content-['›']"
+                          >
+                            {t}
+                          </li>
+                        ))}
+                      </ul>
+                    </motion.div>
+                  ))}
+              </motion.div>
+            </div>
+          </section>
+        )}
+
+        {/* CASE STUDY CTA */}
+        {project.case_study_url && (
+          <section className="mx-auto max-w-[1320px] px-6 py-20">
+            <Reveal>
+              <div className="relative overflow-hidden rounded-3xl border border-acid/30 bg-gradient-to-br from-card via-card to-acid/5 p-10 md:p-14">
+                <div className="grid items-center gap-8 md:grid-cols-[1fr_auto]">
+                  <div>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">
+                      Deep dive
+                    </span>
+                    <h2 className="mt-3 font-syne text-[32px] font-extrabold leading-tight text-ink md:text-[42px]">
+                      Read the full case study
+                    </h2>
+                    <p className="mt-3 max-w-[520px] text-[15px] leading-relaxed text-ink-2">
+                      Process, architecture, decisions, and the metrics that mattered — packaged
+                      as a downloadable PDF.
+                    </p>
+                  </div>
+                  <a
+                    href={project.case_study_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 self-start rounded-xl bg-acid px-6 py-3.5 font-syne text-[14px] font-bold text-void transition-transform hover:-translate-y-0.5 hover:glow-acid md:self-center"
+                  >
+                    <Download size={16} /> Download case study
+                  </a>
+                </div>
+              </div>
+            </Reveal>
+          </section>
+        )}
+
 
         {/* PREV / NEXT — gallery navigation */}
         {(prev || next) && (
