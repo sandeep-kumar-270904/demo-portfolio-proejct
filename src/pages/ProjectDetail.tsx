@@ -1,17 +1,16 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, ExternalLink, FileText, Github, BookOpen, Play } from "lucide-react";
+import { ArrowLeft, ArrowRight, ExternalLink, FileText, Github, BookOpen, Play, Download } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { useProjects } from "@/hooks/useSupabase";
 import { getProjectVisual } from "@/data/projectVisuals";
+import { ease, duration, stagger, fadeUp, item, staggerParent } from "@/lib/motion";
 
 function slugOf(r: { tags?: string[]; title: string }) {
   return (r.tags?.[0] ?? r.title.toLowerCase().replace(/\s+/g, "-")) as string;
 }
-
-const ease = [0.22, 1, 0.36, 1] as const;
 
 function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   return (
@@ -19,12 +18,33 @@ function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.8, ease, delay }}
+      transition={{ duration: duration.lg, ease: ease.out, delay }}
     >
       {children}
     </motion.div>
   );
 }
+
+// Heuristic grouping of tech stack into buckets for the breakdown
+function groupStack(stack: string[]): Record<string, string[]> {
+  const groups: Record<string, string[]> = {
+    Frontend: [],
+    Backend: [],
+    "Data & Infra": [],
+    Tooling: [],
+  };
+  const fe = /react|next|vue|svelte|tailwind|css|html|typescript|javascript|vite|astro|remix|three/i;
+  const be = /node|express|fastapi|django|flask|rails|go\b|golang|java\b|spring|rust|php|laravel|nest|graphql|api/i;
+  const data = /postgres|mysql|sql|redis|mongo|prisma|supabase|firebase|s3|aws|gcp|azure|docker|kubernetes|kafka|edge|cdn/i;
+  for (const t of stack) {
+    if (fe.test(t)) groups.Frontend.push(t);
+    else if (be.test(t)) groups.Backend.push(t);
+    else if (data.test(t)) groups["Data & Infra"].push(t);
+    else groups.Tooling.push(t);
+  }
+  return groups;
+}
+
 
 export default function ProjectDetail() {
   const { slug = "" } = useParams();
@@ -221,7 +241,7 @@ export default function ProjectDetail() {
                     initial={{ opacity: 0, y: 12 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: i * 0.06, duration: 0.5, ease }}
+                    transition={{ delay: i * 0.06, duration: 0.5, ease: ease.out }}
                   >
                     <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
                       {m.label}
@@ -229,6 +249,53 @@ export default function ProjectDetail() {
                     <div className="mt-1.5 font-syne text-[15px] font-bold text-ink">{m.value}</div>
                   </motion.div>
                 ))}
+            </div>
+          </section>
+        )}
+
+        {/* OVERVIEW NARRATIVE (full-width band) */}
+        {(project.overview || project.long_description) && (
+          <section className="border-b border-soft-2">
+            <div className="mx-auto max-w-[1320px] px-6 py-20">
+              <Reveal>
+                <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">
+                  Overview
+                </span>
+                <p className="mt-6 max-w-[940px] whitespace-pre-line font-syne text-[24px] font-light leading-[1.5] text-ink md:text-[28px]">
+                  {project.overview || project.long_description}
+                </p>
+              </Reveal>
+            </div>
+          </section>
+        )}
+
+        {/* METRICS CALLOUTS (large impact band) */}
+        {project.stats?.length > 0 && (
+          <section className="border-b border-soft-2 bg-surface/20">
+            <div className="mx-auto max-w-[1320px] px-6 py-16">
+              <Reveal>
+                <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">
+                  Impact by the numbers
+                </span>
+              </Reveal>
+              <motion.div
+                variants={staggerParent(stagger.base)}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, margin: "-60px" }}
+                className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-4"
+              >
+                {project.stats.map((s, i) => (
+                  <motion.div key={i} variants={item} className="rounded-2xl border border-soft-2 bg-card p-6">
+                    <div className="font-syne text-[40px] font-extrabold leading-none text-grad-acid md:text-[52px]">
+                      {s.value}
+                    </div>
+                    <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                      {s.label}
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
             </div>
           </section>
         )}
@@ -279,7 +346,7 @@ export default function ProjectDetail() {
                       initial={{ opacity: 0, y: 14 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ delay: i * 0.05, duration: 0.5, ease }}
+                      transition={{ delay: i * 0.05, duration: 0.5, ease: ease.out }}
                       className="flex gap-3 rounded-xl border border-soft-2 bg-card p-4 text-[14px] leading-relaxed text-ink-2"
                     >
                       <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-acid" /> {f}
@@ -305,7 +372,7 @@ export default function ProjectDetail() {
                         initial={{ opacity: 0, y: 18 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ delay: i * 0.08, duration: 0.6, ease }}
+                        transition={{ delay: i * 0.08, duration: 0.6, ease: ease.out }}
                         className="rounded-2xl border border-soft-2 bg-card p-6"
                       >
                         <h3 className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">
@@ -356,7 +423,7 @@ export default function ProjectDetail() {
                       initial={{ opacity: 0, y: 24 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ delay: i * 0.06, duration: 0.7, ease }}
+                      transition={{ delay: i * 0.06, duration: 0.7, ease: ease.out }}
                       className="group block overflow-hidden rounded-2xl border border-soft-2 bg-card"
                     >
                       <img
@@ -373,23 +440,6 @@ export default function ProjectDetail() {
           </div>
 
           <aside className="space-y-6 lg:sticky lg:top-32 lg:self-start">
-            {project.stats?.length > 0 && (
-              <div className="rounded-2xl border border-soft-2 bg-card p-6">
-                <h3 className="font-syne text-[14px] font-bold uppercase tracking-widest text-acid">
-                  Impact
-                </h3>
-                <div className="mt-4 grid grid-cols-2 gap-4">
-                  {project.stats.map((s, i) => (
-                    <div key={i}>
-                      <div className="font-syne text-[24px] font-extrabold text-grad-acid">{s.value}</div>
-                      <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                        {s.label}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
             {project.tech_stack?.length > 0 && (
               <div className="rounded-2xl border border-soft-2 bg-card p-6">
                 <h3 className="font-syne text-[14px] font-bold uppercase tracking-widest text-acid">
@@ -417,6 +467,91 @@ export default function ProjectDetail() {
             </div>
           </aside>
         </section>
+
+        {/* TECHNICAL STACK BREAKDOWN */}
+        {project.tech_stack?.length > 0 && (
+          <section className="border-y border-soft-2 bg-surface/20">
+            <div className="mx-auto max-w-[1320px] px-6 py-16">
+              <Reveal>
+                <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">
+                  Technical stack
+                </span>
+                <h2 className="mt-3 font-syne text-[28px] font-bold text-ink">
+                  How it's built
+                </h2>
+              </Reveal>
+              <motion.div
+                variants={staggerParent(stagger.base)}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, margin: "-60px" }}
+                className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
+              >
+                {Object.entries(groupStack(project.tech_stack))
+                  .filter(([, v]) => v.length > 0)
+                  .map(([group, items]) => (
+                    <motion.div
+                      key={group}
+                      variants={item}
+                      className="rounded-2xl border border-soft-2 bg-card p-5"
+                    >
+                      <div className="flex items-baseline justify-between">
+                        <h3 className="font-syne text-[14px] font-bold uppercase tracking-widest text-ink">
+                          {group}
+                        </h3>
+                        <span className="font-mono text-[10px] text-muted-foreground">
+                          {items.length}
+                        </span>
+                      </div>
+                      <ul className="mt-3 space-y-1.5">
+                        {items.map((t) => (
+                          <li
+                            key={t}
+                            className="font-mono text-[12px] text-ink-2 before:mr-2 before:text-acid before:content-['›']"
+                          >
+                            {t}
+                          </li>
+                        ))}
+                      </ul>
+                    </motion.div>
+                  ))}
+              </motion.div>
+            </div>
+          </section>
+        )}
+
+        {/* CASE STUDY CTA */}
+        {project.case_study_url && (
+          <section className="mx-auto max-w-[1320px] px-6 py-20">
+            <Reveal>
+              <div className="relative overflow-hidden rounded-3xl border border-acid/30 bg-gradient-to-br from-card via-card to-acid/5 p-10 md:p-14">
+                <div className="grid items-center gap-8 md:grid-cols-[1fr_auto]">
+                  <div>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">
+                      Deep dive
+                    </span>
+                    <h2 className="mt-3 font-syne text-[32px] font-extrabold leading-tight text-ink md:text-[42px]">
+                      Read the full case study
+                    </h2>
+                    <p className="mt-3 max-w-[520px] text-[15px] leading-relaxed text-ink-2">
+                      Process, architecture, decisions, and the metrics that mattered — packaged
+                      as a downloadable PDF.
+                    </p>
+                  </div>
+                  <a
+                    href={project.case_study_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 self-start rounded-xl bg-acid px-6 py-3.5 font-syne text-[14px] font-bold text-void transition-transform hover:-translate-y-0.5 hover:glow-acid md:self-center"
+                  >
+                    <Download size={16} /> Download case study
+                  </a>
+                </div>
+              </div>
+            </Reveal>
+          </section>
+        )}
+
 
         {/* PREV / NEXT — gallery navigation */}
         {(prev || next) && (

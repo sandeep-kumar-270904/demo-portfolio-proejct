@@ -28,6 +28,8 @@ export type DbProject = {
   challenges?: string | null;
   results?: string | null;
   lessons?: string | null;
+  overview?: string | null;
+  case_study_url?: string | null;
 };
 
 export const projectsFallback: DbProject[] = [];

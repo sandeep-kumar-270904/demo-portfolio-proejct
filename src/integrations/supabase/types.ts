@@ -196,6 +196,7 @@ export type Database = {
       }
       projects: {
         Row: {
+          case_study_url: string | null
           category: string | null
           challenges: string | null
           created_at: string
@@ -212,6 +213,7 @@ export type Database = {
           live_url: string | null
           long_description: string | null
           my_role: string | null
+          overview: string | null
           problem: string | null
           readme_url: string | null
           results: string | null
@@ -226,6 +228,7 @@ export type Database = {
           video_url: string | null
         }
         Insert: {
+          case_study_url?: string | null
           category?: string | null
           challenges?: string | null
           created_at?: string
@@ -242,6 +245,7 @@ export type Database = {
           live_url?: string | null
           long_description?: string | null
           my_role?: string | null
+          overview?: string | null
           problem?: string | null
           readme_url?: string | null
           results?: string | null
@@ -256,6 +260,7 @@ export type Database = {
           video_url?: string | null
         }
         Update: {
+          case_study_url?: string | null
           category?: string | null
           challenges?: string | null
           created_at?: string
@@ -272,6 +277,7 @@ export type Database = {
           live_url?: string | null
           long_description?: string | null
           my_role?: string | null
+          overview?: string | null
           problem?: string | null
           readme_url?: string | null
           results?: string | null
