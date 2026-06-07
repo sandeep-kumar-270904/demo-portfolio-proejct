@@ -253,6 +253,53 @@ export default function ProjectDetail() {
           </section>
         )}
 
+        {/* OVERVIEW NARRATIVE (full-width band) */}
+        {(project.overview || project.long_description) && (
+          <section className="border-b border-soft-2">
+            <div className="mx-auto max-w-[1320px] px-6 py-20">
+              <Reveal>
+                <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">
+                  Overview
+                </span>
+                <p className="mt-6 max-w-[940px] whitespace-pre-line font-syne text-[24px] font-light leading-[1.5] text-ink md:text-[28px]">
+                  {project.overview || project.long_description}
+                </p>
+              </Reveal>
+            </div>
+          </section>
+        )}
+
+        {/* METRICS CALLOUTS (large impact band) */}
+        {project.stats?.length > 0 && (
+          <section className="border-b border-soft-2 bg-surface/20">
+            <div className="mx-auto max-w-[1320px] px-6 py-16">
+              <Reveal>
+                <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">
+                  Impact by the numbers
+                </span>
+              </Reveal>
+              <motion.div
+                variants={staggerParent(stagger.base)}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, margin: "-60px" }}
+                className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-4"
+              >
+                {project.stats.map((s, i) => (
+                  <motion.div key={i} variants={item} className="rounded-2xl border border-soft-2 bg-card p-6">
+                    <div className="font-syne text-[40px] font-extrabold leading-none text-grad-acid md:text-[52px]">
+                      {s.value}
+                    </div>
+                    <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                      {s.label}
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </div>
+          </section>
+        )}
+
         {/* BODY */}
         <section className="mx-auto grid max-w-[1320px] grid-cols-1 gap-12 px-6 py-20 lg:grid-cols-[1.7fr_1fr]">
           <div className="space-y-14">
