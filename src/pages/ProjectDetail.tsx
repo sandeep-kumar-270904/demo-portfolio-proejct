@@ -241,7 +241,7 @@ export default function ProjectDetail() {
                     initial={{ opacity: 0, y: 12 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: i * 0.06, duration: 0.5, ease }}
+                    transition={{ delay: i * 0.06, duration: 0.5, ease: ease.out }}
                   >
                     <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
                       {m.label}
@@ -299,7 +299,7 @@ export default function ProjectDetail() {
                       initial={{ opacity: 0, y: 14 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ delay: i * 0.05, duration: 0.5, ease }}
+                      transition={{ delay: i * 0.05, duration: 0.5, ease: ease.out }}
                       className="flex gap-3 rounded-xl border border-soft-2 bg-card p-4 text-[14px] leading-relaxed text-ink-2"
                     >
                       <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-acid" /> {f}
@@ -325,7 +325,7 @@ export default function ProjectDetail() {
                         initial={{ opacity: 0, y: 18 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ delay: i * 0.08, duration: 0.6, ease }}
+                        transition={{ delay: i * 0.08, duration: 0.6, ease: ease.out }}
                         className="rounded-2xl border border-soft-2 bg-card p-6"
                       >
                         <h3 className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">
@@ -376,7 +376,7 @@ export default function ProjectDetail() {
                       initial={{ opacity: 0, y: 24 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ delay: i * 0.06, duration: 0.7, ease }}
+                      transition={{ delay: i * 0.06, duration: 0.7, ease: ease.out }}
                       className="group block overflow-hidden rounded-2xl border border-soft-2 bg-card"
                     >
                       <img
