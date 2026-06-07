@@ -38,6 +38,8 @@ type Row = {
   challenges: string | null;
   results: string | null;
   lessons: string | null;
+  overview: string | null;
+  case_study_url: string | null;
 };
 
 const empty: Omit<Row, "id"> = {
@@ -66,6 +68,8 @@ const empty: Omit<Row, "id"> = {
   challenges: "",
   results: "",
   lessons: "",
+  overview: "",
+  case_study_url: "",
 };
 
 function csv(arr: string[]) {
@@ -170,6 +174,8 @@ export default function ProjectsTab() {
       challenges: r.challenges ?? "",
       results: r.results ?? "",
       lessons: r.lessons ?? "",
+      overview: r.overview ?? "",
+      case_study_url: r.case_study_url ?? "",
     });
     setTagsInput(csv(r.tags));
     setTechInput(csv(r.tech_stack));
@@ -217,6 +223,8 @@ export default function ProjectsTab() {
       challenges: draft.challenges || null,
       results: draft.results || null,
       lessons: draft.lessons || null,
+      overview: draft.overview || null,
+      case_study_url: draft.case_study_url || null,
     };
     try {
       if (editing) {
@@ -510,12 +518,28 @@ export default function ProjectsTab() {
               rows={3}
             />
           </div>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="mt-4">
+            <AdminTextarea
+              label="Overview narrative (shown at top of detail page, supports line breaks)"
+              value={draft.overview ?? ""}
+              onChange={(v) => setDraft({ ...draft, overview: v })}
+              rows={4}
+            />
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <AdminInput
+              label="Case study URL (PDF / doc download)"
+              value={draft.case_study_url ?? ""}
+              onChange={(v) => setDraft({ ...draft, case_study_url: v })}
+              placeholder="https://…/case-study.pdf"
+            />
             <AdminInput
               label="Video URL (YouTube / Vimeo / .mp4)"
               value={draft.video_url ?? ""}
               onChange={(v) => setDraft({ ...draft, video_url: v })}
             />
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <AdminInput
               label="README URL"
               value={draft.readme_url ?? ""}
