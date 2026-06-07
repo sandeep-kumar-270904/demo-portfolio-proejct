@@ -1,17 +1,16 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, ExternalLink, FileText, Github, BookOpen, Play } from "lucide-react";
+import { ArrowLeft, ArrowRight, ExternalLink, FileText, Github, BookOpen, Play, Download } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { useProjects } from "@/hooks/useSupabase";
 import { getProjectVisual } from "@/data/projectVisuals";
+import { ease, duration, stagger, fadeUp, item, staggerParent } from "@/lib/motion";
 
 function slugOf(r: { tags?: string[]; title: string }) {
   return (r.tags?.[0] ?? r.title.toLowerCase().replace(/\s+/g, "-")) as string;
 }
-
-const ease = [0.22, 1, 0.36, 1] as const;
 
 function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   return (
@@ -19,12 +18,33 @@ function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.8, ease, delay }}
+      transition={{ duration: duration.lg, ease: ease.out, delay }}
     >
       {children}
     </motion.div>
   );
 }
+
+// Heuristic grouping of tech stack into buckets for the breakdown
+function groupStack(stack: string[]): Record<string, string[]> {
+  const groups: Record<string, string[]> = {
+    Frontend: [],
+    Backend: [],
+    "Data & Infra": [],
+    Tooling: [],
+  };
+  const fe = /react|next|vue|svelte|tailwind|css|html|typescript|javascript|vite|astro|remix|three/i;
+  const be = /node|express|fastapi|django|flask|rails|go\b|golang|java\b|spring|rust|php|laravel|nest|graphql|api/i;
+  const data = /postgres|mysql|sql|redis|mongo|prisma|supabase|firebase|s3|aws|gcp|azure|docker|kubernetes|kafka|edge|cdn/i;
+  for (const t of stack) {
+    if (fe.test(t)) groups.Frontend.push(t);
+    else if (be.test(t)) groups.Backend.push(t);
+    else if (data.test(t)) groups["Data & Infra"].push(t);
+    else groups.Tooling.push(t);
+  }
+  return groups;
+}
+
 
 export default function ProjectDetail() {
   const { slug = "" } = useParams();
