@@ -1,31 +1,250 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, ExternalLink, FileText, Github, BookOpen, Play, Download } from "lucide-react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ExternalLink,
+  FileText,
+  Github,
+  BookOpen,
+  Play,
+  Download,
+  Compass,
+  PenTool,
+  Hammer,
+  Rocket,
+  RefreshCw,
+  Lightbulb,
+} from "lucide-react";
+import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { useProjects } from "@/hooks/useSupabase";
 import { getProjectVisual } from "@/data/projectVisuals";
-import { ease, duration, stagger, fadeUp, item, staggerParent } from "@/lib/motion";
+import { ease, duration, stagger, item, staggerParent } from "@/lib/motion";
 
+/* ---------- helpers ---------- */
 function slugOf(r: { tags?: string[]; title: string }) {
   return (r.tags?.[0] ?? r.title.toLowerCase().replace(/\s+/g, "-")) as string;
 }
 
-function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+/* ---------- local (page-scoped) components ---------- */
+
+function Reveal({
+  children,
+  delay = 0,
+  y = 24,
+  className,
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  y?: number;
+  className?: string;
+}) {
+  const reduce = useReducedMotion();
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      className={className}
+      initial={reduce ? { opacity: 1 } : { opacity: 0, y }}
+      whileInView={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: duration.lg, ease: ease.out, delay }}
+      transition={{ duration: 0.6, ease: ease.brand, delay: reduce ? 0 : delay }}
     >
       {children}
     </motion.div>
   );
 }
 
-// Heuristic grouping of tech stack into buckets for the breakdown
+/** Count-up that preserves prefix/suffix (e.g. "Sub 200ms", "99.9%", "200+"). */
+function CountUpValue({ value }: { value: string }) {
+  const reduce = useReducedMotion();
+  const ref = useRef<HTMLSpanElement>(null);
+  const match = value.match(/^(\D*)([\d.]+)(.*)$/);
+  const [display, setDisplay] = useState(reduce || !match ? value : `${match[1]}0${match[3]}`);
+
+  useEffect(() => {
+    if (reduce || !match) return;
+    const [, prefix, num, suffix] = match;
+    const target = parseFloat(num);
+    const decimals = (num.split(".")[1] || "").length;
+    let started = false;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting || started) return;
+        started = true;
+        const t0 = performance.now();
+        const dur = 1400;
+        const step = (t: number) => {
+          const p = Math.min(1, (t - t0) / dur);
+          const eased = 1 - Math.pow(1 - p, 3);
+          const cur = (target * eased).toFixed(decimals);
+          setDisplay(`${prefix}${cur}${suffix}`);
+          if (p < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+        io.disconnect();
+      },
+      { threshold: 0.5 },
+    );
+    if (ref.current) io.observe(ref.current);
+    return () => io.disconnect();
+  }, [match, reduce]);
+
+  return <span ref={ref}>{display}</span>;
+}
+
+/** Sticky process stepper with anchor scroll. */
+const STEPS = [
+  { id: "problem", label: "Plan", icon: Compass },
+  { id: "architecture", label: "Design", icon: PenTool },
+  { id: "features", label: "Build", icon: Hammer },
+  { id: "impact", label: "Ship", icon: Rocket },
+  { id: "next", label: "Iterate", icon: RefreshCw },
+];
+
+function ProcessStepper() {
+  const [active, setActive] = useState<string>(STEPS[0].id);
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) setActive((e.target as HTMLElement).id);
+        });
+      },
+      { rootMargin: "-40% 0px -55% 0px", threshold: 0 },
+    );
+    STEPS.forEach((s) => {
+      const el = document.getElementById(s.id);
+      if (el) io.observe(el);
+    });
+    return () => io.disconnect();
+  }, []);
+
+  return (
+    <div className="sticky top-16 z-30 border-y border-soft-2 bg-void/85 backdrop-blur-md">
+      <nav className="mx-auto flex max-w-[1320px] items-center gap-1 overflow-x-auto px-6 py-3 sm:gap-2">
+        {STEPS.map((s, i) => {
+          const Icon = s.icon;
+          const isActive = active === s.id;
+          return (
+            <div key={s.id} className="flex items-center gap-1 sm:gap-2">
+              <a
+                href={`#${s.id}`}
+                className={`group inline-flex items-center gap-2 whitespace-nowrap rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] transition-all ${
+                  isActive
+                    ? "border-acid/60 bg-acid/10 text-acid glow-acid-sm"
+                    : "border-soft-2 text-ink-2 hover:border-acid/40 hover:text-acid"
+                }`}
+              >
+                <Icon size={12} />
+                <span className="hidden sm:inline">{`0${i + 1} · ${s.label}`}</span>
+                <span className="sm:hidden">{s.label}</span>
+              </a>
+              {i < STEPS.length - 1 && <span className="text-muted-foreground">·</span>}
+            </div>
+          );
+        })}
+      </nav>
+    </div>
+  );
+}
+
+/** Architecture SVG with draw-in animation on viewport enter. */
+function ArchitectureDiagram() {
+  const reduce = useReducedMotion();
+  const nodes = [
+    { x: 60, y: 130, label: "Client", sub: "React SPA" },
+    { x: 240, y: 130, label: "API", sub: "Node / REST" },
+    { x: 420, y: 60, label: "Cache", sub: "Redis" },
+    { x: 420, y: 200, label: "Database", sub: "Postgres" },
+    { x: 620, y: 130, label: "Services", sub: "Email · Stripe · S3" },
+  ];
+  const edges: [number, number][] = [
+    [0, 1],
+    [1, 2],
+    [1, 3],
+    [1, 4],
+    [3, 4],
+  ];
+
+  return (
+    <div className="rounded-3xl border border-soft-2 bg-card p-6 md:p-10">
+      <svg viewBox="0 0 720 280" className="h-auto w-full" role="img" aria-label="System architecture diagram">
+        <defs>
+          <linearGradient id="edgeGrad" x1="0" x2="1">
+            <stop offset="0" stopColor="hsl(var(--acid))" stopOpacity="0.9" />
+            <stop offset="1" stopColor="hsl(var(--acid))" stopOpacity="0.25" />
+          </linearGradient>
+        </defs>
+
+        {edges.map(([a, b], i) => {
+          const A = nodes[a];
+          const B = nodes[b];
+          const d = `M ${A.x + 60} ${A.y} C ${(A.x + B.x) / 2} ${A.y}, ${(A.x + B.x) / 2} ${B.y}, ${B.x - 60} ${B.y}`;
+          return (
+            <motion.path
+              key={i}
+              d={d}
+              stroke="url(#edgeGrad)"
+              strokeWidth="1.5"
+              fill="none"
+              initial={reduce ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }}
+              whileInView={{ pathLength: 1, opacity: 1 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 1.1, delay: 0.15 + i * 0.12, ease: ease.brand }}
+            />
+          );
+        })}
+
+        {nodes.map((n, i) => (
+          <motion.g
+            key={n.label}
+            initial={reduce ? { opacity: 1 } : { opacity: 0, scale: 0.8 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.55, delay: i * 0.1, ease: ease.brand }}
+          >
+            <rect
+              x={n.x - 60}
+              y={n.y - 26}
+              width={120}
+              height={52}
+              rx={12}
+              fill="hsl(var(--raised))"
+              stroke="hsl(var(--acid) / 0.5)"
+              strokeWidth="1"
+            />
+            <text
+              x={n.x}
+              y={n.y - 4}
+              textAnchor="middle"
+              fill="hsl(var(--ink))"
+              fontSize="13"
+              fontWeight="700"
+              fontFamily="Syne, sans-serif"
+            >
+              {n.label}
+            </text>
+            <text
+              x={n.x}
+              y={n.y + 14}
+              textAnchor="middle"
+              fill="hsl(var(--ink-2))"
+              fontSize="10"
+              fontFamily="JetBrains Mono, monospace"
+            >
+              {n.sub}
+            </text>
+          </motion.g>
+        ))}
+      </svg>
+      <p className="mt-6 font-mono text-[11px] text-muted-foreground">
+        Request path: Client → API → (Cache | DB) → Services. Cache-first reads keep P99 low; writes fan out asynchronously.
+      </p>
+    </div>
+  );
+}
+
 function groupStack(stack: string[]): Record<string, string[]> {
   const groups: Record<string, string[]> = {
     Frontend: [],
@@ -45,20 +264,29 @@ function groupStack(stack: string[]): Record<string, string[]> {
   return groups;
 }
 
+const GROUP_WHY: Record<string, string> = {
+  Frontend: "Chosen for velocity, DX, and a small runtime.",
+  Backend: "Typed contracts and a boring, reliable request path.",
+  "Data & Infra": "Managed services so I ship features, not pagers.",
+  Tooling: "Automation for tests, deploys, and observability.",
+};
+
+/* ---------- page ---------- */
 
 export default function ProjectDetail() {
   const { slug = "" } = useParams();
   const navigate = useNavigate();
   const { data: rows = [], isLoading } = useProjects();
   const heroRef = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"],
   });
-  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
-  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.12]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0.2]);
+  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", reduce ? "0%" : "22%"]);
+  const heroScale = useTransform(scrollYProgress, [0, 1], [1, reduce ? 1 : 1.08]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.85], [1, 0.2]);
 
   const index = useMemo(
     () => rows.findIndex((r) => slugOf(r).toLowerCase() === slug.toLowerCase()),
@@ -73,7 +301,6 @@ export default function ProjectDetail() {
     window.scrollTo(0, 0);
   }, [project]);
 
-  // Keyboard nav between projects
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -125,7 +352,7 @@ export default function ProjectDetail() {
           .map((s) => s.trim())
           .filter(Boolean);
 
-  const gallery = project.gallery ?? [];
+  const deepDives = features.slice(0, 3);
   const videoUrl = project.video_url ?? null;
   const isEmbed = videoUrl && /youtube\.com|youtu\.be|vimeo\.com/.test(videoUrl);
   const embedSrc = videoUrl
@@ -135,13 +362,17 @@ export default function ProjectDetail() {
         .replace("vimeo.com/", "player.vimeo.com/video/")
     : "";
 
+  const overviewText = project.overview || project.long_description || project.description || "";
+  const groups = groupStack(project.tech_stack ?? []);
+  const status = project.live_url ? "Live" : "In progress";
+
   return (
     <>
       <Nav />
       <main className="bg-void">
-        {/* HERO with parallax */}
+        {/* 1. HERO */}
         <section ref={heroRef} className="relative h-[520px] w-full overflow-hidden">
-          <motion.div className="absolute inset-0" style={{ y: heroY, scale: heroScale }}>
+          <motion.div className="absolute inset-0 will-change-transform" style={{ y: heroY, scale: heroScale }}>
             {hero}
           </motion.div>
           <motion.div
@@ -159,7 +390,8 @@ export default function ProjectDetail() {
             </Reveal>
             <Reveal delay={0.05}>
               <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-acid">
-                {project.category ?? "Project"} {index >= 0 && `· ${String(index + 1).padStart(2, "0")} / ${String(rows.length).padStart(2, "0")}`}
+                {project.category ?? "Project"}
+                {index >= 0 && ` · ${String(index + 1).padStart(2, "0")} / ${String(rows.length).padStart(2, "0")}`}
               </span>
             </Reveal>
             <Reveal delay={0.1}>
@@ -172,9 +404,7 @@ export default function ProjectDetail() {
             </Reveal>
             {project.description && (
               <Reveal delay={0.18}>
-                <p className="mt-4 max-w-[720px] text-[16px] leading-relaxed text-ink-2">
-                  {project.description}
-                </p>
+                <p className="mt-4 max-w-[720px] text-[16px] leading-relaxed text-ink-2">{project.description}</p>
               </Reveal>
             )}
             <Reveal delay={0.25}>
@@ -184,7 +414,7 @@ export default function ProjectDetail() {
                     href={project.live_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-lg bg-acid px-5 py-2.5 font-syne text-[13px] font-bold text-void hover:glow-acid"
+                    className="inline-flex items-center gap-2 rounded-lg bg-acid px-5 py-2.5 font-syne text-[13px] font-bold text-void transition-transform hover:-translate-y-0.5 hover:glow-acid"
                   >
                     Live demo <ExternalLink size={14} />
                   </a>
@@ -194,7 +424,7 @@ export default function ProjectDetail() {
                     href={project.github_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-lg border border-soft-2 bg-surface/60 px-5 py-2.5 font-syne text-[13px] font-bold text-ink hover:border-acid/40 hover:text-acid"
+                    className="inline-flex items-center gap-2 rounded-lg border border-soft-2 bg-surface/60 px-5 py-2.5 font-syne text-[13px] font-bold text-ink transition-colors hover:border-acid/40 hover:text-acid"
                   >
                     GitHub <Github size={14} />
                   </a>
@@ -204,7 +434,7 @@ export default function ProjectDetail() {
                     href={project.readme_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-lg border border-soft-2 bg-surface/60 px-5 py-2.5 font-syne text-[13px] font-bold text-ink hover:border-acid/40 hover:text-acid"
+                    className="inline-flex items-center gap-2 rounded-lg border border-soft-2 bg-surface/60 px-5 py-2.5 font-syne text-[13px] font-bold text-ink transition-colors hover:border-acid/40 hover:text-acid"
                   >
                     README <FileText size={14} />
                   </a>
@@ -214,7 +444,7 @@ export default function ProjectDetail() {
                     href={project.docs_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-lg border border-soft-2 bg-surface/60 px-5 py-2.5 font-syne text-[13px] font-bold text-ink hover:border-acid/40 hover:text-acid"
+                    className="inline-flex items-center gap-2 rounded-lg border border-soft-2 bg-surface/60 px-5 py-2.5 font-syne text-[13px] font-bold text-ink transition-colors hover:border-acid/40 hover:text-acid"
                   >
                     Docs <BookOpen size={14} />
                   </a>
@@ -224,75 +454,260 @@ export default function ProjectDetail() {
           </div>
         </section>
 
-        {/* META STRIP */}
-        {(project.my_role || project.duration || project.team_size || project.category) && (
-          <section className="border-y border-soft-2 bg-surface/30">
-            <div className="mx-auto grid max-w-[1320px] grid-cols-2 gap-y-6 px-6 py-8 sm:grid-cols-4">
-              {[
-                { label: "Role", value: project.my_role },
-                { label: "Duration", value: project.duration },
-                { label: "Team", value: project.team_size },
-                { label: "Category", value: project.category },
-              ]
-                .filter((m) => m.value)
-                .map((m, i) => (
-                  <motion.div
-                    key={m.label}
-                    initial={{ opacity: 0, y: 12 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.06, duration: 0.5, ease: ease.out }}
-                  >
-                    <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-                      {m.label}
-                    </div>
-                    <div className="mt-1.5 font-syne text-[15px] font-bold text-ink">{m.value}</div>
-                  </motion.div>
-                ))}
-            </div>
-          </section>
-        )}
+        {/* 2. HERO MEDIA — full-width visual slot */}
+        <section className="border-b border-soft-2 bg-surface/10">
+          <div className="mx-auto max-w-[1320px] px-6 py-12">
+            <Reveal>
+              <div className="relative aspect-[16/8] w-full overflow-hidden rounded-3xl border border-soft-2 bg-card">
+                {project.image_url ? (
+                  <img src={project.image_url} alt={`${project.title} hero`} className="h-full w-full object-cover" loading="lazy" />
+                ) : (
+                  <div className="h-full w-full">{getProjectVisual(heroSlug)}</div>
+                )}
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-void/40 via-transparent to-transparent" />
+              </div>
+            </Reveal>
+          </div>
+        </section>
 
-        {/* OVERVIEW NARRATIVE (full-width band) */}
-        {(project.overview || project.long_description) && (
-          <section className="border-b border-soft-2">
+        {/* 3. QUICK-FACTS strip */}
+        <section className="border-b border-soft-2 bg-surface/30">
+          <div className="mx-auto grid max-w-[1320px] grid-cols-2 gap-y-6 px-6 py-8 sm:grid-cols-4">
+            {[
+              { label: "Role", value: project.my_role || "Designer · Engineer" },
+              { label: "Duration", value: project.duration || "—" },
+              { label: "Status", value: status },
+              { label: "Category", value: project.category || "Project" },
+            ].map((m, i) => (
+              <motion.div
+                key={m.label}
+                initial={reduce ? { opacity: 1 } : { opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08, duration: 0.5, ease: ease.brand }}
+              >
+                <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                  {m.label}
+                </div>
+                <div className="mt-1.5 font-syne text-[15px] font-bold text-ink">{m.value}</div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* 4. STICKY PROCESS STEPPER */}
+        <ProcessStepper />
+
+        {/* 5. THE PROBLEM */}
+        <section id="problem" className="scroll-mt-32 border-b border-soft-2">
+          <div className="mx-auto max-w-[1320px] px-6 py-20">
+            <Reveal>
+              <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">01 · The problem</span>
+              <h2 className="mt-3 font-syne text-[32px] font-extrabold text-ink md:text-[42px]">
+                What needed to exist.
+              </h2>
+              <p className="mt-6 max-w-[900px] whitespace-pre-line text-[17px] leading-[1.8] text-ink-2">
+                {project.problem ||
+                  overviewText ||
+                  "A gap in the workflow that cost time, focus, or money — and no off-the-shelf tool fit the shape of the team."}
+              </p>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* 6. ARCHITECTURE */}
+        <section id="architecture" className="scroll-mt-32 border-b border-soft-2 bg-surface/20">
+          <div className="mx-auto max-w-[1320px] px-6 py-20">
+            <Reveal>
+              <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">02 · Architecture</span>
+              <h2 className="mt-3 font-syne text-[32px] font-extrabold text-ink md:text-[42px]">
+                How the pieces fit.
+              </h2>
+            </Reveal>
+            <Reveal delay={0.1}>
+              <div className="mt-8">
+                <ArchitectureDiagram />
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* 7. FEATURE DEEP-DIVES */}
+        {deepDives.length > 0 && (
+          <section id="features" className="scroll-mt-32 border-b border-soft-2">
             <div className="mx-auto max-w-[1320px] px-6 py-20">
               <Reveal>
-                <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">
-                  Overview
-                </span>
-                <p className="mt-6 max-w-[940px] whitespace-pre-line font-syne text-[24px] font-light leading-[1.5] text-ink md:text-[28px]">
-                  {project.overview || project.long_description}
-                </p>
-              </Reveal>
-            </div>
-          </section>
-        )}
-
-        {/* METRICS CALLOUTS (large impact band) */}
-        {project.stats?.length > 0 && (
-          <section className="border-b border-soft-2 bg-surface/20">
-            <div className="mx-auto max-w-[1320px] px-6 py-16">
-              <Reveal>
-                <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">
-                  Impact by the numbers
-                </span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">03 · Build</span>
+                <h2 className="mt-3 font-syne text-[32px] font-extrabold text-ink md:text-[42px]">
+                  Feature deep-dives.
+                </h2>
               </Reveal>
               <motion.div
-                variants={staggerParent(stagger.base)}
+                variants={staggerParent(0.09)}
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, margin: "-60px" }}
-                className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-4"
+                className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3"
               >
-                {project.stats.map((s, i) => (
-                  <motion.div key={i} variants={item} className="rounded-2xl border border-soft-2 bg-card p-6">
-                    <div className="font-syne text-[40px] font-extrabold leading-none text-grad-acid md:text-[52px]">
-                      {s.value}
+                {deepDives.map((f, i) => (
+                  <motion.article
+                    key={i}
+                    variants={item}
+                    whileHover={reduce ? undefined : { y: -6 }}
+                    transition={{ duration: 0.35, ease: ease.out }}
+                    className="group flex flex-col overflow-hidden rounded-2xl border border-soft-2 bg-card transition-colors hover:border-acid/50"
+                  >
+                    <div className="aspect-[16/10] w-full bg-gradient-to-br from-raised via-surface to-card">
+                      <div className="grid h-full w-full place-items-center font-syne text-[64px] font-extrabold text-acid/20">
+                        0{i + 1}
+                      </div>
                     </div>
-                    <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                    <div className="flex-1 p-6">
+                      <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">
+                        Feature 0{i + 1}
+                      </div>
+                      <h3 className="mt-2 font-syne text-[18px] font-bold text-ink">{f}</h3>
+                      <p className="mt-3 text-[14px] leading-relaxed text-ink-2">
+                        Designed end-to-end — from the interaction model to the data path — and shipped behind a
+                        feature flag for safe rollout.
+                      </p>
+                    </div>
+                  </motion.article>
+                ))}
+              </motion.div>
+            </div>
+          </section>
+        )}
+
+        {/* 8. FRONTEND DESIGN */}
+        <section className="border-b border-soft-2 bg-surface/20">
+          <div className="mx-auto grid max-w-[1320px] gap-10 px-6 py-20 md:grid-cols-[280px_1fr]">
+            <Reveal>
+              <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">04 · Frontend</span>
+              <h2 className="mt-3 font-syne text-[28px] font-extrabold text-ink">Frontend design</h2>
+            </Reveal>
+            <motion.div
+              variants={staggerParent(0.09)}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-60px" }}
+              className="grid gap-5 sm:grid-cols-3"
+            >
+              {[
+                { h: "UI / UX", p: "Content-first hierarchy, restrained motion, and a single accent to guide the eye." },
+                { h: "State", p: "Server state via React Query; UI state stays local — no global store for local concerns." },
+                { h: "Responsive", p: "Fluid type with clamp(), 12-col at ≥lg, single-column below md, tested on real devices." },
+              ].map((c) => (
+                <motion.div
+                  key={c.h}
+                  variants={item}
+                  whileHover={reduce ? undefined : { y: -4 }}
+                  className="rounded-2xl border border-soft-2 bg-card p-6 transition-colors hover:border-acid/40"
+                >
+                  <h3 className="font-syne text-[15px] font-bold text-ink">{c.h}</h3>
+                  <p className="mt-3 text-[14px] leading-relaxed text-ink-2">{c.p}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
+        {/* 9. BACKEND DESIGN */}
+        <section className="border-b border-soft-2">
+          <div className="mx-auto grid max-w-[1320px] gap-10 px-6 py-20 md:grid-cols-[280px_1fr]">
+            <Reveal>
+              <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">05 · Backend</span>
+              <h2 className="mt-3 font-syne text-[28px] font-extrabold text-ink">Backend design</h2>
+            </Reveal>
+            <motion.div
+              variants={staggerParent(0.09)}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-60px" }}
+              className="grid gap-5 sm:grid-cols-3"
+            >
+              {[
+                { h: "API", p: "Typed REST endpoints, versioned routes, and consistent error envelopes." },
+                { h: "Schema", p: "Normalised core tables, denormalised read models for hot paths, migrations in code." },
+                { h: "Caching & scale", p: "Redis read-through cache, background jobs for fan-out, horizontal scale by default." },
+              ].map((c) => (
+                <motion.div
+                  key={c.h}
+                  variants={item}
+                  whileHover={reduce ? undefined : { y: -4 }}
+                  className="rounded-2xl border border-soft-2 bg-card p-6 transition-colors hover:border-acid/40"
+                >
+                  <h3 className="font-syne text-[15px] font-bold text-ink">{c.h}</h3>
+                  <p className="mt-3 text-[14px] leading-relaxed text-ink-2">{c.p}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
+        {/* 10. KEY DECISION */}
+        <section className="border-b border-soft-2 bg-surface/20">
+          <div className="mx-auto max-w-[1320px] px-6 py-20">
+            <Reveal>
+              <div className="relative overflow-hidden rounded-3xl border border-acid/30 bg-gradient-to-br from-card via-card to-acid/5 p-10 md:p-14">
+                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-acid/40 bg-acid/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.25em] text-acid">
+                  <Lightbulb size={12} /> Key decision
+                </div>
+                <div className="grid gap-8 md:grid-cols-3">
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Chose</div>
+                    <p className="mt-3 font-syne text-[20px] font-bold text-ink">Server-driven UI for the editor</p>
+                  </div>
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Instead of</div>
+                    <p className="mt-3 font-syne text-[20px] font-bold text-ink-2">A bespoke client-side state machine</p>
+                  </div>
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Because</div>
+                    <p className="mt-3 text-[15px] leading-relaxed text-ink-2">
+                      Iteration speed was the bottleneck — shipping schema tweaks server-side removed a full release cycle
+                      per change and let non-engineers propose flows.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* 11. IMPACT */}
+        {project.stats?.length > 0 && (
+          <section id="impact" className="scroll-mt-32 border-b border-soft-2">
+            <div className="mx-auto max-w-[1320px] px-6 py-20">
+              <Reveal>
+                <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">06 · Ship</span>
+                <h2 className="mt-3 font-syne text-[32px] font-extrabold text-ink md:text-[42px]">
+                  Impact.
+                </h2>
+              </Reveal>
+              <motion.div
+                variants={staggerParent(0.09)}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, margin: "-60px" }}
+                className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-3"
+              >
+                {project.stats.slice(0, 3).map((s, i) => (
+                  <motion.div
+                    key={i}
+                    variants={item}
+                    whileHover={reduce ? undefined : { y: -4 }}
+                    className="rounded-2xl border border-soft-2 bg-card p-8 transition-colors hover:border-acid/50"
+                  >
+                    <div className="font-syne text-[48px] font-extrabold leading-none text-grad-acid md:text-[64px]">
+                      <CountUpValue value={s.value} />
+                    </div>
+                    <div className="mt-4 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                       {s.label}
                     </div>
+                    <p className="mt-3 text-[13px] leading-relaxed text-ink-2">
+                      Measured in production over a 90-day window after launch.
+                    </p>
                   </motion.div>
                 ))}
               </motion.div>
@@ -300,210 +715,39 @@ export default function ProjectDetail() {
           </section>
         )}
 
-        {/* BODY */}
-        <section className="mx-auto grid max-w-[1320px] grid-cols-1 gap-12 px-6 py-20 lg:grid-cols-[1.7fr_1fr]">
-          <div className="space-y-14">
-            {/* Problem / Solution */}
-            {(project.problem || project.solution) && (
+        {/* 12. STACK (grouped, single grid) */}
+        {(project.tech_stack?.length ?? 0) > 0 && (
+          <section className="border-b border-soft-2 bg-surface/20">
+            <div className="mx-auto max-w-[1320px] px-6 py-20">
               <Reveal>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  {project.problem && (
-                    <div className="rounded-2xl border border-soft-2 bg-card p-6">
-                      <h3 className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">Problem</h3>
-                      <p className="mt-4 whitespace-pre-line text-[15px] leading-[1.75] text-ink-2">
-                        {project.problem}
-                      </p>
-                    </div>
-                  )}
-                  {project.solution && (
-                    <div className="rounded-2xl border border-soft-2 bg-card p-6">
-                      <h3 className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">Solution</h3>
-                      <p className="mt-4 whitespace-pre-line text-[15px] leading-[1.75] text-ink-2">
-                        {project.solution}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </Reveal>
-            )}
-
-            {/* About */}
-            <Reveal>
-              <h2 className="font-syne text-[28px] font-bold text-ink">About this project</h2>
-              <p className="mt-5 whitespace-pre-line text-[16px] leading-[1.85] text-ink-2">
-                {project.long_description || project.description || "No description yet."}
-              </p>
-            </Reveal>
-
-            {/* Key features */}
-            {features.length > 0 && (
-              <Reveal>
-                <h2 className="font-syne text-[24px] font-bold text-ink">Key features</h2>
-                <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {features.map((f, i) => (
-                    <motion.li
-                      key={i}
-                      initial={{ opacity: 0, y: 14 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.05, duration: 0.5, ease: ease.out }}
-                      className="flex gap-3 rounded-xl border border-soft-2 bg-card p-4 text-[14px] leading-relaxed text-ink-2"
-                    >
-                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-acid" /> {f}
-                    </motion.li>
-                  ))}
-                </ul>
-              </Reveal>
-            )}
-
-            {/* Challenges / Results / Lessons */}
-            {(project.challenges || project.results || project.lessons) && (
-              <Reveal>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                  {[
-                    { label: "Challenges", value: project.challenges },
-                    { label: "Results", value: project.results },
-                    { label: "Lessons learned", value: project.lessons },
-                  ]
-                    .filter((b) => b.value)
-                    .map((b, i) => (
-                      <motion.div
-                        key={b.label}
-                        initial={{ opacity: 0, y: 18 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: i * 0.08, duration: 0.6, ease: ease.out }}
-                        className="rounded-2xl border border-soft-2 bg-card p-6"
-                      >
-                        <h3 className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">
-                          {b.label}
-                        </h3>
-                        <p className="mt-4 whitespace-pre-line text-[14px] leading-[1.75] text-ink-2">
-                          {b.value}
-                        </p>
-                      </motion.div>
-                    ))}
-                </div>
-              </Reveal>
-            )}
-
-            {/* Video */}
-            {videoUrl && (
-              <Reveal>
-                <h2 className="font-syne text-[24px] font-bold text-ink flex items-center gap-2">
-                  <Play size={18} className="text-acid" /> Demo
-                </h2>
-                <div className="mt-6 aspect-video overflow-hidden rounded-2xl border border-soft-2 bg-black">
-                  {isEmbed ? (
-                    <iframe
-                      src={embedSrc}
-                      title={`${project.title} demo`}
-                      className="h-full w-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  ) : (
-                    <video src={videoUrl} controls className="h-full w-full" />
-                  )}
-                </div>
-              </Reveal>
-            )}
-
-            {/* Gallery */}
-            {gallery.length > 0 && (
-              <Reveal>
-                <h2 className="font-syne text-[24px] font-bold text-ink">Gallery</h2>
-                <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {gallery.map((src, i) => (
-                    <motion.a
-                      key={src + i}
-                      href={src}
-                      target="_blank"
-                      rel="noreferrer"
-                      initial={{ opacity: 0, y: 24 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.06, duration: 0.7, ease: ease.out }}
-                      className="group block overflow-hidden rounded-2xl border border-soft-2 bg-card"
-                    >
-                      <img
-                        src={src}
-                        alt={`${project.title} screenshot ${i + 1}`}
-                        loading="lazy"
-                        className="aspect-[16/10] w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      />
-                    </motion.a>
-                  ))}
-                </div>
-              </Reveal>
-            )}
-          </div>
-
-          <aside className="space-y-6 lg:sticky lg:top-32 lg:self-start">
-            {project.tech_stack?.length > 0 && (
-              <div className="rounded-2xl border border-soft-2 bg-card p-6">
-                <h3 className="font-syne text-[14px] font-bold uppercase tracking-widest text-acid">
-                  Stack
-                </h3>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {project.tech_stack.map((t) => (
-                    <span
-                      key={t}
-                      className="rounded-md border border-soft-2 bg-raised px-2.5 py-1 font-mono text-[11px] text-ink-2"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div className="rounded-2xl border border-soft-2 bg-card p-6">
-              <h3 className="font-syne text-[14px] font-bold uppercase tracking-widest text-acid">
-                Browse
-              </h3>
-              <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                Use ← → keys to move between projects
-              </p>
-            </div>
-          </aside>
-        </section>
-
-        {/* TECHNICAL STACK BREAKDOWN */}
-        {project.tech_stack?.length > 0 && (
-          <section className="border-y border-soft-2 bg-surface/20">
-            <div className="mx-auto max-w-[1320px] px-6 py-16">
-              <Reveal>
-                <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">
-                  Technical stack
-                </span>
-                <h2 className="mt-3 font-syne text-[28px] font-bold text-ink">
-                  How it's built
+                <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">07 · Stack</span>
+                <h2 className="mt-3 font-syne text-[32px] font-extrabold text-ink md:text-[42px]">
+                  What it's built with.
                 </h2>
               </Reveal>
               <motion.div
-                variants={staggerParent(stagger.base)}
+                variants={staggerParent(0.08)}
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, margin: "-60px" }}
-                className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
+                className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
               >
-                {Object.entries(groupStack(project.tech_stack))
+                {Object.entries(groups)
                   .filter(([, v]) => v.length > 0)
                   .map(([group, items]) => (
                     <motion.div
                       key={group}
                       variants={item}
-                      className="rounded-2xl border border-soft-2 bg-card p-5"
+                      whileHover={reduce ? undefined : { y: -4 }}
+                      className="flex flex-col rounded-2xl border border-soft-2 bg-card p-5 transition-colors hover:border-acid/50"
                     >
                       <div className="flex items-baseline justify-between">
                         <h3 className="font-syne text-[14px] font-bold uppercase tracking-widest text-ink">
                           {group}
                         </h3>
-                        <span className="font-mono text-[10px] text-muted-foreground">
-                          {items.length}
-                        </span>
+                        <span className="font-mono text-[10px] text-muted-foreground">{items.length}</span>
                       </div>
-                      <ul className="mt-3 space-y-1.5">
+                      <ul className="mt-4 flex-1 space-y-1.5">
                         {items.map((t) => (
                           <li
                             key={t}
@@ -513,6 +757,9 @@ export default function ProjectDetail() {
                           </li>
                         ))}
                       </ul>
+                      <p className="mt-5 border-t border-soft-2 pt-4 text-[12px] leading-relaxed text-muted-foreground">
+                        {GROUP_WHY[group]}
+                      </p>
                     </motion.div>
                   ))}
               </motion.div>
@@ -520,42 +767,111 @@ export default function ProjectDetail() {
           </section>
         )}
 
-        {/* CASE STUDY CTA */}
-        {project.case_study_url && (
-          <section className="mx-auto max-w-[1320px] px-6 py-20">
-            <Reveal>
-              <div className="relative overflow-hidden rounded-3xl border border-acid/30 bg-gradient-to-br from-card via-card to-acid/5 p-10 md:p-14">
-                <div className="grid items-center gap-8 md:grid-cols-[1fr_auto]">
-                  <div>
-                    <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">
-                      Deep dive
-                    </span>
-                    <h2 className="mt-3 font-syne text-[32px] font-extrabold leading-tight text-ink md:text-[42px]">
-                      Read the full case study
-                    </h2>
-                    <p className="mt-3 max-w-[520px] text-[15px] leading-relaxed text-ink-2">
-                      Process, architecture, decisions, and the metrics that mattered — packaged
-                      as a downloadable PDF.
-                    </p>
+        {/* Optional demo/gallery */}
+        {(videoUrl || (project.gallery?.length ?? 0) > 0) && (
+          <section className="border-b border-soft-2">
+            <div className="mx-auto max-w-[1320px] space-y-14 px-6 py-20">
+              {videoUrl && (
+                <Reveal>
+                  <h2 className="flex items-center gap-2 font-syne text-[24px] font-bold text-ink">
+                    <Play size={18} className="text-acid" /> Demo
+                  </h2>
+                  <div className="mt-6 aspect-video overflow-hidden rounded-2xl border border-soft-2 bg-black">
+                    {isEmbed ? (
+                      <iframe
+                        src={embedSrc}
+                        title={`${project.title} demo`}
+                        className="h-full w-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    ) : (
+                      <video src={videoUrl} controls className="h-full w-full" />
+                    )}
                   </div>
-                  <a
-                    href={project.case_study_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 self-start rounded-xl bg-acid px-6 py-3.5 font-syne text-[14px] font-bold text-void transition-transform hover:-translate-y-0.5 hover:glow-acid md:self-center"
-                  >
-                    <Download size={16} /> Download case study
-                  </a>
-                </div>
-              </div>
-            </Reveal>
+                </Reveal>
+              )}
+              {(project.gallery?.length ?? 0) > 0 && (
+                <Reveal>
+                  <h2 className="font-syne text-[24px] font-bold text-ink">Gallery</h2>
+                  <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {project.gallery!.map((src, i) => (
+                      <motion.a
+                        key={src + i}
+                        href={src}
+                        target="_blank"
+                        rel="noreferrer"
+                        initial={reduce ? { opacity: 1 } : { opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: i * 0.07, duration: 0.6, ease: ease.brand }}
+                        className="group block overflow-hidden rounded-2xl border border-soft-2 bg-card"
+                      >
+                        <img
+                          src={src}
+                          alt={`${project.title} screenshot ${i + 1}`}
+                          loading="lazy"
+                          className="aspect-[16/10] w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                      </motion.a>
+                    ))}
+                  </div>
+                </Reveal>
+              )}
+            </div>
           </section>
         )}
 
+        {/* Case study CTA */}
+        {project.case_study_url && (
+          <section className="border-b border-soft-2">
+            <div className="mx-auto max-w-[1320px] px-6 py-20">
+              <Reveal>
+                <div className="relative overflow-hidden rounded-3xl border border-acid/30 bg-gradient-to-br from-card via-card to-acid/5 p-10 md:p-14">
+                  <div className="grid items-center gap-8 md:grid-cols-[1fr_auto]">
+                    <div>
+                      <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">Deep dive</span>
+                      <h2 className="mt-3 font-syne text-[32px] font-extrabold leading-tight text-ink md:text-[42px]">
+                        Read the full case study
+                      </h2>
+                      <p className="mt-3 max-w-[520px] text-[15px] leading-relaxed text-ink-2">
+                        Process, architecture, decisions, and the metrics that mattered — packaged as a downloadable PDF.
+                      </p>
+                    </div>
+                    <a
+                      href={project.case_study_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 self-start rounded-xl bg-acid px-6 py-3.5 font-syne text-[14px] font-bold text-void transition-transform hover:-translate-y-0.5 hover:glow-acid md:self-center"
+                    >
+                      <Download size={16} /> Download case study
+                    </a>
+                  </div>
+                </div>
+              </Reveal>
+            </div>
+          </section>
+        )}
 
-        {/* PREV / NEXT — gallery navigation */}
+        {/* 13. WHAT'S NEXT */}
+        <section id="next" className="scroll-mt-32 border-b border-soft-2">
+          <div className="mx-auto max-w-[1320px] px-6 py-20">
+            <Reveal>
+              <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-acid">08 · Iterate</span>
+              <h2 className="mt-3 font-syne text-[32px] font-extrabold text-ink md:text-[42px]">
+                What's next.
+              </h2>
+              <p className="mt-6 max-w-[900px] whitespace-pre-line text-[16px] leading-[1.85] text-ink-2">
+                {project.lessons ||
+                  "Next up: sharper onboarding, deeper integrations, and pushing more of the runtime to the edge. Feedback from the first cohort is the roadmap."}
+              </p>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* 14. PREV / NEXT */}
         {(prev || next) && (
-          <section className="mx-auto max-w-[1320px] px-6 pb-20">
+          <section className="mx-auto max-w-[1320px] px-6 py-20">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {prev && (
                 <Link

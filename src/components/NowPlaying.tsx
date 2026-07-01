@@ -14,7 +14,13 @@ export default function NowPlaying() {
   const bars = [1, 2, 3, 4];
 
   useEffect(() => {
-    const a = new Audio(SITE.nowPlaying.audioUrl || "/audio/tadow.mp3");
+    // On non-Lovable hosts (e.g. Vercel), Lovable's /__l5e/ CDN path doesn't
+    // resolve — fall back to the published Lovable domain so audio still plays.
+    let src = SITE.nowPlaying.audioUrl || "/audio/tadow.mp3";
+    if (typeof window !== "undefined" && src.startsWith("/__l5e/") && !/lovable\.app$/i.test(window.location.hostname)) {
+      src = `https://sandeep-kumar-edhubilli-portfolio.lovable.app${src}`;
+    }
+    const a = new Audio(src);
     a.preload = "none";
     a.loop = true;
     a.volume = 0.7;
