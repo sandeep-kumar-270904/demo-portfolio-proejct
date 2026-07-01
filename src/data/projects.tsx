@@ -127,7 +127,7 @@ export const PROJECTS: Project[] = [
     metrics: [
       { value: "200+", label: "Active Users" },
       { value: "99.9%", label: "Uptime SLA" },
-      { value: "<200ms", label: "P99 Latency" },
+      { value: "Sub 200ms", label: "P99 Latency" },
     ],
     features: [
       "Real-time collaboration via WebSocket pub/sub",

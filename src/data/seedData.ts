@@ -22,7 +22,7 @@ export const SEED_PROJECTS = [
     stats: [
       { value: "200+", label: "Active Users" },
       { value: "99.9%", label: "Uptime SLA" },
-      { value: "<200ms", label: "P99 Latency" },
+      { value: "Sub 200ms", label: "P99 Latency" },
     ],
   },
   {
