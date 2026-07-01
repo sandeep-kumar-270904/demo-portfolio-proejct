@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 /**
  * Cinematic portfolio entry.
- * DESIGNING → DEVELOPING → DELIVERING → SANJU SANDY → reveal site.
+ * DESIGNING → DEVELOPING → DELIVERING → EDHUBILLI SANDEEP KUMAR → reveal site.
  * Plays on every load. Skippable on key/click.
  */
 const PHASES = ["DESIGNING.", "DEVELOPING.", "DELIVERING."];
