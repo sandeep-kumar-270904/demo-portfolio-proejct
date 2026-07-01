@@ -7,8 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
  * Plays on every load. Skippable on key/click.
  */
 const PHASES = ["DESIGNING.", "DEVELOPING.", "DELIVERING."];
-const WORD_MS = 1200;
-const NAME_MS = 2200;
+const WORD_MS = 850;
+const NAME_MS = 1600;
 
 export default function EntryAnimation() {
   const [show, setShow] = useState(true);
