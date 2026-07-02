@@ -653,11 +653,12 @@ export default function ProjectDetail() {
                     transition={{ duration: 0.35, ease: ease.out }}
                     className="group flex flex-col overflow-hidden rounded-2xl border border-soft-2 bg-card transition-colors hover:border-acid/50"
                   >
-                    <div className="aspect-[16/10] w-full bg-gradient-to-br from-raised via-surface to-card">
-                      <div className="grid h-full w-full place-items-center font-syne text-[64px] font-extrabold text-acid/20">
-                        0{i + 1}
-                      </div>
-                    </div>
+                    <MediaSlot
+                      ratio="aspect-[16/10]"
+                      rounded="rounded-none"
+                      alt={`Feature 0${i + 1} preview`}
+                      label={`Feature 0${i + 1} · media slot`}
+                    />
                     <div className="flex-1 p-6">
                       <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">
                         Feature 0{i + 1}
