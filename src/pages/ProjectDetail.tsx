@@ -571,6 +571,47 @@ export default function ProjectDetail() {
           </div>
         </section>
 
+        {/* 2b. AT A GLANCE — compact skim summary */}
+        <section className="border-b border-soft-2">
+          <div className="mx-auto max-w-[1320px] px-6 py-10">
+            <Reveal>
+              <div className="rounded-2xl border border-soft-2 bg-card/70 p-6 backdrop-blur md:p-8">
+                <div className="flex items-center gap-2">
+                  <Lightbulb size={14} className="text-acid" />
+                  <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-acid">At a glance</span>
+                </div>
+                <div className="mt-5 grid gap-6 md:grid-cols-3">
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Problem</div>
+                    <p className="mt-2 line-clamp-3 text-[14px] leading-relaxed text-ink">
+                      {(project.problem || overviewText || "A workflow gap with no clean off-the-shelf fix.").split(/\.\s|\n/)[0] + "."}
+                    </p>
+                  </div>
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Solution</div>
+                    <p className="mt-2 line-clamp-3 text-[14px] leading-relaxed text-ink">
+                      {(project.solution || project.description || "A focused product that removes the friction end-to-end.").split(/\.\s|\n/)[0] + "."}
+                    </p>
+                  </div>
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Key features</div>
+                    <ul className="mt-2 space-y-1.5">
+                      {(features.length ? features : ["End-to-end flow", "Considered UX", "Production-grade"])
+                        .slice(0, 4)
+                        .map((f, i) => (
+                          <li key={i} className="flex items-start gap-2 text-[13px] leading-snug text-ink-2">
+                            <span className="mt-1.5 h-1 w-1 flex-none rounded-full bg-acid" />
+                            <span className="line-clamp-1">{f}</span>
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
         {/* 3. QUICK-FACTS strip */}
         <section className="border-b border-soft-2 bg-surface/30">
           <div className="mx-auto grid max-w-[1320px] grid-cols-2 gap-y-6 px-6 py-8 sm:grid-cols-4">
