@@ -15,6 +15,7 @@ import {
   Rocket,
   RefreshCw,
   Lightbulb,
+  ImageIcon,
 } from "lucide-react";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import Nav from "@/components/Nav";
@@ -29,6 +30,101 @@ function slugOf(r: { tags?: string[]; title: string }) {
 }
 
 /* ---------- local (page-scoped) components ---------- */
+
+/**
+ * MediaSlot — neutral framed placeholder for future image / carousel / video.
+ * Priority: video_url (autoplay muted loop) → images[] (single or carousel) → placeholder.
+ * Placeholder is a subtle gradient + soft icon (never a broken-image glyph).
+ */
+function MediaSlot({
+  ratio = "aspect-[16/8]",
+  images,
+  videoUrl,
+  alt,
+  rounded = "rounded-3xl",
+  label = "Media coming soon",
+}: {
+  ratio?: string;
+  images?: string[];
+  videoUrl?: string | null;
+  alt?: string;
+  rounded?: string;
+  label?: string;
+}) {
+  const reduce = useReducedMotion();
+  const [idx, setIdx] = useState(0);
+  const imgs = (images ?? []).filter(Boolean);
+
+  useEffect(() => {
+    if (imgs.length < 2 || reduce) return;
+    const t = setInterval(() => setIdx((i) => (i + 1) % imgs.length), 4200);
+    return () => clearInterval(t);
+  }, [imgs.length, reduce]);
+
+  const isEmbed = !!videoUrl && /youtube\.com|youtu\.be|vimeo\.com/.test(videoUrl);
+  const embedSrc = videoUrl
+    ? videoUrl
+        .replace("youtu.be/", "www.youtube.com/embed/")
+        .replace("watch?v=", "embed/")
+        .replace("vimeo.com/", "player.vimeo.com/video/")
+    : "";
+
+  return (
+    <div
+      className={`relative w-full overflow-hidden border border-soft-2 bg-card ${ratio} ${rounded}`}
+      aria-label={alt ?? label}
+    >
+      {videoUrl ? (
+        isEmbed ? (
+          <iframe
+            src={embedSrc}
+            title={alt ?? "Project video"}
+            className="absolute inset-0 h-full w-full"
+            allow="autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <video
+            src={videoUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        )
+      ) : imgs.length > 0 ? (
+        imgs.map((src, i) => (
+          <img
+            key={src + i}
+            src={src}
+            alt={alt ?? ""}
+            loading="lazy"
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
+              i === idx ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        ))
+      ) : (
+        <>
+          {/* Neutral placeholder — subtle gradient + soft icon */}
+          <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_20%_10%,hsl(var(--raised))_0%,hsl(var(--card))_45%,hsl(var(--surface))_100%)]" />
+          <div className="absolute inset-0 opacity-[0.06] bg-[linear-gradient(hsl(var(--acid))_1px,transparent_1px),linear-gradient(90deg,hsl(var(--acid))_1px,transparent_1px)] bg-[size:32px_32px]" />
+          <div className="absolute inset-0 grid place-items-center">
+            <div className="flex flex-col items-center gap-3 text-ink-2/60">
+              <div className="grid h-14 w-14 place-items-center rounded-2xl border border-soft-2 bg-void/40 backdrop-blur">
+                <ImageIcon size={22} className="text-acid/60" aria-hidden />
+              </div>
+              <span className="font-mono text-[10px] uppercase tracking-[0.28em]">{label}</span>
+            </div>
+          </div>
+        </>
+      )}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-void/40 via-transparent to-transparent" />
+    </div>
+  );
+}
+
 
 function Reveal({
   children,
@@ -458,14 +554,14 @@ export default function ProjectDetail() {
         <section className="border-b border-soft-2 bg-surface/10">
           <div className="mx-auto max-w-[1320px] px-6 py-12">
             <Reveal>
-              <div className="relative aspect-[16/8] w-full overflow-hidden rounded-3xl border border-soft-2 bg-card">
-                {project.image_url ? (
-                  <img src={project.image_url} alt={`${project.title} hero`} className="h-full w-full object-cover" loading="lazy" />
-                ) : (
-                  <div className="h-full w-full">{getProjectVisual(heroSlug)}</div>
-                )}
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-void/40 via-transparent to-transparent" />
-              </div>
+              <MediaSlot
+                ratio="aspect-[16/8]"
+                rounded="rounded-3xl"
+                videoUrl={videoUrl}
+                images={project.image_url ? [project.image_url] : []}
+                alt={`${project.title} hero media`}
+                label="Hero visual · image / carousel / video"
+              />
             </Reveal>
           </div>
         </section>
@@ -557,11 +653,12 @@ export default function ProjectDetail() {
                     transition={{ duration: 0.35, ease: ease.out }}
                     className="group flex flex-col overflow-hidden rounded-2xl border border-soft-2 bg-card transition-colors hover:border-acid/50"
                   >
-                    <div className="aspect-[16/10] w-full bg-gradient-to-br from-raised via-surface to-card">
-                      <div className="grid h-full w-full place-items-center font-syne text-[64px] font-extrabold text-acid/20">
-                        0{i + 1}
-                      </div>
-                    </div>
+                    <MediaSlot
+                      ratio="aspect-[16/10]"
+                      rounded="rounded-none"
+                      alt={`Feature 0${i + 1} preview`}
+                      label={`Feature 0${i + 1} · media slot`}
+                    />
                     <div className="flex-1 p-6">
                       <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">
                         Feature 0{i + 1}
