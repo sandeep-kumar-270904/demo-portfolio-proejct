@@ -15,6 +15,7 @@ import {
   Rocket,
   RefreshCw,
   Lightbulb,
+  ImageIcon,
 } from "lucide-react";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import Nav from "@/components/Nav";
