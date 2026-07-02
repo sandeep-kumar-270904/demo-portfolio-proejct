@@ -109,13 +109,13 @@ export default function Hero() {
             }}
           >
             <span className="block overflow-hidden">
-              <span className="block animate-slide-up text-ink hover:text-glow-acid transition-all duration-700">{t("hero_line1")}</span>
+              <WordReveal text={t("hero_line1")} className="block text-ink" baseDelay={0.05} />
             </span>
             <span className="block overflow-hidden">
-              <span className="block animate-slide-up text-stroke" style={{ animationDelay: "0.1s" }}>{t("hero_line2")}</span>
+              <WordReveal text={t("hero_line2")} className="block text-stroke" baseDelay={0.35} />
             </span>
             <span className="block overflow-hidden">
-              <span className="block animate-slide-up text-grad-acid" style={{ animationDelay: "0.2s" }}>{t("hero_line3")}</span>
+              <WordReveal text={t("hero_line3")} className="block text-grad-acid" baseDelay={0.7} />
             </span>
           </h1>
 
