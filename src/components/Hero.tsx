@@ -1,4 +1,5 @@
 import { Download } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import Terminal from "./Terminal";
 import ParticleNetwork from "./ParticleNetwork";
 import { useCounter, useInView } from "@/hooks/useCounter";
@@ -6,6 +7,40 @@ import MagneticButton from "./MagneticButton";
 import { SITE } from "@/config";
 import { usePersonalInfo } from "@/hooks/useSupabase";
 import { useSiteCopy } from "@/hooks/useSiteCopy";
+import { ease } from "@/lib/motion";
+
+// Linear-style word-by-word reveal for hero name lines.
+function WordReveal({
+  text,
+  className,
+  baseDelay = 0,
+  wordDelay = 0.09,
+}: {
+  text: string;
+  className?: string;
+  baseDelay?: number;
+  wordDelay?: number;
+}) {
+  const reduce = useReducedMotion();
+  const words = (text ?? "").split(/\s+/).filter(Boolean);
+  if (reduce) return <span className={className}>{text}</span>;
+  return (
+    <span className={className} aria-label={text}>
+      {words.map((w, i) => (
+        <span key={i} className="inline-block overflow-hidden align-bottom pr-[0.22em]">
+          <motion.span
+            className="inline-block will-change-transform"
+            initial={{ y: "110%", opacity: 0 }}
+            animate={{ y: "0%", opacity: 1 }}
+            transition={{ duration: 0.9, ease: ease.brand, delay: baseDelay + i * wordDelay }}
+          >
+            {w}
+          </motion.span>
+        </span>
+      ))}
+    </span>
+  );
+}
 
 function Stat({ value, suffix = "", label, start }: { value: number; suffix?: string; label: string; start: boolean }) {
   const v = useCounter(value, 1400, start);
@@ -74,13 +109,13 @@ export default function Hero() {
             }}
           >
             <span className="block overflow-hidden">
-              <span className="block animate-slide-up text-ink hover:text-glow-acid transition-all duration-700">{t("hero_line1")}</span>
+              <WordReveal text={t("hero_line1")} className="block text-ink" baseDelay={0.05} />
             </span>
             <span className="block overflow-hidden">
-              <span className="block animate-slide-up text-stroke" style={{ animationDelay: "0.1s" }}>{t("hero_line2")}</span>
+              <WordReveal text={t("hero_line2")} className="block text-stroke" baseDelay={0.35} />
             </span>
             <span className="block overflow-hidden">
-              <span className="block animate-slide-up text-grad-acid" style={{ animationDelay: "0.2s" }}>{t("hero_line3")}</span>
+              <WordReveal text={t("hero_line3")} className="block text-grad-acid" baseDelay={0.7} />
             </span>
           </h1>
 

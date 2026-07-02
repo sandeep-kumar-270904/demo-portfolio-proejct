@@ -424,7 +424,7 @@ export default function ProjectDetail() {
         <Nav />
         <main className="mx-auto max-w-[1320px] px-6 py-32">
           <h1 className="font-syne text-[40px] font-extrabold text-ink">Project not found</h1>
-          <Link to="/#projects" className="mt-6 inline-flex items-center gap-2 text-acid">
+          <Link to={{ pathname: "/", hash: "#projects" }} className="mt-6 inline-flex items-center gap-2 text-acid">
             <ArrowLeft size={16} /> All projects
           </Link>
         </main>
@@ -478,7 +478,12 @@ export default function ProjectDetail() {
           <div className="relative mx-auto flex h-full max-w-[1320px] flex-col justify-end px-6 pb-14">
             <Reveal>
               <Link
-                to="/#projects"
+                to={{ pathname: "/", hash: "#projects" }}
+                onClick={(e) => {
+                  // Force a fresh navigation to the grid so we never re-mount the same detail
+                  e.preventDefault();
+                  navigate("/#projects");
+                }}
                 className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-soft-2 bg-void/60 px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest text-ink-2 backdrop-blur hover:border-acid/40 hover:text-acid"
               >
                 <ArrowLeft size={13} /> All projects
@@ -562,6 +567,47 @@ export default function ProjectDetail() {
                 alt={`${project.title} hero media`}
                 label="Hero visual · image / carousel / video"
               />
+            </Reveal>
+          </div>
+        </section>
+
+        {/* 2b. AT A GLANCE — compact skim summary */}
+        <section className="border-b border-soft-2">
+          <div className="mx-auto max-w-[1320px] px-6 py-10">
+            <Reveal>
+              <div className="rounded-2xl border border-soft-2 bg-card/70 p-6 backdrop-blur md:p-8">
+                <div className="flex items-center gap-2">
+                  <Lightbulb size={14} className="text-acid" />
+                  <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-acid">At a glance</span>
+                </div>
+                <div className="mt-5 grid gap-6 md:grid-cols-3">
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Problem</div>
+                    <p className="mt-2 line-clamp-3 text-[14px] leading-relaxed text-ink">
+                      {(project.problem || overviewText || "A workflow gap with no clean off-the-shelf fix.").split(/\.\s|\n/)[0] + "."}
+                    </p>
+                  </div>
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Solution</div>
+                    <p className="mt-2 line-clamp-3 text-[14px] leading-relaxed text-ink">
+                      {(project.solution || project.description || "A focused product that removes the friction end-to-end.").split(/\.\s|\n/)[0] + "."}
+                    </p>
+                  </div>
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Key features</div>
+                    <ul className="mt-2 space-y-1.5">
+                      {(features.length ? features : ["End-to-end flow", "Considered UX", "Production-grade"])
+                        .slice(0, 4)
+                        .map((f, i) => (
+                          <li key={i} className="flex items-start gap-2 text-[13px] leading-snug text-ink-2">
+                            <span className="mt-1.5 h-1 w-1 flex-none rounded-full bg-acid" />
+                            <span className="line-clamp-1">{f}</span>
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </Reveal>
           </div>
         </section>
