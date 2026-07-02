@@ -554,14 +554,14 @@ export default function ProjectDetail() {
         <section className="border-b border-soft-2 bg-surface/10">
           <div className="mx-auto max-w-[1320px] px-6 py-12">
             <Reveal>
-              <div className="relative aspect-[16/8] w-full overflow-hidden rounded-3xl border border-soft-2 bg-card">
-                {project.image_url ? (
-                  <img src={project.image_url} alt={`${project.title} hero`} className="h-full w-full object-cover" loading="lazy" />
-                ) : (
-                  <div className="h-full w-full">{getProjectVisual(heroSlug)}</div>
-                )}
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-void/40 via-transparent to-transparent" />
-              </div>
+              <MediaSlot
+                ratio="aspect-[16/8]"
+                rounded="rounded-3xl"
+                videoUrl={videoUrl}
+                images={project.image_url ? [project.image_url] : []}
+                alt={`${project.title} hero media`}
+                label="Hero visual · image / carousel / video"
+              />
             </Reveal>
           </div>
         </section>
