@@ -424,7 +424,7 @@ export default function ProjectDetail() {
         <Nav />
         <main className="mx-auto max-w-[1320px] px-6 py-32">
           <h1 className="font-syne text-[40px] font-extrabold text-ink">Project not found</h1>
-          <Link to="/#projects" className="mt-6 inline-flex items-center gap-2 text-acid">
+          <Link to={{ pathname: "/", hash: "#projects" }} className="mt-6 inline-flex items-center gap-2 text-acid">
             <ArrowLeft size={16} /> All projects
           </Link>
         </main>
