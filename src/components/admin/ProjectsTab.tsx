@@ -24,7 +24,7 @@ type Row = {
   featured: boolean;
   category: string | null;
   sort_order: number;
-  stats: { value: string; label: string }[];
+  stats: { value: string; label: string; context?: string }[];
   problem: string | null;
   solution: string | null;
   key_features: string[];
@@ -40,6 +40,14 @@ type Row = {
   lessons: string | null;
   overview: string | null;
   case_study_url: string | null;
+  status_badge: string | null;
+  hero_images: string[];
+  architecture: { nodes?: { label: string; sub?: string; x?: number; y?: number }[]; edges?: [number, number][] };
+  features_deep: { title: string; description?: string; images?: string[]; video_url?: string | null }[];
+  frontend_cards: { h: string; p: string }[];
+  backend_cards: { h: string; p: string }[];
+  key_decision: { chose?: string; instead_of?: string; because?: string };
+  stack_groups: { name: string; items: string[]; why?: string }[];
 };
 
 const empty: Omit<Row, "id"> = {
@@ -70,6 +78,14 @@ const empty: Omit<Row, "id"> = {
   lessons: "",
   overview: "",
   case_study_url: "",
+  status_badge: "",
+  hero_images: [],
+  architecture: { nodes: [], edges: [] },
+  features_deep: [],
+  frontend_cards: [],
+  backend_cards: [],
+  key_decision: {},
+  stack_groups: [],
 };
 
 function csv(arr: string[]) {
@@ -89,7 +105,14 @@ export default function ProjectsTab() {
   const [techInput, setTechInput] = useState("");
   const [featuresInput, setFeaturesInput] = useState("");
   const [galleryInput, setGalleryInput] = useState("");
+  const [heroImagesInput, setHeroImagesInput] = useState("");
   const [statsJson, setStatsJson] = useState("[]");
+  const [architectureJson, setArchitectureJson] = useState('{"nodes":[],"edges":[]}');
+  const [featuresDeepJson, setFeaturesDeepJson] = useState("[]");
+  const [frontendCardsJson, setFrontendCardsJson] = useState("[]");
+  const [backendCardsJson, setBackendCardsJson] = useState("[]");
+  const [keyDecisionJson, setKeyDecisionJson] = useState("{}");
+  const [stackGroupsJson, setStackGroupsJson] = useState("[]");
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
@@ -144,7 +167,14 @@ export default function ProjectsTab() {
     setTechInput("");
     setFeaturesInput("");
     setGalleryInput("");
+    setHeroImagesInput("");
     setStatsJson("[]");
+    setArchitectureJson('{"nodes":[],"edges":[]}');
+    setFeaturesDeepJson("[]");
+    setFrontendCardsJson("[]");
+    setBackendCardsJson("[]");
+    setKeyDecisionJson("{}");
+    setStackGroupsJson("[]");
   }
   function startEdit(r: Row) {
     setEditing(r);
@@ -176,12 +206,27 @@ export default function ProjectsTab() {
       lessons: r.lessons ?? "",
       overview: r.overview ?? "",
       case_study_url: r.case_study_url ?? "",
+      status_badge: r.status_badge ?? "",
+      hero_images: r.hero_images ?? [],
+      architecture: r.architecture ?? { nodes: [], edges: [] },
+      features_deep: r.features_deep ?? [],
+      frontend_cards: r.frontend_cards ?? [],
+      backend_cards: r.backend_cards ?? [],
+      key_decision: r.key_decision ?? {},
+      stack_groups: r.stack_groups ?? [],
     });
     setTagsInput(csv(r.tags));
     setTechInput(csv(r.tech_stack));
     setFeaturesInput((r.key_features ?? []).join("\n"));
     setGalleryInput((r.gallery ?? []).join("\n"));
+    setHeroImagesInput((r.hero_images ?? []).join("\n"));
     setStatsJson(JSON.stringify(r.stats ?? [], null, 2));
+    setArchitectureJson(JSON.stringify(r.architecture ?? { nodes: [], edges: [] }, null, 2));
+    setFeaturesDeepJson(JSON.stringify(r.features_deep ?? [], null, 2));
+    setFrontendCardsJson(JSON.stringify(r.frontend_cards ?? [], null, 2));
+    setBackendCardsJson(JSON.stringify(r.backend_cards ?? [], null, 2));
+    setKeyDecisionJson(JSON.stringify(r.key_decision ?? {}, null, 2));
+    setStackGroupsJson(JSON.stringify(r.stack_groups ?? [], null, 2));
   }
 
   async function save() {
@@ -189,12 +234,28 @@ export default function ProjectsTab() {
       toast.error("Title required");
       return;
     }
-    let stats: { value: string; label: string }[] = [];
+    let stats: { value: string; label: string; context?: string }[] = [];
+    let architecture: Row["architecture"] = { nodes: [], edges: [] };
+    let features_deep: Row["features_deep"] = [];
+    let frontend_cards: Row["frontend_cards"] = [];
+    let backend_cards: Row["backend_cards"] = [];
+    let key_decision: Row["key_decision"] = {};
+    let stack_groups: Row["stack_groups"] = [];
     try {
       stats = JSON.parse(statsJson || "[]");
-      if (!Array.isArray(stats)) throw new Error();
-    } catch {
-      toast.error("Stats must be valid JSON array");
+      if (!Array.isArray(stats)) throw new Error("stats");
+      architecture = JSON.parse(architectureJson || '{"nodes":[],"edges":[]}');
+      features_deep = JSON.parse(featuresDeepJson || "[]");
+      if (!Array.isArray(features_deep)) throw new Error("features_deep");
+      frontend_cards = JSON.parse(frontendCardsJson || "[]");
+      if (!Array.isArray(frontend_cards)) throw new Error("frontend_cards");
+      backend_cards = JSON.parse(backendCardsJson || "[]");
+      if (!Array.isArray(backend_cards)) throw new Error("backend_cards");
+      key_decision = JSON.parse(keyDecisionJson || "{}");
+      stack_groups = JSON.parse(stackGroupsJson || "[]");
+      if (!Array.isArray(stack_groups)) throw new Error("stack_groups");
+    } catch (e) {
+      toast.error(`Invalid JSON: ${e instanceof Error ? e.message : "check fields"}`);
       return;
     }
     setSaving(true);
@@ -206,7 +267,14 @@ export default function ProjectsTab() {
       tech_stack: fromCsv(techInput),
       key_features: splitLines(featuresInput),
       gallery: splitLines(galleryInput),
+      hero_images: splitLines(heroImagesInput),
       stats,
+      architecture,
+      features_deep,
+      frontend_cards,
+      backend_cards,
+      key_decision,
+      stack_groups,
       live_url: draft.live_url || null,
       github_url: draft.github_url || null,
       image_url: draft.image_url || null,
@@ -225,6 +293,7 @@ export default function ProjectsTab() {
       lessons: draft.lessons || null,
       overview: draft.overview || null,
       case_study_url: draft.case_study_url || null,
+      status_badge: draft.status_badge || null,
     };
     try {
       if (editing) {
@@ -571,11 +640,79 @@ export default function ProjectsTab() {
         </div>
         <div className="mt-4">
           <AdminTextarea
-            label='Stats (JSON: [{"value":"99%","label":"Uptime"}])'
+            label='Stats (JSON: [{"value":"200+","label":"Active Users","context":"90-day window"}])'
             value={statsJson}
             onChange={setStatsJson}
             rows={4}
           />
+        </div>
+
+        {/* CMS extras for Project Detail page */}
+        <div className="mt-6 rounded-xl border border-soft-2 bg-surface/40 p-4">
+          <h4 className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">
+            Detail page — structured sections
+          </h4>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <AdminInput
+              label="Status badge (Live / Demo / WIP)"
+              value={draft.status_badge ?? ""}
+              onChange={(v) => setDraft({ ...draft, status_badge: v })}
+            />
+          </div>
+          <div className="mt-4">
+            <AdminTextarea
+              label="Hero images — one URL per line (2+ becomes auto-carousel)"
+              value={heroImagesInput}
+              onChange={setHeroImagesInput}
+              rows={3}
+            />
+          </div>
+          <div className="mt-4">
+            <AdminTextarea
+              label='Architecture (JSON: {"nodes":[{"label":"Client","sub":"React SPA"}],"edges":[[0,1]]})'
+              value={architectureJson}
+              onChange={setArchitectureJson}
+              rows={5}
+            />
+          </div>
+          <div className="mt-4">
+            <AdminTextarea
+              label='Feature deep-dives (JSON array: [{"title":"…","description":"…","images":["url"],"video_url":null}])'
+              value={featuresDeepJson}
+              onChange={setFeaturesDeepJson}
+              rows={6}
+            />
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <AdminTextarea
+              label='Frontend cards (JSON: [{"h":"UI/UX","p":"…"}])'
+              value={frontendCardsJson}
+              onChange={setFrontendCardsJson}
+              rows={5}
+            />
+            <AdminTextarea
+              label='Backend cards (JSON: [{"h":"API","p":"…"}])'
+              value={backendCardsJson}
+              onChange={setBackendCardsJson}
+              rows={5}
+            />
+          </div>
+          <div className="mt-4">
+            <AdminTextarea
+              label='Key decision (JSON: {"chose":"…","instead_of":"…","because":"…"})'
+              value={keyDecisionJson}
+              onChange={setKeyDecisionJson}
+              rows={4}
+            />
+          </div>
+          <div className="mt-4">
+            <AdminTextarea
+              label='Stack groups (JSON: [{"name":"Frontend","items":["React","Tailwind"],"why":"…"}])'
+              value={stackGroupsJson}
+              onChange={setStackGroupsJson}
+              rows={6}
+            />
+          </div>
         </div>
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <AdminPrimaryButton onClick={save} disabled={saving}>

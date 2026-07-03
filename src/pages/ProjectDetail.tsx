@@ -54,12 +54,13 @@ function MediaSlot({
   const reduce = useReducedMotion();
   const [idx, setIdx] = useState(0);
   const imgs = (images ?? []).filter(Boolean);
+  const hasCarousel = imgs.length > 1;
 
   useEffect(() => {
-    if (imgs.length < 2 || reduce) return;
+    if (!hasCarousel || reduce) return;
     const t = setInterval(() => setIdx((i) => (i + 1) % imgs.length), 4200);
     return () => clearInterval(t);
-  }, [imgs.length, reduce]);
+  }, [imgs.length, reduce, hasCarousel]);
 
   const isEmbed = !!videoUrl && /youtube\.com|youtu\.be|vimeo\.com/.test(videoUrl);
   const embedSrc = videoUrl
@@ -69,10 +70,28 @@ function MediaSlot({
         .replace("vimeo.com/", "player.vimeo.com/video/")
     : "";
 
+  // Simple swipe/drag support for carousel
+  const dragRef = useRef<{ startX: number; active: boolean }>({ startX: 0, active: false });
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!hasCarousel) return;
+    dragRef.current = { startX: e.clientX, active: true };
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (!hasCarousel || !dragRef.current.active) return;
+    const dx = e.clientX - dragRef.current.startX;
+    if (Math.abs(dx) > 40) {
+      setIdx((i) => (i + (dx < 0 ? 1 : -1) + imgs.length) % imgs.length);
+    }
+    dragRef.current.active = false;
+  };
+
   return (
     <div
-      className={`relative w-full overflow-hidden border border-soft-2 bg-card ${ratio} ${rounded}`}
+      className={`relative w-full overflow-hidden border border-soft-2 bg-card ${ratio} ${rounded} ${hasCarousel ? "cursor-grab active:cursor-grabbing touch-pan-y" : ""}`}
       aria-label={alt ?? label}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerCancel={() => (dragRef.current.active = false)}
     >
       {videoUrl ? (
         isEmbed ? (
@@ -86,25 +105,46 @@ function MediaSlot({
         ) : (
           <video
             src={videoUrl}
-            autoPlay
+            autoPlay={!reduce}
             muted
             loop
             playsInline
+            preload="metadata"
             className="absolute inset-0 h-full w-full object-cover"
           />
         )
       ) : imgs.length > 0 ? (
-        imgs.map((src, i) => (
-          <img
-            key={src + i}
-            src={src}
-            alt={alt ?? ""}
-            loading="lazy"
-            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
-              i === idx ? "opacity-100" : "opacity-0"
-            }`}
-          />
-        ))
+        <>
+          {imgs.map((src, i) => (
+            <img
+              key={src + i}
+              src={src}
+              alt={alt ?? ""}
+              loading="lazy"
+              draggable={false}
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                i === idx ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          ))}
+          {hasCarousel && (
+            <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-void/60 px-2.5 py-1.5 backdrop-blur">
+              {imgs.map((_, i) => (
+                <button
+                  key={i}
+                  aria-label={`Show image ${i + 1}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIdx(i);
+                  }}
+                  className={`h-1.5 rounded-full transition-all ${
+                    i === idx ? "w-5 bg-acid" : "w-1.5 bg-ink-2/50 hover:bg-ink-2"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </>
       ) : (
         <>
           {/* Neutral placeholder — subtle gradient + soft icon */}
@@ -246,22 +286,44 @@ function ProcessStepper() {
 }
 
 /** Architecture SVG with draw-in animation on viewport enter. */
-function ArchitectureDiagram() {
+function ArchitectureDiagram({
+  nodes: cmsNodes,
+  edges: cmsEdges,
+}: {
+  nodes?: { x?: number; y?: number; label: string; sub?: string }[];
+  edges?: [number, number][];
+} = {}) {
   const reduce = useReducedMotion();
-  const nodes = [
+  const defaultNodes = [
     { x: 60, y: 130, label: "Client", sub: "React SPA" },
     { x: 240, y: 130, label: "API", sub: "Node / REST" },
     { x: 420, y: 60, label: "Cache", sub: "Redis" },
     { x: 420, y: 200, label: "Database", sub: "Postgres" },
     { x: 620, y: 130, label: "Services", sub: "Email · Stripe · S3" },
   ];
-  const edges: [number, number][] = [
+  const defaultEdges: [number, number][] = [
     [0, 1],
     [1, 2],
     [1, 3],
     [1, 4],
     [3, 4],
   ];
+
+  // If CMS provides nodes without x/y, auto-layout in a row.
+  const nodes = (cmsNodes && cmsNodes.length > 0
+    ? cmsNodes.map((n, i, arr) => ({
+        x: n.x ?? 60 + (600 * i) / Math.max(1, arr.length - 1),
+        y: n.y ?? 140,
+        label: n.label,
+        sub: n.sub ?? "",
+      }))
+    : defaultNodes);
+  const edges =
+    cmsEdges && cmsEdges.length > 0
+      ? cmsEdges.filter(([a, b]) => a < nodes.length && b < nodes.length)
+      : cmsNodes && cmsNodes.length > 0
+        ? (nodes.slice(0, -1).map((_, i) => [i, i + 1]) as [number, number][])
+        : defaultEdges;
 
   return (
     <div className="rounded-3xl border border-soft-2 bg-card p-6 md:p-10">
@@ -294,7 +356,7 @@ function ArchitectureDiagram() {
 
         {nodes.map((n, i) => (
           <motion.g
-            key={n.label}
+            key={n.label + i}
             initial={reduce ? { opacity: 1 } : { opacity: 0, scale: 0.8 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-50px" }}
@@ -335,7 +397,7 @@ function ArchitectureDiagram() {
         ))}
       </svg>
       <p className="mt-6 font-mono text-[11px] text-muted-foreground">
-        Request path: Client → API → (Cache | DB) → Services. Cache-first reads keep P99 low; writes fan out asynchronously.
+        Request path: {nodes.map((n) => n.label).join(" → ")}.
       </p>
     </div>
   );
@@ -448,7 +510,18 @@ export default function ProjectDetail() {
           .map((s) => s.trim())
           .filter(Boolean);
 
-  const deepDives = features.slice(0, 3);
+  // CMS-editable structured deep-dive features (title + description + own media).
+  // Fallback: derive up-to-3 title-only cards from key_features string list.
+  const deepDives: {
+    title: string;
+    description?: string;
+    images?: string[];
+    video_url?: string | null;
+  }[] =
+    project.features_deep && project.features_deep.length > 0
+      ? project.features_deep
+      : features.slice(0, 3).map((f) => ({ title: f }));
+
   const videoUrl = project.video_url ?? null;
   const isEmbed = videoUrl && /youtube\.com|youtu\.be|vimeo\.com/.test(videoUrl);
   const embedSrc = videoUrl
@@ -459,8 +532,50 @@ export default function ProjectDetail() {
     : "";
 
   const overviewText = project.overview || project.long_description || project.description || "";
-  const groups = groupStack(project.tech_stack ?? []);
-  const status = project.live_url ? "Live" : "In progress";
+
+  // Stack groups: prefer CMS-provided groups; fall back to auto-grouping tech_stack.
+  const cmsStackGroups = project.stack_groups && project.stack_groups.length > 0 ? project.stack_groups : null;
+  const autoGroups = groupStack(project.tech_stack ?? []);
+  const stackGroupsToRender: { name: string; items: string[]; why?: string }[] = cmsStackGroups
+    ? cmsStackGroups
+    : Object.entries(autoGroups)
+        .filter(([, v]) => v.length > 0)
+        .map(([name, items]) => ({ name, items, why: GROUP_WHY[name] }));
+
+  const status = project.status_badge || (project.live_url ? "Live" : "In progress");
+
+  // Hero media: prefer explicit hero_images array (multi = carousel), else fall back to image_url.
+  const heroImages =
+    project.hero_images && project.hero_images.length > 0
+      ? project.hero_images
+      : project.image_url
+        ? [project.image_url]
+        : [];
+
+  // Frontend / backend cards: use CMS-provided arrays when present.
+  const frontendCards =
+    project.frontend_cards && project.frontend_cards.length > 0
+      ? project.frontend_cards
+      : [
+          { h: "UI / UX", p: "Content-first hierarchy, restrained motion, and a single accent to guide the eye." },
+          { h: "State", p: "Server state via React Query; UI state stays local — no global store for local concerns." },
+          { h: "Responsive", p: "Fluid type with clamp(), 12-col at ≥lg, single-column below md, tested on real devices." },
+        ];
+  const backendCards =
+    project.backend_cards && project.backend_cards.length > 0
+      ? project.backend_cards
+      : [
+          { h: "API", p: "Typed REST endpoints, versioned routes, and consistent error envelopes." },
+          { h: "Schema", p: "Normalised core tables, denormalised read models for hot paths, migrations in code." },
+          { h: "Caching & scale", p: "Redis read-through cache, background jobs for fan-out, horizontal scale by default." },
+        ];
+
+  const decision = project.key_decision ?? null;
+  const decisionChose = decision?.chose || "Server-driven UI for the editor";
+  const decisionInstead = decision?.instead_of || "A bespoke client-side state machine";
+  const decisionBecause =
+    decision?.because ||
+    "Iteration speed was the bottleneck — shipping schema tweaks server-side removed a full release cycle per change and let non-engineers propose flows.";
 
   return (
     <>
@@ -563,7 +678,7 @@ export default function ProjectDetail() {
                 ratio="aspect-[16/8]"
                 rounded="rounded-3xl"
                 videoUrl={videoUrl}
-                images={project.image_url ? [project.image_url] : []}
+                images={heroImages}
                 alt={`${project.title} hero media`}
                 label="Hero visual · image / carousel / video"
               />
@@ -668,7 +783,7 @@ export default function ProjectDetail() {
             </Reveal>
             <Reveal delay={0.1}>
               <div className="mt-8">
-                <ArchitectureDiagram />
+                <ArchitectureDiagram nodes={project.architecture?.nodes} edges={project.architecture?.edges} />
               </div>
             </Reveal>
           </div>
@@ -689,7 +804,13 @@ export default function ProjectDetail() {
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, margin: "-60px" }}
-                className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3"
+                className={`mt-10 grid grid-cols-1 gap-6 ${
+                  deepDives.length === 1
+                    ? "md:grid-cols-1"
+                    : deepDives.length === 2
+                      ? "md:grid-cols-2"
+                      : "md:grid-cols-2 lg:grid-cols-3"
+                }`}
               >
                 {deepDives.map((f, i) => (
                   <motion.article
@@ -702,17 +823,19 @@ export default function ProjectDetail() {
                     <MediaSlot
                       ratio="aspect-[16/10]"
                       rounded="rounded-none"
-                      alt={`Feature 0${i + 1} preview`}
+                      images={f.images}
+                      videoUrl={f.video_url ?? null}
+                      alt={`${f.title} preview`}
                       label={`Feature 0${i + 1} · media slot`}
                     />
                     <div className="flex-1 p-6">
                       <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">
-                        Feature 0{i + 1}
+                        Feature {String(i + 1).padStart(2, "0")}
                       </div>
-                      <h3 className="mt-2 font-syne text-[18px] font-bold text-ink">{f}</h3>
+                      <h3 className="mt-2 font-syne text-[18px] font-bold text-ink">{f.title}</h3>
                       <p className="mt-3 text-[14px] leading-relaxed text-ink-2">
-                        Designed end-to-end — from the interaction model to the data path — and shipped behind a
-                        feature flag for safe rollout.
+                        {f.description ||
+                          "Designed end-to-end — from the interaction model to the data path — and shipped behind a feature flag for safe rollout."}
                       </p>
                     </div>
                   </motion.article>
@@ -736,11 +859,7 @@ export default function ProjectDetail() {
               viewport={{ once: true, margin: "-60px" }}
               className="grid gap-5 sm:grid-cols-3"
             >
-              {[
-                { h: "UI / UX", p: "Content-first hierarchy, restrained motion, and a single accent to guide the eye." },
-                { h: "State", p: "Server state via React Query; UI state stays local — no global store for local concerns." },
-                { h: "Responsive", p: "Fluid type with clamp(), 12-col at ≥lg, single-column below md, tested on real devices." },
-              ].map((c) => (
+              {frontendCards.map((c) => (
                 <motion.div
                   key={c.h}
                   variants={item}
@@ -769,11 +888,7 @@ export default function ProjectDetail() {
               viewport={{ once: true, margin: "-60px" }}
               className="grid gap-5 sm:grid-cols-3"
             >
-              {[
-                { h: "API", p: "Typed REST endpoints, versioned routes, and consistent error envelopes." },
-                { h: "Schema", p: "Normalised core tables, denormalised read models for hot paths, migrations in code." },
-                { h: "Caching & scale", p: "Redis read-through cache, background jobs for fan-out, horizontal scale by default." },
-              ].map((c) => (
+              {backendCards.map((c) => (
                 <motion.div
                   key={c.h}
                   variants={item}
@@ -799,18 +914,15 @@ export default function ProjectDetail() {
                 <div className="grid gap-8 md:grid-cols-3">
                   <div>
                     <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Chose</div>
-                    <p className="mt-3 font-syne text-[20px] font-bold text-ink">Server-driven UI for the editor</p>
+                    <p className="mt-3 font-syne text-[20px] font-bold text-ink">{decisionChose}</p>
                   </div>
                   <div>
                     <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Instead of</div>
-                    <p className="mt-3 font-syne text-[20px] font-bold text-ink-2">A bespoke client-side state machine</p>
+                    <p className="mt-3 font-syne text-[20px] font-bold text-ink-2">{decisionInstead}</p>
                   </div>
                   <div>
                     <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Because</div>
-                    <p className="mt-3 text-[15px] leading-relaxed text-ink-2">
-                      Iteration speed was the bottleneck — shipping schema tweaks server-side removed a full release cycle
-                      per change and let non-engineers propose flows.
-                    </p>
+                    <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-ink-2">{decisionBecause}</p>
                   </div>
                 </div>
               </div>
@@ -833,9 +945,15 @@ export default function ProjectDetail() {
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, margin: "-60px" }}
-                className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-3"
+                className={`mt-10 grid grid-cols-1 gap-6 ${
+                  project.stats.length === 1
+                    ? "sm:grid-cols-1"
+                    : project.stats.length === 2
+                      ? "sm:grid-cols-2"
+                      : "sm:grid-cols-2 lg:grid-cols-3"
+                }`}
               >
-                {project.stats.slice(0, 3).map((s, i) => (
+                {project.stats.map((s, i) => (
                   <motion.div
                     key={i}
                     variants={item}
@@ -849,7 +967,7 @@ export default function ProjectDetail() {
                       {s.label}
                     </div>
                     <p className="mt-3 text-[13px] leading-relaxed text-ink-2">
-                      Measured in production over a 90-day window after launch.
+                      {s.context || "Measured in production over a 90-day window after launch."}
                     </p>
                   </motion.div>
                 ))}
@@ -859,7 +977,7 @@ export default function ProjectDetail() {
         )}
 
         {/* 12. STACK (grouped, single grid) */}
-        {(project.tech_stack?.length ?? 0) > 0 && (
+        {stackGroupsToRender.length > 0 && (
           <section className="border-b border-soft-2 bg-surface/20">
             <div className="mx-auto max-w-[1320px] px-6 py-20">
               <Reveal>
@@ -875,36 +993,34 @@ export default function ProjectDetail() {
                 viewport={{ once: true, margin: "-60px" }}
                 className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
               >
-                {Object.entries(groups)
-                  .filter(([, v]) => v.length > 0)
-                  .map(([group, items]) => (
-                    <motion.div
-                      key={group}
-                      variants={item}
-                      whileHover={reduce ? undefined : { y: -4 }}
-                      className="flex flex-col rounded-2xl border border-soft-2 bg-card p-5 transition-colors hover:border-acid/50"
-                    >
-                      <div className="flex items-baseline justify-between">
-                        <h3 className="font-syne text-[14px] font-bold uppercase tracking-widest text-ink">
-                          {group}
-                        </h3>
-                        <span className="font-mono text-[10px] text-muted-foreground">{items.length}</span>
-                      </div>
-                      <ul className="mt-4 flex-1 space-y-1.5">
-                        {items.map((t) => (
-                          <li
-                            key={t}
-                            className="font-mono text-[12px] text-ink-2 before:mr-2 before:text-acid before:content-['›']"
-                          >
-                            {t}
-                          </li>
-                        ))}
-                      </ul>
-                      <p className="mt-5 border-t border-soft-2 pt-4 text-[12px] leading-relaxed text-muted-foreground">
-                        {GROUP_WHY[group]}
-                      </p>
-                    </motion.div>
-                  ))}
+                {stackGroupsToRender.map((g) => (
+                  <motion.div
+                    key={g.name}
+                    variants={item}
+                    whileHover={reduce ? undefined : { y: -4 }}
+                    className="flex flex-col rounded-2xl border border-soft-2 bg-card p-5 transition-colors hover:border-acid/50"
+                  >
+                    <div className="flex items-baseline justify-between">
+                      <h3 className="font-syne text-[14px] font-bold uppercase tracking-widest text-ink">
+                        {g.name}
+                      </h3>
+                      <span className="font-mono text-[10px] text-muted-foreground">{g.items.length}</span>
+                    </div>
+                    <ul className="mt-4 flex-1 space-y-1.5">
+                      {g.items.map((t) => (
+                        <li
+                          key={t}
+                          className="font-mono text-[12px] text-ink-2 before:mr-2 before:text-acid before:content-['›']"
+                        >
+                          {t}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-5 border-t border-soft-2 pt-4 text-[12px] leading-relaxed text-muted-foreground">
+                      {g.why || GROUP_WHY[g.name] || ""}
+                    </p>
+                  </motion.div>
+                ))}
               </motion.div>
             </div>
           </section>

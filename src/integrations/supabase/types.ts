@@ -196,6 +196,8 @@ export type Database = {
       }
       projects: {
         Row: {
+          architecture: Json
+          backend_cards: Json
           case_study_url: string | null
           category: string | null
           challenges: string | null
@@ -204,10 +206,14 @@ export type Database = {
           docs_url: string | null
           duration: string | null
           featured: boolean
+          features_deep: Json
+          frontend_cards: Json
           gallery: string[]
           github_url: string | null
+          hero_images: string[]
           id: string
           image_url: string | null
+          key_decision: Json
           key_features: string[]
           lessons: string | null
           live_url: string | null
@@ -219,7 +225,9 @@ export type Database = {
           results: string | null
           solution: string | null
           sort_order: number
+          stack_groups: Json
           stats: Json
+          status_badge: string | null
           tags: string[]
           team_size: string | null
           tech_stack: string[]
@@ -228,6 +236,8 @@ export type Database = {
           video_url: string | null
         }
         Insert: {
+          architecture?: Json
+          backend_cards?: Json
           case_study_url?: string | null
           category?: string | null
           challenges?: string | null
@@ -236,10 +246,14 @@ export type Database = {
           docs_url?: string | null
           duration?: string | null
           featured?: boolean
+          features_deep?: Json
+          frontend_cards?: Json
           gallery?: string[]
           github_url?: string | null
+          hero_images?: string[]
           id?: string
           image_url?: string | null
+          key_decision?: Json
           key_features?: string[]
           lessons?: string | null
           live_url?: string | null
@@ -251,7 +265,9 @@ export type Database = {
           results?: string | null
           solution?: string | null
           sort_order?: number
+          stack_groups?: Json
           stats?: Json
+          status_badge?: string | null
           tags?: string[]
           team_size?: string | null
           tech_stack?: string[]
@@ -260,6 +276,8 @@ export type Database = {
           video_url?: string | null
         }
         Update: {
+          architecture?: Json
+          backend_cards?: Json
           case_study_url?: string | null
           category?: string | null
           challenges?: string | null
@@ -268,10 +286,14 @@ export type Database = {
           docs_url?: string | null
           duration?: string | null
           featured?: boolean
+          features_deep?: Json
+          frontend_cards?: Json
           gallery?: string[]
           github_url?: string | null
+          hero_images?: string[]
           id?: string
           image_url?: string | null
+          key_decision?: Json
           key_features?: string[]
           lessons?: string | null
           live_url?: string | null
@@ -283,7 +305,9 @@ export type Database = {
           results?: string | null
           solution?: string | null
           sort_order?: number
+          stack_groups?: Json
           stats?: Json
+          status_badge?: string | null
           tags?: string[]
           team_size?: string | null
           tech_stack?: string[]
