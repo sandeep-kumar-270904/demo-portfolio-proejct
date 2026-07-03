@@ -167,7 +167,14 @@ export default function ProjectsTab() {
     setTechInput("");
     setFeaturesInput("");
     setGalleryInput("");
+    setHeroImagesInput("");
     setStatsJson("[]");
+    setArchitectureJson('{"nodes":[],"edges":[]}');
+    setFeaturesDeepJson("[]");
+    setFrontendCardsJson("[]");
+    setBackendCardsJson("[]");
+    setKeyDecisionJson("{}");
+    setStackGroupsJson("[]");
   }
   function startEdit(r: Row) {
     setEditing(r);
@@ -199,12 +206,27 @@ export default function ProjectsTab() {
       lessons: r.lessons ?? "",
       overview: r.overview ?? "",
       case_study_url: r.case_study_url ?? "",
+      status_badge: r.status_badge ?? "",
+      hero_images: r.hero_images ?? [],
+      architecture: r.architecture ?? { nodes: [], edges: [] },
+      features_deep: r.features_deep ?? [],
+      frontend_cards: r.frontend_cards ?? [],
+      backend_cards: r.backend_cards ?? [],
+      key_decision: r.key_decision ?? {},
+      stack_groups: r.stack_groups ?? [],
     });
     setTagsInput(csv(r.tags));
     setTechInput(csv(r.tech_stack));
     setFeaturesInput((r.key_features ?? []).join("\n"));
     setGalleryInput((r.gallery ?? []).join("\n"));
+    setHeroImagesInput((r.hero_images ?? []).join("\n"));
     setStatsJson(JSON.stringify(r.stats ?? [], null, 2));
+    setArchitectureJson(JSON.stringify(r.architecture ?? { nodes: [], edges: [] }, null, 2));
+    setFeaturesDeepJson(JSON.stringify(r.features_deep ?? [], null, 2));
+    setFrontendCardsJson(JSON.stringify(r.frontend_cards ?? [], null, 2));
+    setBackendCardsJson(JSON.stringify(r.backend_cards ?? [], null, 2));
+    setKeyDecisionJson(JSON.stringify(r.key_decision ?? {}, null, 2));
+    setStackGroupsJson(JSON.stringify(r.stack_groups ?? [], null, 2));
   }
 
   async function save() {
