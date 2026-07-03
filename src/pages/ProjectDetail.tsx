@@ -993,36 +993,34 @@ export default function ProjectDetail() {
                 viewport={{ once: true, margin: "-60px" }}
                 className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
               >
-                {Object.entries(groups)
-                  .filter(([, v]) => v.length > 0)
-                  .map(([group, items]) => (
-                    <motion.div
-                      key={group}
-                      variants={item}
-                      whileHover={reduce ? undefined : { y: -4 }}
-                      className="flex flex-col rounded-2xl border border-soft-2 bg-card p-5 transition-colors hover:border-acid/50"
-                    >
-                      <div className="flex items-baseline justify-between">
-                        <h3 className="font-syne text-[14px] font-bold uppercase tracking-widest text-ink">
-                          {group}
-                        </h3>
-                        <span className="font-mono text-[10px] text-muted-foreground">{items.length}</span>
-                      </div>
-                      <ul className="mt-4 flex-1 space-y-1.5">
-                        {items.map((t) => (
-                          <li
-                            key={t}
-                            className="font-mono text-[12px] text-ink-2 before:mr-2 before:text-acid before:content-['›']"
-                          >
-                            {t}
-                          </li>
-                        ))}
-                      </ul>
-                      <p className="mt-5 border-t border-soft-2 pt-4 text-[12px] leading-relaxed text-muted-foreground">
-                        {GROUP_WHY[group]}
-                      </p>
-                    </motion.div>
-                  ))}
+                {stackGroupsToRender.map((g) => (
+                  <motion.div
+                    key={g.name}
+                    variants={item}
+                    whileHover={reduce ? undefined : { y: -4 }}
+                    className="flex flex-col rounded-2xl border border-soft-2 bg-card p-5 transition-colors hover:border-acid/50"
+                  >
+                    <div className="flex items-baseline justify-between">
+                      <h3 className="font-syne text-[14px] font-bold uppercase tracking-widest text-ink">
+                        {g.name}
+                      </h3>
+                      <span className="font-mono text-[10px] text-muted-foreground">{g.items.length}</span>
+                    </div>
+                    <ul className="mt-4 flex-1 space-y-1.5">
+                      {g.items.map((t) => (
+                        <li
+                          key={t}
+                          className="font-mono text-[12px] text-ink-2 before:mr-2 before:text-acid before:content-['›']"
+                        >
+                          {t}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-5 border-t border-soft-2 pt-4 text-[12px] leading-relaxed text-muted-foreground">
+                      {g.why || GROUP_WHY[g.name] || ""}
+                    </p>
+                  </motion.div>
+                ))}
               </motion.div>
             </div>
           </section>
