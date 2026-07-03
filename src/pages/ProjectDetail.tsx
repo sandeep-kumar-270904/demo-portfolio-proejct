@@ -804,7 +804,13 @@ export default function ProjectDetail() {
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, margin: "-60px" }}
-                className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3"
+                className={`mt-10 grid grid-cols-1 gap-6 ${
+                  deepDives.length === 1
+                    ? "md:grid-cols-1"
+                    : deepDives.length === 2
+                      ? "md:grid-cols-2"
+                      : "md:grid-cols-2 lg:grid-cols-3"
+                }`}
               >
                 {deepDives.map((f, i) => (
                   <motion.article
@@ -817,17 +823,19 @@ export default function ProjectDetail() {
                     <MediaSlot
                       ratio="aspect-[16/10]"
                       rounded="rounded-none"
-                      alt={`Feature 0${i + 1} preview`}
+                      images={f.images}
+                      videoUrl={f.video_url ?? null}
+                      alt={`${f.title} preview`}
                       label={`Feature 0${i + 1} · media slot`}
                     />
                     <div className="flex-1 p-6">
                       <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">
-                        Feature 0{i + 1}
+                        Feature {String(i + 1).padStart(2, "0")}
                       </div>
-                      <h3 className="mt-2 font-syne text-[18px] font-bold text-ink">{f}</h3>
+                      <h3 className="mt-2 font-syne text-[18px] font-bold text-ink">{f.title}</h3>
                       <p className="mt-3 text-[14px] leading-relaxed text-ink-2">
-                        Designed end-to-end — from the interaction model to the data path — and shipped behind a
-                        feature flag for safe rollout.
+                        {f.description ||
+                          "Designed end-to-end — from the interaction model to the data path — and shipped behind a feature flag for safe rollout."}
                       </p>
                     </div>
                   </motion.article>
