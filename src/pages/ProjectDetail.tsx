@@ -977,7 +977,7 @@ export default function ProjectDetail() {
         )}
 
         {/* 12. STACK (grouped, single grid) */}
-        {(project.tech_stack?.length ?? 0) > 0 && (
+        {stackGroupsToRender.length > 0 && (
           <section className="border-b border-soft-2 bg-surface/20">
             <div className="mx-auto max-w-[1320px] px-6 py-20">
               <Reveal>
