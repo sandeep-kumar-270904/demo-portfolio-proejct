@@ -286,22 +286,44 @@ function ProcessStepper() {
 }
 
 /** Architecture SVG with draw-in animation on viewport enter. */
-function ArchitectureDiagram() {
+function ArchitectureDiagram({
+  nodes: cmsNodes,
+  edges: cmsEdges,
+}: {
+  nodes?: { x?: number; y?: number; label: string; sub?: string }[];
+  edges?: [number, number][];
+} = {}) {
   const reduce = useReducedMotion();
-  const nodes = [
+  const defaultNodes = [
     { x: 60, y: 130, label: "Client", sub: "React SPA" },
     { x: 240, y: 130, label: "API", sub: "Node / REST" },
     { x: 420, y: 60, label: "Cache", sub: "Redis" },
     { x: 420, y: 200, label: "Database", sub: "Postgres" },
     { x: 620, y: 130, label: "Services", sub: "Email · Stripe · S3" },
   ];
-  const edges: [number, number][] = [
+  const defaultEdges: [number, number][] = [
     [0, 1],
     [1, 2],
     [1, 3],
     [1, 4],
     [3, 4],
   ];
+
+  // If CMS provides nodes without x/y, auto-layout in a row.
+  const nodes = (cmsNodes && cmsNodes.length > 0
+    ? cmsNodes.map((n, i, arr) => ({
+        x: n.x ?? 60 + (600 * i) / Math.max(1, arr.length - 1),
+        y: n.y ?? 140,
+        label: n.label,
+        sub: n.sub ?? "",
+      }))
+    : defaultNodes);
+  const edges =
+    cmsEdges && cmsEdges.length > 0
+      ? cmsEdges.filter(([a, b]) => a < nodes.length && b < nodes.length)
+      : cmsNodes && cmsNodes.length > 0
+        ? (nodes.slice(0, -1).map((_, i) => [i, i + 1]) as [number, number][])
+        : defaultEdges;
 
   return (
     <div className="rounded-3xl border border-soft-2 bg-card p-6 md:p-10">
@@ -334,7 +356,7 @@ function ArchitectureDiagram() {
 
         {nodes.map((n, i) => (
           <motion.g
-            key={n.label}
+            key={n.label + i}
             initial={reduce ? { opacity: 1 } : { opacity: 0, scale: 0.8 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-50px" }}
@@ -375,7 +397,7 @@ function ArchitectureDiagram() {
         ))}
       </svg>
       <p className="mt-6 font-mono text-[11px] text-muted-foreground">
-        Request path: Client → API → (Cache | DB) → Services. Cache-first reads keep P99 low; writes fan out asynchronously.
+        Request path: {nodes.map((n) => n.label).join(" → ")}.
       </p>
     </div>
   );
