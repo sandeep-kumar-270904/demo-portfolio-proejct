@@ -234,12 +234,28 @@ export default function ProjectsTab() {
       toast.error("Title required");
       return;
     }
-    let stats: { value: string; label: string }[] = [];
+    let stats: { value: string; label: string; context?: string }[] = [];
+    let architecture: Row["architecture"] = { nodes: [], edges: [] };
+    let features_deep: Row["features_deep"] = [];
+    let frontend_cards: Row["frontend_cards"] = [];
+    let backend_cards: Row["backend_cards"] = [];
+    let key_decision: Row["key_decision"] = {};
+    let stack_groups: Row["stack_groups"] = [];
     try {
       stats = JSON.parse(statsJson || "[]");
-      if (!Array.isArray(stats)) throw new Error();
-    } catch {
-      toast.error("Stats must be valid JSON array");
+      if (!Array.isArray(stats)) throw new Error("stats");
+      architecture = JSON.parse(architectureJson || '{"nodes":[],"edges":[]}');
+      features_deep = JSON.parse(featuresDeepJson || "[]");
+      if (!Array.isArray(features_deep)) throw new Error("features_deep");
+      frontend_cards = JSON.parse(frontendCardsJson || "[]");
+      if (!Array.isArray(frontend_cards)) throw new Error("frontend_cards");
+      backend_cards = JSON.parse(backendCardsJson || "[]");
+      if (!Array.isArray(backend_cards)) throw new Error("backend_cards");
+      key_decision = JSON.parse(keyDecisionJson || "{}");
+      stack_groups = JSON.parse(stackGroupsJson || "[]");
+      if (!Array.isArray(stack_groups)) throw new Error("stack_groups");
+    } catch (e) {
+      toast.error(`Invalid JSON: ${e instanceof Error ? e.message : "check fields"}`);
       return;
     }
     setSaving(true);
@@ -251,7 +267,14 @@ export default function ProjectsTab() {
       tech_stack: fromCsv(techInput),
       key_features: splitLines(featuresInput),
       gallery: splitLines(galleryInput),
+      hero_images: splitLines(heroImagesInput),
       stats,
+      architecture,
+      features_deep,
+      frontend_cards,
+      backend_cards,
+      key_decision,
+      stack_groups,
       live_url: draft.live_url || null,
       github_url: draft.github_url || null,
       image_url: draft.image_url || null,
@@ -270,6 +293,7 @@ export default function ProjectsTab() {
       lessons: draft.lessons || null,
       overview: draft.overview || null,
       case_study_url: draft.case_study_url || null,
+      status_badge: draft.status_badge || null,
     };
     try {
       if (editing) {
