@@ -888,11 +888,7 @@ export default function ProjectDetail() {
               viewport={{ once: true, margin: "-60px" }}
               className="grid gap-5 sm:grid-cols-3"
             >
-              {[
-                { h: "API", p: "Typed REST endpoints, versioned routes, and consistent error envelopes." },
-                { h: "Schema", p: "Normalised core tables, denormalised read models for hot paths, migrations in code." },
-                { h: "Caching & scale", p: "Redis read-through cache, background jobs for fan-out, horizontal scale by default." },
-              ].map((c) => (
+              {backendCards.map((c) => (
                 <motion.div
                   key={c.h}
                   variants={item}
