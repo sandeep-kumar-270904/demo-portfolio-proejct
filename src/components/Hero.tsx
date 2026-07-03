@@ -13,23 +13,35 @@ import { ease } from "@/lib/motion";
 function WordReveal({
   text,
   className,
+  wordClassName,
   baseDelay = 0,
   wordDelay = 0.09,
 }: {
   text: string;
   className?: string;
+  wordClassName?: string;
   baseDelay?: number;
   wordDelay?: number;
 }) {
   const reduce = useReducedMotion();
   const words = (text ?? "").split(/\s+/).filter(Boolean);
-  if (reduce) return <span className={className}>{text}</span>;
+  if (reduce)
+    return (
+      <span className={className}>
+        {words.map((w, i) => (
+          <span key={i} className={wordClassName}>
+            {w}
+            {i < words.length - 1 ? " " : ""}
+          </span>
+        ))}
+      </span>
+    );
   return (
     <span className={className} aria-label={text}>
       {words.map((w, i) => (
         <span key={i} className="inline-block overflow-hidden align-bottom pr-[0.22em]">
           <motion.span
-            className="inline-block will-change-transform"
+            className={`inline-block will-change-transform ${wordClassName ?? ""}`}
             initial={{ y: "110%", opacity: 0 }}
             animate={{ y: "0%", opacity: 1 }}
             transition={{ duration: 0.9, ease: ease.brand, delay: baseDelay + i * wordDelay }}
@@ -115,7 +127,7 @@ export default function Hero() {
               <WordReveal text={t("hero_line2")} className="block text-stroke" baseDelay={0.35} />
             </span>
             <span className="block overflow-hidden">
-              <WordReveal text={t("hero_line3")} className="block text-grad-acid" baseDelay={0.7} />
+              <WordReveal text={t("hero_line3")} className="block" wordClassName="text-grad-acid" baseDelay={0.7} />
             </span>
           </h1>
 
