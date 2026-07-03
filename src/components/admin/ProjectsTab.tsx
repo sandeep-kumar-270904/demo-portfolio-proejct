@@ -24,7 +24,7 @@ type Row = {
   featured: boolean;
   category: string | null;
   sort_order: number;
-  stats: { value: string; label: string }[];
+  stats: { value: string; label: string; context?: string }[];
   problem: string | null;
   solution: string | null;
   key_features: string[];
@@ -40,6 +40,14 @@ type Row = {
   lessons: string | null;
   overview: string | null;
   case_study_url: string | null;
+  status_badge: string | null;
+  hero_images: string[];
+  architecture: { nodes?: { label: string; sub?: string; x?: number; y?: number }[]; edges?: [number, number][] };
+  features_deep: { title: string; description?: string; images?: string[]; video_url?: string | null }[];
+  frontend_cards: { h: string; p: string }[];
+  backend_cards: { h: string; p: string }[];
+  key_decision: { chose?: string; instead_of?: string; because?: string };
+  stack_groups: { name: string; items: string[]; why?: string }[];
 };
 
 const empty: Omit<Row, "id"> = {
