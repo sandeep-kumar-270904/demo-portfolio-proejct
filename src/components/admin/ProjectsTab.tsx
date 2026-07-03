@@ -70,6 +70,14 @@ const empty: Omit<Row, "id"> = {
   lessons: "",
   overview: "",
   case_study_url: "",
+  status_badge: "",
+  hero_images: [],
+  architecture: { nodes: [], edges: [] },
+  features_deep: [],
+  frontend_cards: [],
+  backend_cards: [],
+  key_decision: {},
+  stack_groups: [],
 };
 
 function csv(arr: string[]) {
