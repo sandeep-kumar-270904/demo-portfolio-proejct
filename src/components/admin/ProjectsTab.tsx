@@ -105,7 +105,14 @@ export default function ProjectsTab() {
   const [techInput, setTechInput] = useState("");
   const [featuresInput, setFeaturesInput] = useState("");
   const [galleryInput, setGalleryInput] = useState("");
+  const [heroImagesInput, setHeroImagesInput] = useState("");
   const [statsJson, setStatsJson] = useState("[]");
+  const [architectureJson, setArchitectureJson] = useState('{"nodes":[],"edges":[]}');
+  const [featuresDeepJson, setFeaturesDeepJson] = useState("[]");
+  const [frontendCardsJson, setFrontendCardsJson] = useState("[]");
+  const [backendCardsJson, setBackendCardsJson] = useState("[]");
+  const [keyDecisionJson, setKeyDecisionJson] = useState("{}");
+  const [stackGroupsJson, setStackGroupsJson] = useState("[]");
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
