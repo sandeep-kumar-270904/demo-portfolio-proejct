@@ -510,7 +510,18 @@ export default function ProjectDetail() {
           .map((s) => s.trim())
           .filter(Boolean);
 
-  const deepDives = features.slice(0, 3);
+  // CMS-editable structured deep-dive features (title + description + own media).
+  // Fallback: derive up-to-3 title-only cards from key_features string list.
+  const deepDives: {
+    title: string;
+    description?: string;
+    images?: string[];
+    video_url?: string | null;
+  }[] =
+    project.features_deep && project.features_deep.length > 0
+      ? project.features_deep
+      : features.slice(0, 3).map((f) => ({ title: f }));
+
   const videoUrl = project.video_url ?? null;
   const isEmbed = videoUrl && /youtube\.com|youtu\.be|vimeo\.com/.test(videoUrl);
   const embedSrc = videoUrl
@@ -521,8 +532,50 @@ export default function ProjectDetail() {
     : "";
 
   const overviewText = project.overview || project.long_description || project.description || "";
-  const groups = groupStack(project.tech_stack ?? []);
-  const status = project.live_url ? "Live" : "In progress";
+
+  // Stack groups: prefer CMS-provided groups; fall back to auto-grouping tech_stack.
+  const cmsStackGroups = project.stack_groups && project.stack_groups.length > 0 ? project.stack_groups : null;
+  const autoGroups = groupStack(project.tech_stack ?? []);
+  const stackGroupsToRender: { name: string; items: string[]; why?: string }[] = cmsStackGroups
+    ? cmsStackGroups
+    : Object.entries(autoGroups)
+        .filter(([, v]) => v.length > 0)
+        .map(([name, items]) => ({ name, items, why: GROUP_WHY[name] }));
+
+  const status = project.status_badge || (project.live_url ? "Live" : "In progress");
+
+  // Hero media: prefer explicit hero_images array (multi = carousel), else fall back to image_url.
+  const heroImages =
+    project.hero_images && project.hero_images.length > 0
+      ? project.hero_images
+      : project.image_url
+        ? [project.image_url]
+        : [];
+
+  // Frontend / backend cards: use CMS-provided arrays when present.
+  const frontendCards =
+    project.frontend_cards && project.frontend_cards.length > 0
+      ? project.frontend_cards
+      : [
+          { h: "UI / UX", p: "Content-first hierarchy, restrained motion, and a single accent to guide the eye." },
+          { h: "State", p: "Server state via React Query; UI state stays local — no global store for local concerns." },
+          { h: "Responsive", p: "Fluid type with clamp(), 12-col at ≥lg, single-column below md, tested on real devices." },
+        ];
+  const backendCards =
+    project.backend_cards && project.backend_cards.length > 0
+      ? project.backend_cards
+      : [
+          { h: "API", p: "Typed REST endpoints, versioned routes, and consistent error envelopes." },
+          { h: "Schema", p: "Normalised core tables, denormalised read models for hot paths, migrations in code." },
+          { h: "Caching & scale", p: "Redis read-through cache, background jobs for fan-out, horizontal scale by default." },
+        ];
+
+  const decision = project.key_decision ?? null;
+  const decisionChose = decision?.chose || "Server-driven UI for the editor";
+  const decisionInstead = decision?.instead_of || "A bespoke client-side state machine";
+  const decisionBecause =
+    decision?.because ||
+    "Iteration speed was the bottleneck — shipping schema tweaks server-side removed a full release cycle per change and let non-engineers propose flows.";
 
   return (
     <>
