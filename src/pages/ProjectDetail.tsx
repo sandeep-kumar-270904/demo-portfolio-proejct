@@ -945,9 +945,15 @@ export default function ProjectDetail() {
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, margin: "-60px" }}
-                className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-3"
+                className={`mt-10 grid grid-cols-1 gap-6 ${
+                  project.stats.length === 1
+                    ? "sm:grid-cols-1"
+                    : project.stats.length === 2
+                      ? "sm:grid-cols-2"
+                      : "sm:grid-cols-2 lg:grid-cols-3"
+                }`}
               >
-                {project.stats.slice(0, 3).map((s, i) => (
+                {project.stats.map((s, i) => (
                   <motion.div
                     key={i}
                     variants={item}
@@ -961,7 +967,7 @@ export default function ProjectDetail() {
                       {s.label}
                     </div>
                     <p className="mt-3 text-[13px] leading-relaxed text-ink-2">
-                      Measured in production over a 90-day window after launch.
+                      {s.context || "Measured in production over a 90-day window after launch."}
                     </p>
                   </motion.div>
                 ))}
