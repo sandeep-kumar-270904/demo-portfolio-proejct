@@ -127,7 +127,7 @@ export default function Hero() {
               <WordReveal text={t("hero_line2")} className="block text-stroke" baseDelay={0.35} />
             </span>
             <span className="block overflow-hidden">
-              <WordReveal text={t("hero_line3")} className="block text-grad-acid" baseDelay={0.7} />
+              <WordReveal text={t("hero_line3")} className="block" wordClassName="text-grad-acid" baseDelay={0.7} />
             </span>
           </h1>
 
