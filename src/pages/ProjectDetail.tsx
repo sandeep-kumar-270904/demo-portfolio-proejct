@@ -859,11 +859,7 @@ export default function ProjectDetail() {
               viewport={{ once: true, margin: "-60px" }}
               className="grid gap-5 sm:grid-cols-3"
             >
-              {[
-                { h: "UI / UX", p: "Content-first hierarchy, restrained motion, and a single accent to guide the eye." },
-                { h: "State", p: "Server state via React Query; UI state stays local — no global store for local concerns." },
-                { h: "Responsive", p: "Fluid type with clamp(), 12-col at ≥lg, single-column below md, tested on real devices." },
-              ].map((c) => (
+              {frontendCards.map((c) => (
                 <motion.div
                   key={c.h}
                   variants={item}
