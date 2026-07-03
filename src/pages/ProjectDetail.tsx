@@ -914,18 +914,15 @@ export default function ProjectDetail() {
                 <div className="grid gap-8 md:grid-cols-3">
                   <div>
                     <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Chose</div>
-                    <p className="mt-3 font-syne text-[20px] font-bold text-ink">Server-driven UI for the editor</p>
+                    <p className="mt-3 font-syne text-[20px] font-bold text-ink">{decisionChose}</p>
                   </div>
                   <div>
                     <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Instead of</div>
-                    <p className="mt-3 font-syne text-[20px] font-bold text-ink-2">A bespoke client-side state machine</p>
+                    <p className="mt-3 font-syne text-[20px] font-bold text-ink-2">{decisionInstead}</p>
                   </div>
                   <div>
                     <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Because</div>
-                    <p className="mt-3 text-[15px] leading-relaxed text-ink-2">
-                      Iteration speed was the bottleneck — shipping schema tweaks server-side removed a full release cycle
-                      per change and let non-engineers propose flows.
-                    </p>
+                    <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-ink-2">{decisionBecause}</p>
                   </div>
                 </div>
               </div>
