@@ -640,11 +640,79 @@ export default function ProjectsTab() {
         </div>
         <div className="mt-4">
           <AdminTextarea
-            label='Stats (JSON: [{"value":"99%","label":"Uptime"}])'
+            label='Stats (JSON: [{"value":"200+","label":"Active Users","context":"90-day window"}])'
             value={statsJson}
             onChange={setStatsJson}
             rows={4}
           />
+        </div>
+
+        {/* CMS extras for Project Detail page */}
+        <div className="mt-6 rounded-xl border border-soft-2 bg-surface/40 p-4">
+          <h4 className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">
+            Detail page — structured sections
+          </h4>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <AdminInput
+              label="Status badge (Live / Demo / WIP)"
+              value={draft.status_badge ?? ""}
+              onChange={(v) => setDraft({ ...draft, status_badge: v })}
+            />
+          </div>
+          <div className="mt-4">
+            <AdminTextarea
+              label="Hero images — one URL per line (2+ becomes auto-carousel)"
+              value={heroImagesInput}
+              onChange={setHeroImagesInput}
+              rows={3}
+            />
+          </div>
+          <div className="mt-4">
+            <AdminTextarea
+              label='Architecture (JSON: {"nodes":[{"label":"Client","sub":"React SPA"}],"edges":[[0,1]]})'
+              value={architectureJson}
+              onChange={setArchitectureJson}
+              rows={5}
+            />
+          </div>
+          <div className="mt-4">
+            <AdminTextarea
+              label='Feature deep-dives (JSON array: [{"title":"…","description":"…","images":["url"],"video_url":null}])'
+              value={featuresDeepJson}
+              onChange={setFeaturesDeepJson}
+              rows={6}
+            />
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <AdminTextarea
+              label='Frontend cards (JSON: [{"h":"UI/UX","p":"…"}])'
+              value={frontendCardsJson}
+              onChange={setFrontendCardsJson}
+              rows={5}
+            />
+            <AdminTextarea
+              label='Backend cards (JSON: [{"h":"API","p":"…"}])'
+              value={backendCardsJson}
+              onChange={setBackendCardsJson}
+              rows={5}
+            />
+          </div>
+          <div className="mt-4">
+            <AdminTextarea
+              label='Key decision (JSON: {"chose":"…","instead_of":"…","because":"…"})'
+              value={keyDecisionJson}
+              onChange={setKeyDecisionJson}
+              rows={4}
+            />
+          </div>
+          <div className="mt-4">
+            <AdminTextarea
+              label='Stack groups (JSON: [{"name":"Frontend","items":["React","Tailwind"],"why":"…"}])'
+              value={stackGroupsJson}
+              onChange={setStackGroupsJson}
+              rows={6}
+            />
+          </div>
         </div>
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <AdminPrimaryButton onClick={save} disabled={saving}>
