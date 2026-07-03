@@ -54,12 +54,13 @@ function MediaSlot({
   const reduce = useReducedMotion();
   const [idx, setIdx] = useState(0);
   const imgs = (images ?? []).filter(Boolean);
+  const hasCarousel = imgs.length > 1;
 
   useEffect(() => {
-    if (imgs.length < 2 || reduce) return;
+    if (!hasCarousel || reduce) return;
     const t = setInterval(() => setIdx((i) => (i + 1) % imgs.length), 4200);
     return () => clearInterval(t);
-  }, [imgs.length, reduce]);
+  }, [imgs.length, reduce, hasCarousel]);
 
   const isEmbed = !!videoUrl && /youtube\.com|youtu\.be|vimeo\.com/.test(videoUrl);
   const embedSrc = videoUrl
@@ -69,10 +70,28 @@ function MediaSlot({
         .replace("vimeo.com/", "player.vimeo.com/video/")
     : "";
 
+  // Simple swipe/drag support for carousel
+  const dragRef = useRef<{ startX: number; active: boolean }>({ startX: 0, active: false });
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!hasCarousel) return;
+    dragRef.current = { startX: e.clientX, active: true };
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (!hasCarousel || !dragRef.current.active) return;
+    const dx = e.clientX - dragRef.current.startX;
+    if (Math.abs(dx) > 40) {
+      setIdx((i) => (i + (dx < 0 ? 1 : -1) + imgs.length) % imgs.length);
+    }
+    dragRef.current.active = false;
+  };
+
   return (
     <div
-      className={`relative w-full overflow-hidden border border-soft-2 bg-card ${ratio} ${rounded}`}
+      className={`relative w-full overflow-hidden border border-soft-2 bg-card ${ratio} ${rounded} ${hasCarousel ? "cursor-grab active:cursor-grabbing touch-pan-y" : ""}`}
       aria-label={alt ?? label}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerCancel={() => (dragRef.current.active = false)}
     >
       {videoUrl ? (
         isEmbed ? (
@@ -86,25 +105,46 @@ function MediaSlot({
         ) : (
           <video
             src={videoUrl}
-            autoPlay
+            autoPlay={!reduce}
             muted
             loop
             playsInline
+            preload="metadata"
             className="absolute inset-0 h-full w-full object-cover"
           />
         )
       ) : imgs.length > 0 ? (
-        imgs.map((src, i) => (
-          <img
-            key={src + i}
-            src={src}
-            alt={alt ?? ""}
-            loading="lazy"
-            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
-              i === idx ? "opacity-100" : "opacity-0"
-            }`}
-          />
-        ))
+        <>
+          {imgs.map((src, i) => (
+            <img
+              key={src + i}
+              src={src}
+              alt={alt ?? ""}
+              loading="lazy"
+              draggable={false}
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                i === idx ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          ))}
+          {hasCarousel && (
+            <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-void/60 px-2.5 py-1.5 backdrop-blur">
+              {imgs.map((_, i) => (
+                <button
+                  key={i}
+                  aria-label={`Show image ${i + 1}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIdx(i);
+                  }}
+                  className={`h-1.5 rounded-full transition-all ${
+                    i === idx ? "w-5 bg-acid" : "w-1.5 bg-ink-2/50 hover:bg-ink-2"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </>
       ) : (
         <>
           {/* Neutral placeholder — subtle gradient + soft icon */}
