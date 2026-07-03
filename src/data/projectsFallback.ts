@@ -30,6 +30,23 @@ export type DbProject = {
   lessons?: string | null;
   overview?: string | null;
   case_study_url?: string | null;
+  // CMS extras (all optional; page falls back to defaults when empty)
+  status_badge?: string | null;
+  hero_images?: string[];
+  architecture?: {
+    nodes?: { x?: number; y?: number; label: string; sub?: string }[];
+    edges?: [number, number][];
+  } | null;
+  features_deep?: {
+    title: string;
+    description?: string;
+    images?: string[];
+    video_url?: string | null;
+  }[];
+  frontend_cards?: { h: string; p: string }[];
+  backend_cards?: { h: string; p: string }[];
+  key_decision?: { chose?: string; instead_of?: string; because?: string } | null;
+  stack_groups?: { name: string; items: string[]; why?: string }[];
 };
 
 export const projectsFallback: DbProject[] = [];
