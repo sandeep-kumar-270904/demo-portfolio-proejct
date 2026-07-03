@@ -678,7 +678,7 @@ export default function ProjectDetail() {
                 ratio="aspect-[16/8]"
                 rounded="rounded-3xl"
                 videoUrl={videoUrl}
-                images={project.image_url ? [project.image_url] : []}
+                images={heroImages}
                 alt={`${project.title} hero media`}
                 label="Hero visual · image / carousel / video"
               />
