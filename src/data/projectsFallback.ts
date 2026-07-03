@@ -14,7 +14,7 @@ export type DbProject = {
   featured: boolean;
   category: "SaaS" | "Ecommerce" | "DevTools" | "AI" | "Other" | null;
   sort_order: number;
-  stats: { value: string; label: string }[];
+  stats: { value: string; label: string; context?: string }[];
   problem?: string | null;
   solution?: string | null;
   key_features?: string[];
