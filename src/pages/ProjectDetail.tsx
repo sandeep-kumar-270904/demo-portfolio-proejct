@@ -783,7 +783,7 @@ export default function ProjectDetail() {
             </Reveal>
             <Reveal delay={0.1}>
               <div className="mt-8">
-                <ArchitectureDiagram />
+                <ArchitectureDiagram nodes={project.architecture?.nodes} edges={project.architecture?.edges} />
               </div>
             </Reveal>
           </div>
