@@ -593,12 +593,7 @@ export default function ProjectDetail() {
           <div className="relative mx-auto flex h-full max-w-[1320px] flex-col justify-end px-6 pb-14">
             <Reveal>
               <Link
-                to={{ pathname: "/", hash: "#projects" }}
-                onClick={(e) => {
-                  // Force a fresh navigation to the grid so we never re-mount the same detail
-                  e.preventDefault();
-                  navigate("/#projects");
-                }}
+                to="/#projects"
                 className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-soft-2 bg-void/60 px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest text-ink-2 backdrop-blur hover:border-acid/40 hover:text-acid"
               >
                 <ArrowLeft size={13} /> All projects
