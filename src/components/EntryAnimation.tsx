@@ -4,15 +4,27 @@ import { motion, AnimatePresence } from "framer-motion";
 /**
  * Cinematic portfolio entry.
  * DESIGNING → DEVELOPING → DELIVERING → EDHUBILLI SANDEEP KUMAR → reveal site.
- * Plays on every load. Skippable on key/click.
+ * Plays once per load. Skippable on key/click. Never loops.
  */
 const PHASES = ["DESIGNING.", "DEVELOPING.", "DELIVERING."];
 const WORD_MS = 850;
-const NAME_MS = 1600;
+const NAME_MS = 1800;
+
+const FULL_NAME = "EDHUBILLI SANDEEP KUMAR";
+const FALLBACK = "WELCOME";
 
 export default function EntryAnimation() {
   const [show, setShow] = useState(true);
-  const [phase, setPhase] = useState(0); // 0..2 = words, 3 = name, 4 = exit
+  const [phase, setPhase] = useState(0); // 0..2 = words, 3 = name
+  const [vw, setVw] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth : 1280
+  );
+
+  useEffect(() => {
+    const onResize = () => setVw(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     if (!show) return;
@@ -54,18 +66,37 @@ export default function EntryAnimation() {
   }, []);
 
   const ease = [0.22, 1, 0.36, 1] as const;
-  const nameWords = ["EDHUBILLI", "SANDEEP", "KUMAR"];
+
+  // Pick a display that always fits cleanly.
+  // - Wide screens: full name on one line.
+  // - Mid screens: full name stacked (EDHUBILLI / SANDEEP KUMAR).
+  // - Narrow screens: safe fallback ("WELCOME") so nothing clips.
+  const layout: "single" | "stacked" | "fallback" =
+    vw >= 900 ? "single" : vw >= 480 ? "stacked" : "fallback";
+
+  const displayLines: string[] =
+    layout === "single"
+      ? [FULL_NAME]
+      : layout === "stacked"
+      ? ["EDHUBILLI", "SANDEEP KUMAR"]
+      : [FALLBACK];
+
+  const nameFontSize =
+    layout === "single"
+      ? "clamp(44px, 7.2vw, 112px)"
+      : layout === "stacked"
+      ? "clamp(40px, 11vw, 88px)"
+      : "clamp(56px, 18vw, 120px)";
 
   return (
     <AnimatePresence>
       {show && (
         <motion.div
           key="entry"
-          className="fixed inset-0 z-[10000] flex items-center justify-center overflow-hidden bg-void"
+          className="fixed inset-0 z-[10000] flex items-center justify-center overflow-hidden bg-void px-6"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, transition: { duration: 0.9, ease } }}
         >
-          {/* Center glow — subtly shifts during the name hold */}
           <motion.div
             className="pointer-events-none absolute inset-0"
             initial={{ opacity: 0 }}
@@ -108,59 +139,49 @@ export default function EntryAnimation() {
             )}
           </AnimatePresence>
 
-          {/* Name reveal */}
+          {/* Final name (or safe fallback) — settles and stays until dismiss */}
           <AnimatePresence>
             {phase >= 3 && (
               <motion.div
                 key="name"
-                className="relative flex flex-col items-center"
+                className="relative flex w-full max-w-[1400px] flex-col items-center text-center"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0, transition: { duration: 0.6, ease } }}
               >
-                <div className="flex items-baseline gap-x-[0.35em] overflow-hidden">
-                  {nameWords.map((w, i) => (
-                    <span key={w} className="inline-block overflow-hidden pb-[0.1em]">
-                      <motion.span
-                        className="inline-block font-syne font-extrabold uppercase text-ink"
-                        style={{
-                          fontSize: "clamp(44px, 9vw, 128px)",
-                          letterSpacing: "-0.05em",
-                          lineHeight: 1,
-                        }}
-                        initial={{ y: "110%", filter: "blur(16px)" }}
-                        animate={{ y: "0%", filter: "blur(0px)" }}
-                        transition={{ delay: 0.05 + i * 0.12, duration: 1.0, ease }}
-                      >
-                        {w}
-                      </motion.span>
-                    </span>
-                  ))}
-                </div>
+                {displayLines.map((line, i) => (
+                  <span
+                    key={line}
+                    className="block overflow-hidden pb-[0.12em]"
+                    style={{ lineHeight: 1 }}
+                  >
+                    <motion.span
+                      className="inline-block font-syne font-extrabold uppercase text-ink whitespace-nowrap"
+                      style={{
+                        fontSize: nameFontSize,
+                        letterSpacing: "-0.045em",
+                        lineHeight: 1,
+                      }}
+                      initial={{ y: "110%", filter: "blur(16px)" }}
+                      animate={{ y: "0%", filter: "blur(0px)" }}
+                      transition={{ delay: 0.05 + i * 0.14, duration: 1.0, ease }}
+                    >
+                      {line}
+                    </motion.span>
+                  </span>
+                ))}
 
-                {/* Drawing underline */}
                 <motion.div
                   className="mt-7 h-[2px] origin-left bg-acid glow-acid-sm"
-                  initial={{ scaleX: 0, width: 280 }}
+                  initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
                   transition={{ delay: 0.55, duration: 1.0, ease }}
                   style={{ width: 280 }}
                 />
-
-                {/* Supporting text */}
-                <motion.div
-                  className="mt-6 font-mono text-[11px] uppercase tracking-[0.4em] text-ink-2"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.95, duration: 0.8, ease }}
-                >
-                  Designer · Developer · Builder
-                </motion.div>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Footer hint */}
           <motion.div
             className="absolute bottom-8 left-1/2 -translate-x-1/2 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground"
             initial={{ opacity: 0 }}
