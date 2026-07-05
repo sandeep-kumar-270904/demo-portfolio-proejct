@@ -14,7 +14,11 @@ const FULL_NAME = "EDHUBILLI SANDEEP KUMAR";
 const FALLBACK = "WELCOME";
 
 export default function EntryAnimation() {
-  const [show, setShow] = useState(true);
+  // Play once per browser session — subsequent route mounts skip it.
+  const [show, setShow] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return !sessionStorage.getItem("entry_played");
+  });
   const [phase, setPhase] = useState(0); // 0..2 = words, 3 = name
   const [vw, setVw] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth : 1280
@@ -28,6 +32,8 @@ export default function EntryAnimation() {
 
   useEffect(() => {
     if (!show) return;
+    // Mark as played immediately so route changes within this session skip it.
+    try { sessionStorage.setItem("entry_played", "1"); } catch {}
     const reduced =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;

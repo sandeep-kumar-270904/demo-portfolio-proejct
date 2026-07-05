@@ -1,4 +1,5 @@
 import { AnimatePresence } from "framer-motion";
+import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -18,6 +19,11 @@ const queryClient = new QueryClient();
 
 const AnimatedRoutes = () => {
   const location = useLocation();
+  // Reset scroll on route change (skip if navigating to an in-page anchor).
+  useEffect(() => {
+    if (location.hash) return;
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname]);
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
