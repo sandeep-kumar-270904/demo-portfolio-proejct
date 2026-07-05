@@ -71,8 +71,9 @@ export default function EntryAnimation() {
   // - Wide screens: full name on one line.
   // - Mid screens: full name stacked (EDHUBILLI / SANDEEP KUMAR).
   // - Narrow screens: safe fallback ("WELCOME") so nothing clips.
+  // Conservative breakpoints so the full name never clips within the padded container.
   const layout: "single" | "stacked" | "fallback" =
-    vw >= 900 ? "single" : vw >= 480 ? "stacked" : "fallback";
+    vw >= 1120 ? "single" : vw >= 520 ? "stacked" : "fallback";
 
   const displayLines: string[] =
     layout === "single"
@@ -83,10 +84,10 @@ export default function EntryAnimation() {
 
   const nameFontSize =
     layout === "single"
-      ? "clamp(44px, 7.2vw, 112px)"
+      ? "clamp(40px, 5.6vw, 92px)"
       : layout === "stacked"
-      ? "clamp(40px, 11vw, 88px)"
-      : "clamp(56px, 18vw, 120px)";
+      ? "clamp(36px, 9vw, 78px)"
+      : "clamp(48px, 15vw, 104px)";
 
   return (
     <AnimatePresence>
