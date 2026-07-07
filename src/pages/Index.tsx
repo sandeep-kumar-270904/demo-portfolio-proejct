@@ -33,7 +33,7 @@ const Index = () => {
   return (
     <>
       <EntryAnimation />
-      <Cursor />
+
       <CommandPalette />
       <ScrollProgress />
       <AvailabilityBanner />
