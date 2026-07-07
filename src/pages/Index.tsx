@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import EntryAnimation from "@/components/EntryAnimation";
-import Cursor from "@/components/Cursor";
 import CommandPalette from "@/components/CommandPalette";
 import AvailabilityBanner from "@/components/AvailabilityBanner";
 import ScrollProgress from "@/components/ScrollProgress";
@@ -34,7 +33,7 @@ const Index = () => {
   return (
     <>
       <EntryAnimation />
-      <Cursor />
+
       <CommandPalette />
       <ScrollProgress />
       <AvailabilityBanner />
