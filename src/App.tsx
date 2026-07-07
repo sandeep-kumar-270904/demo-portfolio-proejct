@@ -47,6 +47,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <SmoothScroll />
+        <Cursor />
         <AnimatedRoutes />
       </BrowserRouter>
     </TooltipProvider>
