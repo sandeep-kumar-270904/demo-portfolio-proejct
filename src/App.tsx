@@ -14,6 +14,7 @@ import Admin from "./pages/Admin.tsx";
 import ProjectDetail from "./pages/ProjectDetail.tsx";
 import PageTransition from "./components/PageTransition";
 import SmoothScroll from "./components/SmoothScroll";
+import Cursor from "./components/Cursor";
 
 const queryClient = new QueryClient();
 
