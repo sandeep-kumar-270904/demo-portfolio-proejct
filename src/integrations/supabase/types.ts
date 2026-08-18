@@ -197,6 +197,7 @@ export type Database = {
       projects: {
         Row: {
           architecture: Json
+          architecture_images: Json
           backend_cards: Json
           case_study_url: string | null
           category: string | null
@@ -210,6 +211,7 @@ export type Database = {
           frontend_cards: Json
           gallery: string[]
           github_url: string | null
+          glance_media: Json
           hero_images: string[]
           id: string
           image_url: string | null
@@ -237,6 +239,7 @@ export type Database = {
         }
         Insert: {
           architecture?: Json
+          architecture_images?: Json
           backend_cards?: Json
           case_study_url?: string | null
           category?: string | null
@@ -250,6 +253,7 @@ export type Database = {
           frontend_cards?: Json
           gallery?: string[]
           github_url?: string | null
+          glance_media?: Json
           hero_images?: string[]
           id?: string
           image_url?: string | null
@@ -277,6 +281,7 @@ export type Database = {
         }
         Update: {
           architecture?: Json
+          architecture_images?: Json
           backend_cards?: Json
           case_study_url?: string | null
           category?: string | null
@@ -290,6 +295,7 @@ export type Database = {
           frontend_cards?: Json
           gallery?: string[]
           github_url?: string | null
+          glance_media?: Json
           hero_images?: string[]
           id?: string
           image_url?: string | null
