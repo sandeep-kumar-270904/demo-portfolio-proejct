@@ -781,7 +781,22 @@ export default function ProjectDetail() {
                   >
                     Docs <BookOpen size={14} />
                   </a>
+                {videoUrl && (
+                  <button
+                    onClick={() => {
+                      setVideoMode(true);
+                      document.getElementById("hero-media")?.scrollIntoView({
+                        behavior: reduce ? "auto" : "smooth",
+                        block: "center",
+                      });
+                    }}
+                    className="inline-flex items-center gap-2 rounded-lg border border-acid/40 bg-acid/10 px-5 py-2.5 font-syne text-[13px] font-bold text-acid transition-transform hover:-translate-y-0.5 hover:glow-acid"
+                  >
+                    Video <Play size={14} />
+                  </button>
                 )}
+                )}
+
               </div>
             </Reveal>
           </div>
