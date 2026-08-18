@@ -557,6 +557,8 @@ export default function ProjectDetail() {
   const { data: rows = [], isLoading } = useProjects();
   const heroRef = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
+  const [videoMode, setVideoMode] = useState(false);
+
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
