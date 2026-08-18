@@ -403,6 +403,126 @@ function ArchitectureDiagram({
   );
 }
 
+/** Named architecture images uploaded from the CMS, shown as switchable tabs. */
+function ArchitectureGallery({
+  images,
+}: {
+  images: { name?: string; url: string; caption?: string }[];
+}) {
+  const [active, setActive] = useState(0);
+  const current = images[Math.min(active, images.length - 1)];
+  return (
+    <div className="rounded-3xl border border-soft-2 bg-card p-4 md:p-6">
+      {images.length > 1 && (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {images.map((im, i) => (
+            <button
+              key={im.url + i}
+              onClick={() => setActive(i)}
+              className={`rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] transition-all ${
+                i === active
+                  ? "border-acid/60 bg-acid/10 text-acid"
+                  : "border-soft-2 text-ink-2 hover:border-acid/40 hover:text-acid"
+              }`}
+            >
+              {im.name || `Diagram ${i + 1}`}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="overflow-hidden rounded-2xl border border-soft-2 bg-void/40">
+        <img
+          key={current.url}
+          src={current.url}
+          alt={current.name || "Architecture diagram"}
+          loading="lazy"
+          className="w-full object-contain"
+        />
+      </div>
+      {(current.caption || current.name) && (
+        <p className="mt-4 font-mono text-[11px] text-muted-foreground">
+          {current.caption || current.name}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** Horizontal snap carousel for feature deep-dives. */
+function DeepDiveCarousel({
+  items,
+  reduce,
+}: {
+  items: { title: string; description?: string; images?: string[]; video_url?: string | null }[];
+  reduce: boolean | null;
+}) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const scrollBy = (dir: 1 | -1) => {
+    const el = trackRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * Math.max(320, el.clientWidth * 0.8), behavior: reduce ? "auto" : "smooth" });
+  };
+
+  return (
+    <div className="relative mt-10">
+      <div
+        ref={trackRef}
+        className="flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {items.map((f, i) => (
+          <motion.article
+            key={i}
+            initial={reduce ? { opacity: 1 } : { opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.55, delay: Math.min(i, 3) * 0.08, ease: ease.brand }}
+            whileHover={reduce ? undefined : { y: -6 }}
+            className="group flex w-[88%] flex-none snap-start flex-col overflow-hidden rounded-2xl border border-soft-2 bg-card transition-colors hover:border-acid/50 sm:w-[60%] lg:w-[calc(33.333%-1rem)]"
+          >
+            <MediaSlot
+              ratio="aspect-[16/10]"
+              rounded="rounded-none"
+              images={f.images}
+              videoUrl={f.video_url ?? null}
+              alt={`${f.title} preview`}
+              label={`Feature 0${i + 1} · media slot`}
+            />
+            <div className="flex-1 p-6">
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">
+                Feature {String(i + 1).padStart(2, "0")}
+              </div>
+              <h3 className="mt-2 font-syne text-[18px] font-bold text-ink">{f.title}</h3>
+              <p className="mt-3 text-[14px] leading-relaxed text-ink-2">
+                {f.description ||
+                  "Designed end-to-end — from the interaction model to the data path — and shipped behind a feature flag for safe rollout."}
+              </p>
+            </div>
+          </motion.article>
+        ))}
+      </div>
+      {items.length > 1 && (
+        <div className="mt-2 flex justify-end gap-2">
+          <button
+            aria-label="Previous feature"
+            onClick={() => scrollBy(-1)}
+            className="grid h-9 w-9 place-items-center rounded-full border border-soft-2 bg-surface text-ink-2 transition-colors hover:border-acid/50 hover:text-acid"
+          >
+            <ArrowLeft size={15} />
+          </button>
+          <button
+            aria-label="Next feature"
+            onClick={() => scrollBy(1)}
+            className="grid h-9 w-9 place-items-center rounded-full border border-soft-2 bg-surface text-ink-2 transition-colors hover:border-acid/50 hover:text-acid"
+          >
+            <ArrowRight size={15} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 function groupStack(stack: string[]): Record<string, string[]> {
   const groups: Record<string, string[]> = {
     Frontend: [],
