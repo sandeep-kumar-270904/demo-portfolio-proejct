@@ -15,6 +15,9 @@ import ProjectDetail from "./pages/ProjectDetail.tsx";
 import PageTransition from "./components/PageTransition";
 import SmoothScroll from "./components/SmoothScroll";
 import Cursor from "./components/Cursor";
+import EntryAnimation from "./components/EntryAnimation";
+import ClickSound from "./components/ClickSound";
+
 
 
 const queryClient = new QueryClient();
