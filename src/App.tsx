@@ -50,9 +50,12 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <SmoothScroll />
-        <Cursor />
-        <AnimatedRoutes />
+      <SmoothScroll />
+      <Cursor />
+      <ClickSound />
+      <EntryAnimation />
+      <AnimatedRoutes />
+
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
