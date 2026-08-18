@@ -13,12 +13,13 @@ const NAME_MS = 1800;
 const FULL_NAME = "EDHUBILLI SANDEEP KUMAR";
 const FALLBACK = "WELCOME";
 
+// Module-level flag: plays once per full page load (survives route changes,
+// replays on refresh so the intro is never "lost" to a stale session flag).
+let hasPlayed = false;
+
 export default function EntryAnimation() {
-  // Play once per browser session — subsequent route mounts skip it.
-  const [show, setShow] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return !sessionStorage.getItem("entry_played");
-  });
+  const [show, setShow] = useState(() => !hasPlayed);
+
   const [phase, setPhase] = useState(0); // 0..2 = words, 3 = name
   const [vw, setVw] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth : 1280
@@ -32,8 +33,9 @@ export default function EntryAnimation() {
 
   useEffect(() => {
     if (!show) return;
-    // Mark as played immediately so route changes within this session skip it.
-    try { sessionStorage.setItem("entry_played", "1"); } catch {}
+    // Mark as played immediately so route changes within this load skip it.
+    hasPlayed = true;
+
     const reduced =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;

@@ -37,6 +37,13 @@ export type DbProject = {
     nodes?: { x?: number; y?: number; label: string; sub?: string }[];
     edges?: [number, number][];
   } | null;
+  architecture_images?: { name?: string; url: string; caption?: string }[];
+  glance_media?: {
+    problem?: string[];
+    solution?: string[];
+    features?: string[];
+  } | null;
+
   features_deep?: {
     title: string;
     description?: string;
