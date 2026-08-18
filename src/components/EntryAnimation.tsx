@@ -33,8 +33,9 @@ export default function EntryAnimation() {
 
   useEffect(() => {
     if (!show) return;
-    // Mark as played immediately so route changes within this session skip it.
-    try { sessionStorage.setItem("entry_played", "1"); } catch {}
+    // Mark as played immediately so route changes within this load skip it.
+    hasPlayed = true;
+
     const reduced =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
