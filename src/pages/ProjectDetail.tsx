@@ -803,18 +803,41 @@ export default function ProjectDetail() {
           </div>
         </section>
 
-        {/* 2. HERO MEDIA — full-width visual slot */}
-        <section className="border-b border-soft-2 bg-surface/10">
+        {/* 2. HERO MEDIA — full-width visual slot (switches to the demo video on demand) */}
+        <section id="hero-media" className="scroll-mt-28 border-b border-soft-2 bg-surface/10">
           <div className="mx-auto max-w-[1320px] px-6 py-12">
             <Reveal>
-              <MediaSlot
-                ratio="aspect-[16/8]"
-                rounded="rounded-3xl"
-                videoUrl={videoUrl}
-                images={heroImages}
-                alt={`${project.title} hero media`}
-                label="Hero visual · image / carousel / video"
-              />
+              {videoMode && videoUrl ? (
+                <div className="relative overflow-hidden rounded-3xl border border-acid/30 bg-black">
+                  <div className="aspect-video w-full">
+                    {isEmbed ? (
+                      <iframe
+                        src={`${embedSrc}${embedSrc.includes("?") ? "&" : "?"}autoplay=1`}
+                        title={`${project.title} demo`}
+                        className="h-full w-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
+                        allowFullScreen
+                      />
+                    ) : (
+                      <video src={videoUrl} controls autoPlay playsInline className="h-full w-full" />
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setVideoMode(false)}
+                    className="absolute right-4 top-4 rounded-full border border-soft-2 bg-void/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-2 backdrop-blur hover:border-acid/50 hover:text-acid"
+                  >
+                    Close video
+                  </button>
+                </div>
+              ) : (
+                <MediaSlot
+                  ratio="aspect-[16/8]"
+                  rounded="rounded-3xl"
+                  images={heroImages}
+                  alt={`${project.title} hero media`}
+                  label="Hero visual · image / carousel / video"
+                />
+              )}
             </Reveal>
           </div>
         </section>
@@ -831,19 +854,34 @@ export default function ProjectDetail() {
                 <div className="mt-5 grid gap-6 md:grid-cols-3">
                   <div>
                     <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Problem</div>
-                    <p className="mt-2 line-clamp-3 text-[14px] leading-relaxed text-ink">
+                    {glanceMedia.problem.length > 0 && (
+                      <div className="mt-3">
+                        <MediaSlot ratio="aspect-[16/9]" rounded="rounded-xl" images={glanceMedia.problem} alt="Problem visual" />
+                      </div>
+                    )}
+                    <p className="mt-3 line-clamp-3 text-[14px] leading-relaxed text-ink">
                       {(project.problem || overviewText || "A workflow gap with no clean off-the-shelf fix.").split(/\.\s|\n/)[0] + "."}
                     </p>
                   </div>
                   <div>
                     <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Solution</div>
-                    <p className="mt-2 line-clamp-3 text-[14px] leading-relaxed text-ink">
+                    {glanceMedia.solution.length > 0 && (
+                      <div className="mt-3">
+                        <MediaSlot ratio="aspect-[16/9]" rounded="rounded-xl" images={glanceMedia.solution} alt="Solution visual" />
+                      </div>
+                    )}
+                    <p className="mt-3 line-clamp-3 text-[14px] leading-relaxed text-ink">
                       {(project.solution || project.description || "A focused product that removes the friction end-to-end.").split(/\.\s|\n/)[0] + "."}
                     </p>
                   </div>
                   <div>
                     <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Key features</div>
-                    <ul className="mt-2 space-y-1.5">
+                    {glanceMedia.features.length > 0 && (
+                      <div className="mt-3">
+                        <MediaSlot ratio="aspect-[16/9]" rounded="rounded-xl" images={glanceMedia.features} alt="Key features visual" />
+                      </div>
+                    )}
+                    <ul className="mt-3 space-y-1.5">
                       {(features.length ? features : ["End-to-end flow", "Considered UX", "Production-grade"])
                         .slice(0, 4)
                         .map((f, i) => (
@@ -855,6 +893,8 @@ export default function ProjectDetail() {
                     </ul>
                   </div>
                 </div>
+              </div>
+
               </div>
             </Reveal>
           </div>
