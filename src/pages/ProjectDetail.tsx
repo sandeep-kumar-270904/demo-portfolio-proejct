@@ -781,6 +781,7 @@ export default function ProjectDetail() {
                   >
                     Docs <BookOpen size={14} />
                   </a>
+                )}
                 {videoUrl && (
                   <button
                     onClick={() => {
@@ -795,7 +796,7 @@ export default function ProjectDetail() {
                     Video <Play size={14} />
                   </button>
                 )}
-                )}
+
 
               </div>
             </Reveal>
