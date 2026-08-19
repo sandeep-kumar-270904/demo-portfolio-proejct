@@ -694,6 +694,22 @@ export default function ProjectsTab() {
           </div>
           <div className="mt-4">
             <AdminTextarea
+              label='Architecture images (JSON array: [{"name":"System","url":"https://…","caption":"…"}]) — shown as tabs, overrides the diagram'
+              value={architectureImagesJson}
+              onChange={setArchitectureImagesJson}
+              rows={5}
+            />
+          </div>
+          <div className="mt-4">
+            <AdminTextarea
+              label='At-a-glance media (JSON: {"problem":["url"],"solution":["url"],"features":["url"]})'
+              value={glanceMediaJson}
+              onChange={setGlanceMediaJson}
+              rows={5}
+            />
+          </div>
+          <div className="mt-4">
+            <AdminTextarea
               label='Feature deep-dives (JSON array: [{"title":"…","description":"…","images":["url"],"video_url":null}])'
               value={featuresDeepJson}
               onChange={setFeaturesDeepJson}
