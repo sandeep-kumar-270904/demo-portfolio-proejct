@@ -985,6 +985,9 @@ export default function ProjectDetail() {
                   Feature deep-dives.
                 </h2>
               </Reveal>
+              {deepDives.length > 3 ? (
+                <DeepDiveCarousel items={deepDives} reduce={reduce} />
+              ) : (
               <motion.div
                 variants={staggerParent(0.09)}
                 initial="hidden"
@@ -1027,6 +1030,7 @@ export default function ProjectDetail() {
                   </motion.article>
                 ))}
               </motion.div>
+              )}
             </div>
           </section>
         )}
