@@ -964,8 +964,12 @@ export default function ProjectDetail() {
               </h2>
             </Reveal>
             <Reveal delay={0.1}>
-              <div className="mt-8">
-                <ArchitectureDiagram nodes={project.architecture?.nodes} edges={project.architecture?.edges} />
+              <div className="mt-8 space-y-8">
+                {architectureImages.length > 0 ? (
+                  <ArchitectureGallery images={architectureImages} />
+                ) : (
+                  <ArchitectureDiagram nodes={project.architecture?.nodes} edges={project.architecture?.edges} />
+                )}
               </div>
             </Reveal>
           </div>
