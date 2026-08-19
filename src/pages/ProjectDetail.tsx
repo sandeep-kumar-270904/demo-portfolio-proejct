@@ -674,6 +674,17 @@ export default function ProjectDetail() {
         ? [project.image_url]
         : [];
 
+  // Optional imagery for the "At a glance" card (CMS-driven, all optional).
+  const glanceMedia = {
+    problem: project.glance_media?.problem ?? [],
+    solution: project.glance_media?.solution ?? [],
+    features: project.glance_media?.features ?? [],
+  };
+
+  // Architecture diagrams uploaded via the CMS (rendered as a tabbed gallery).
+  const architectureImages = project.architecture_images ?? [];
+
+
   // Frontend / backend cards: use CMS-provided arrays when present.
   const frontendCards =
     project.frontend_cards && project.frontend_cards.length > 0
