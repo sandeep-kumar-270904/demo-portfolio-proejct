@@ -48,6 +48,8 @@ type Row = {
   backend_cards: { h: string; p: string }[];
   key_decision: { chose?: string; instead_of?: string; because?: string };
   stack_groups: { name: string; items: string[]; why?: string }[];
+  glance_media: { problem?: string[]; solution?: string[]; features?: string[] };
+  architecture_images: { name?: string; url: string; caption?: string }[];
 };
 
 const empty: Omit<Row, "id"> = {
@@ -86,6 +88,8 @@ const empty: Omit<Row, "id"> = {
   backend_cards: [],
   key_decision: {},
   stack_groups: [],
+  glance_media: {},
+  architecture_images: [],
 };
 
 function csv(arr: string[]) {
@@ -113,6 +117,8 @@ export default function ProjectsTab() {
   const [backendCardsJson, setBackendCardsJson] = useState("[]");
   const [keyDecisionJson, setKeyDecisionJson] = useState("{}");
   const [stackGroupsJson, setStackGroupsJson] = useState("[]");
+  const [glanceMediaJson, setGlanceMediaJson] = useState("{}");
+  const [architectureImagesJson, setArchitectureImagesJson] = useState("[]");
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
@@ -214,6 +220,8 @@ export default function ProjectsTab() {
       backend_cards: r.backend_cards ?? [],
       key_decision: r.key_decision ?? {},
       stack_groups: r.stack_groups ?? [],
+      glance_media: r.glance_media ?? {},
+      architecture_images: r.architecture_images ?? [],
     });
     setTagsInput(csv(r.tags));
     setTechInput(csv(r.tech_stack));
@@ -227,6 +235,8 @@ export default function ProjectsTab() {
     setBackendCardsJson(JSON.stringify(r.backend_cards ?? [], null, 2));
     setKeyDecisionJson(JSON.stringify(r.key_decision ?? {}, null, 2));
     setStackGroupsJson(JSON.stringify(r.stack_groups ?? [], null, 2));
+    setGlanceMediaJson(JSON.stringify(r.glance_media ?? {}, null, 2));
+    setArchitectureImagesJson(JSON.stringify(r.architecture_images ?? [], null, 2));
   }
 
   async function save() {
@@ -241,6 +251,8 @@ export default function ProjectsTab() {
     let backend_cards: Row["backend_cards"] = [];
     let key_decision: Row["key_decision"] = {};
     let stack_groups: Row["stack_groups"] = [];
+    let glance_media: Row["glance_media"] = {};
+    let architecture_images: Row["architecture_images"] = [];
     try {
       stats = JSON.parse(statsJson || "[]");
       if (!Array.isArray(stats)) throw new Error("stats");
@@ -254,6 +266,9 @@ export default function ProjectsTab() {
       key_decision = JSON.parse(keyDecisionJson || "{}");
       stack_groups = JSON.parse(stackGroupsJson || "[]");
       if (!Array.isArray(stack_groups)) throw new Error("stack_groups");
+      glance_media = JSON.parse(glanceMediaJson || "{}");
+      architecture_images = JSON.parse(architectureImagesJson || "[]");
+      if (!Array.isArray(architecture_images)) throw new Error("architecture_images");
     } catch (e) {
       toast.error(`Invalid JSON: ${e instanceof Error ? e.message : "check fields"}`);
       return;
@@ -275,6 +290,8 @@ export default function ProjectsTab() {
       backend_cards,
       key_decision,
       stack_groups,
+      glance_media,
+      architecture_images,
       live_url: draft.live_url || null,
       github_url: draft.github_url || null,
       image_url: draft.image_url || null,
@@ -672,6 +689,22 @@ export default function ProjectsTab() {
               label='Architecture (JSON: {"nodes":[{"label":"Client","sub":"React SPA"}],"edges":[[0,1]]})'
               value={architectureJson}
               onChange={setArchitectureJson}
+              rows={5}
+            />
+          </div>
+          <div className="mt-4">
+            <AdminTextarea
+              label='Architecture images (JSON array: [{"name":"System","url":"https://…","caption":"…"}]) — shown as tabs, overrides the diagram'
+              value={architectureImagesJson}
+              onChange={setArchitectureImagesJson}
+              rows={5}
+            />
+          </div>
+          <div className="mt-4">
+            <AdminTextarea
+              label='At-a-glance media (JSON: {"problem":["url"],"solution":["url"],"features":["url"]})'
+              value={glanceMediaJson}
+              onChange={setGlanceMediaJson}
               rows={5}
             />
           </div>

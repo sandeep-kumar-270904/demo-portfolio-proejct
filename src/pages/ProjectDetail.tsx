@@ -674,6 +674,17 @@ export default function ProjectDetail() {
         ? [project.image_url]
         : [];
 
+  // Optional imagery for the "At a glance" card (CMS-driven, all optional).
+  const glanceMedia = {
+    problem: project.glance_media?.problem ?? [],
+    solution: project.glance_media?.solution ?? [],
+    features: project.glance_media?.features ?? [],
+  };
+
+  // Architecture diagrams uploaded via the CMS (rendered as a tabbed gallery).
+  const architectureImages = project.architecture_images ?? [];
+
+
   // Frontend / backend cards: use CMS-provided arrays when present.
   const frontendCards =
     project.frontend_cards && project.frontend_cards.length > 0
@@ -894,8 +905,6 @@ export default function ProjectDetail() {
                   </div>
                 </div>
               </div>
-
-              </div>
             </Reveal>
           </div>
         </section>
@@ -955,8 +964,12 @@ export default function ProjectDetail() {
               </h2>
             </Reveal>
             <Reveal delay={0.1}>
-              <div className="mt-8">
-                <ArchitectureDiagram nodes={project.architecture?.nodes} edges={project.architecture?.edges} />
+              <div className="mt-8 space-y-8">
+                {architectureImages.length > 0 ? (
+                  <ArchitectureGallery images={architectureImages} />
+                ) : (
+                  <ArchitectureDiagram nodes={project.architecture?.nodes} edges={project.architecture?.edges} />
+                )}
               </div>
             </Reveal>
           </div>
@@ -972,6 +985,9 @@ export default function ProjectDetail() {
                   Feature deep-dives.
                 </h2>
               </Reveal>
+              {deepDives.length > 3 ? (
+                <DeepDiveCarousel items={deepDives} reduce={reduce} />
+              ) : (
               <motion.div
                 variants={staggerParent(0.09)}
                 initial="hidden"
@@ -1014,6 +1030,7 @@ export default function ProjectDetail() {
                   </motion.article>
                 ))}
               </motion.div>
+              )}
             </div>
           </section>
         )}
