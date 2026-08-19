@@ -4,6 +4,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter } from "react-router-dom";
 
 // Shared in-memory "DB"
 const db: { projects: Array<Record<string, unknown>> } = { projects: [] };
@@ -51,7 +52,11 @@ import Projects from "@/components/Projects";
 
 function withQuery(node: React.ReactNode) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return <QueryClientProvider client={qc}>{node}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={qc}>
+      <MemoryRouter>{node}</MemoryRouter>
+    </QueryClientProvider>
+  );
 }
 
 describe("Admin save with null image_url → public Projects renders SVG", () => {
@@ -75,7 +80,7 @@ describe("Admin save with null image_url → public Projects renders SVG", () =>
     fireEvent.change(screen.getByLabelText(/Tags \(comma\)/i), {
       target: { value: "buildflow, Next.js" },
     });
-    fireEvent.change(screen.getByLabelText(/Image URL/i), { target: { value: "" } });
+    fireEvent.change(screen.getAllByLabelText(/Image URL/i)[0], { target: { value: "" } });
 
     fireEvent.click(screen.getByRole("button", { name: /^Create$/i }));
 
