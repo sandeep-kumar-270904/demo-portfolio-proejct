@@ -51,7 +51,7 @@ export default function GitHub() {
   const stats = data?.stats ?? { publicRepos: 25, stars: 120, contributionsThisYear: 500 };
 
   return (
-    <section className="relative bg-void px-6 py-28 lg:py-40">
+    <section className="relative bg-void px-6 py-14 lg:py-24">
       <div className="mx-auto max-w-[1320px]" ref={ref}>
         <div className="reveal flex items-center gap-3">
           <span className="h-px w-8 bg-acid" />

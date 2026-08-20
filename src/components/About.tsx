@@ -34,7 +34,7 @@ export default function About() {
   const socials = SOCIAL_DEFS.map((s) => ({ ...s, href: info?.[s.key] || s.fallback })).filter((s) => s.href);
 
   return (
-    <section id="about" className="relative bg-base px-6 py-28 lg:py-40">
+    <section id="about" className="relative bg-base px-6 py-14 lg:py-24">
       <div className="mx-auto grid max-w-[1320px] grid-cols-1 gap-16 lg:grid-cols-2 lg:gap-24">
         {/* Left — square profile photo */}
         <div className="relative flex flex-col items-center lg:items-start">

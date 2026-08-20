@@ -13,7 +13,7 @@ export default function BlogSection() {
   if (!isLoading && posts.length === 0) return null;
 
   return (
-    <section id="writing" className="relative bg-void px-6 py-28 lg:py-36">
+    <section id="writing" className="relative bg-void px-6 py-14 lg:py-24">
       <div className="mx-auto max-w-[1320px]">
         <div className="reveal flex items-center gap-3">
           <span className="h-px w-8 bg-acid" />

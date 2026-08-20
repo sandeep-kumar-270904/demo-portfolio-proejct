@@ -142,7 +142,7 @@ export default function Projects() {
   const [featured, ...rest] = filtered;
 
   return (
-    <section id="projects" className="relative bg-void px-6 py-28 lg:py-40">
+    <section id="projects" className="relative bg-void px-6 py-14 lg:py-24">
       <div className="mx-auto max-w-[1320px]">
         <div className="reveal flex items-center gap-3">
           <span className="h-px w-8 bg-acid" />
