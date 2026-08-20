@@ -51,7 +51,7 @@ function FeaturedCard({ p }: { p: Project }) {
           <span className="absolute left-6 top-6 font-mono text-[11px] uppercase tracking-widest text-acid">
             {p.number}
           </span>
-          <span className="absolute bottom-6 left-6 font-syne text-[44px] font-extrabold text-ink leading-none">
+          <span className="absolute bottom-6 left-6 font-syne text-[30px] font-extrabold leading-none text-ink lg:text-[34px]">
             {p.name}
           </span>
         </div>
@@ -107,7 +107,7 @@ function GridCard({ p, idx }: { p: Project; idx: number }) {
         <span className="absolute left-5 top-5 font-mono text-[10px] uppercase tracking-widest text-acid">
           {p.number}
         </span>
-        <span className="absolute bottom-5 left-5 font-syne text-[28px] font-extrabold text-ink leading-none">
+        <span className="absolute bottom-5 left-5 font-syne text-[24px] font-extrabold leading-none text-ink">
           {p.name}
         </span>
       </div>
