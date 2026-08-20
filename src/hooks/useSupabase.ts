@@ -9,6 +9,7 @@ import { skillsFallback, type DbSkill } from "@/data/skillsFallback";
 import { experienceFallback, type DbExperience } from "@/data/experienceFallback";
 import { testimonialsFallback, type DbTestimonial } from "@/data/testimonialsFallback";
 import { blogPostsFallback, type DbBlogPost } from "@/data/blogPostsFallback";
+import { certificatesFallback, type DbCertificate } from "@/data/certificatesFallback";
 
 /* ---------------- personal_info ---------------- */
 export function usePersonalInfo() {
@@ -114,6 +115,25 @@ export function useBlogPosts() {
     },
     placeholderData: blogPostsFallback,
     staleTime: 60_000,
+    retry: 1,
+  });
+}
+
+/* ---------------- certificates ---------------- */
+export function useCertificates() {
+  return useQuery<DbCertificate[]>({
+    queryKey: ["certificates"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("certificates")
+        .select("*")
+        .eq("is_published", true)
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return (data as unknown as DbCertificate[]) ?? [];
+    },
+    placeholderData: certificatesFallback,
+    staleTime: 5 * 60_000,
     retry: 1,
   });
 }
