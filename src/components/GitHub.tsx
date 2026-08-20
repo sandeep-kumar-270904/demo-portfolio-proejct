@@ -72,12 +72,16 @@ export default function GitHub() {
           <span className="text-grad-acid">Activity</span>
         </h2>
 
-        <div className="mt-14 grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div className="mt-12 grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Left */}
           <div className="space-y-4">
-            <StatCard value={stats.contributionsThisYear} suffix="" label="Contributions This Year" gradient="text-grad-acid" start={inView} />
-            <StatCard value={stats.stars} suffix="" label="Stars Earned" gradient="text-grad-fire" start={inView} />
-            <StatCard value={stats.publicRepos} suffix="" label="Public Repos" gradient="text-grad-plasma" start={inView} />
+            <div className="grid grid-cols-2 gap-4">
+              <StatCard value={stats.contributionsThisYear} suffix="" label="Contributions" hint={`${new Date().getFullYear()} · live`} gradient="text-grad-acid" start={inView} />
+              <StatCard value={dayStreak} suffix="" label="Day Streak" hint="Current" gradient="text-grad-acid" start={inView} />
+              <StatCard value={stats.stars} suffix="" label="Stars Earned" hint="Across repos" gradient="text-grad-fire" start={inView} />
+              <StatCard value={stats.publicRepos} suffix="" label="Repositories" hint="Public, non-fork" gradient="text-grad-plasma" start={inView} />
+            </div>
+
 
             <div className="rounded-2xl border border-soft-2 bg-card p-6">
               <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
