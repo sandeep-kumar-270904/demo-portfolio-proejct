@@ -2,20 +2,22 @@ import { useMemo } from "react";
 import { useCounter, useInView } from "@/hooks/useCounter";
 import { useGitHubStats } from "@/hooks/useGitHubStats";
 
-function StatCard({ value, suffix, label, gradient, start }: { value: number; suffix: string; label: string; gradient: string; start: boolean }) {
+function StatCard({ value, suffix, label, hint, gradient, start }: { value: number; suffix: string; label: string; hint?: string; gradient: string; start: boolean }) {
   const v = useCounter(value, 1500, start);
   return (
-    <div className="flex items-end justify-between gap-4 rounded-2xl border border-soft-2 bg-card p-6">
-      <div className={`font-syne text-[44px] font-extrabold leading-none ${gradient}`}>
+    <div className="rounded-2xl border border-soft-2 bg-card p-6 transition-colors hover:border-acid/30">
+      <div className={`font-syne text-[40px] font-extrabold leading-none ${gradient}`}>
         {v}
         {suffix}
       </div>
-      <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground text-right max-w-[140px]">
-        {label}
-      </div>
+      <div className="mt-3 font-mono text-[11px] uppercase tracking-widest text-ink-2">{label}</div>
+      {hint && (
+        <div className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{hint}</div>
+      )}
     </div>
   );
 }
+
 
 const FALLBACK_LANGS = [
   { name: "TypeScript", pct: 40 },
@@ -51,7 +53,7 @@ export default function GitHub() {
   const stats = data?.stats ?? { publicRepos: 25, stars: 120, contributionsThisYear: 500 };
 
   return (
-    <section className="relative bg-void px-6 py-28 lg:py-40">
+    <section className="relative bg-void px-6 py-14 lg:py-24">
       <div className="mx-auto max-w-[1320px]" ref={ref}>
         <div className="reveal flex items-center gap-3">
           <span className="h-px w-8 bg-acid" />
@@ -70,12 +72,16 @@ export default function GitHub() {
           <span className="text-grad-acid">Activity</span>
         </h2>
 
-        <div className="mt-14 grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div className="mt-12 grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Left */}
           <div className="space-y-4">
-            <StatCard value={stats.contributionsThisYear} suffix="" label="Contributions This Year" gradient="text-grad-acid" start={inView} />
-            <StatCard value={stats.stars} suffix="" label="Stars Earned" gradient="text-grad-fire" start={inView} />
-            <StatCard value={stats.publicRepos} suffix="" label="Public Repos" gradient="text-grad-plasma" start={inView} />
+            <div className="grid grid-cols-2 gap-4">
+              <StatCard value={stats.contributionsThisYear} suffix="" label="Contributions" hint={`${new Date().getFullYear()} · live`} gradient="text-grad-acid" start={inView} />
+              <StatCard value={dayStreak} suffix="" label="Day Streak" hint="Current" gradient="text-grad-acid" start={inView} />
+              <StatCard value={stats.stars} suffix="" label="Stars Earned" hint="Across repos" gradient="text-grad-fire" start={inView} />
+              <StatCard value={stats.publicRepos} suffix="" label="Repositories" hint="Public, non-fork" gradient="text-grad-plasma" start={inView} />
+            </div>
+
 
             <div className="rounded-2xl border border-soft-2 bg-card p-6">
               <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">

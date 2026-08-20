@@ -9,6 +9,7 @@ import Marquee from "@/components/Marquee";
 import About from "@/components/About";
 import Projects from "@/components/Projects";
 import Skills from "@/components/Skills";
+import Certificates from "@/components/Certificates";
 import Experience from "@/components/Experience";
 import Testimonials from "@/components/Testimonials";
 import GitHub from "@/components/GitHub";
@@ -43,6 +44,7 @@ const Index = () => {
         <About />
         <Projects />
         <Skills />
+        <Certificates />
         <Experience />
         <Testimonials />
         <GitHub />

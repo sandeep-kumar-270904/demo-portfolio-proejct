@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import Nav from "@/components/Nav";
 import ProjectsTab from "@/components/admin/ProjectsTab";
 import SkillsTab from "@/components/admin/SkillsTab";
+import CertificatesTab from "@/components/admin/CertificatesTab";
 import ExperienceTab from "@/components/admin/ExperienceTab";
 import TestimonialsTab from "@/components/admin/TestimonialsTab";
 import BlogPostsTab from "@/components/admin/BlogPostsTab";
@@ -18,6 +19,7 @@ const TABS = [
   { key: "site", label: "Site Content" },
   { key: "projects", label: "Projects" },
   { key: "skills", label: "Skills" },
+  { key: "certificates", label: "Certificates" },
   { key: "experience", label: "Experience" },
   { key: "testimonials", label: "Testimonials" },
   { key: "blog_posts", label: "Blog Links" },
@@ -167,6 +169,7 @@ export default function Admin() {
             {tab === "site" && <SiteContentTab />}
             {tab === "projects" && <ProjectsTab />}
             {tab === "skills" && <SkillsTab />}
+            {tab === "certificates" && <CertificatesTab />}
             {tab === "experience" && <ExperienceTab />}
             {tab === "testimonials" && <TestimonialsTab />}
             {tab === "blog_posts" && <BlogPostsTab />}

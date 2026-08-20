@@ -53,6 +53,48 @@ export type Database = {
         }
         Relationships: []
       }
+      certificates: {
+        Row: {
+          created_at: string
+          id: string
+          is_published: boolean
+          issue_date: string | null
+          issuer: string
+          issuer_logo_url: string | null
+          sort_order: number
+          source_type: string
+          title: string
+          updated_at: string
+          verify_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          issue_date?: string | null
+          issuer: string
+          issuer_logo_url?: string | null
+          sort_order?: number
+          source_type?: string
+          title: string
+          updated_at?: string
+          verify_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          issue_date?: string | null
+          issuer?: string
+          issuer_logo_url?: string | null
+          sort_order?: number
+          source_type?: string
+          title?: string
+          updated_at?: string
+          verify_url?: string | null
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           archived_at: string | null

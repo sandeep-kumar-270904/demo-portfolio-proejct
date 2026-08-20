@@ -86,7 +86,7 @@ export default function Contact() {
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
   return (
-    <section id="contact" className="relative overflow-hidden bg-base px-6 py-28 lg:py-40">
+    <section id="contact" className="relative overflow-hidden bg-base px-6 py-14 lg:py-24">
       <div
         className="pointer-events-none absolute inset-0 opacity-40"
         style={{
