@@ -2,20 +2,22 @@ import { useMemo } from "react";
 import { useCounter, useInView } from "@/hooks/useCounter";
 import { useGitHubStats } from "@/hooks/useGitHubStats";
 
-function StatCard({ value, suffix, label, gradient, start }: { value: number; suffix: string; label: string; gradient: string; start: boolean }) {
+function StatCard({ value, suffix, label, hint, gradient, start }: { value: number; suffix: string; label: string; hint?: string; gradient: string; start: boolean }) {
   const v = useCounter(value, 1500, start);
   return (
-    <div className="flex items-end justify-between gap-4 rounded-2xl border border-soft-2 bg-card p-6">
-      <div className={`font-syne text-[44px] font-extrabold leading-none ${gradient}`}>
+    <div className="rounded-2xl border border-soft-2 bg-card p-6 transition-colors hover:border-acid/30">
+      <div className={`font-syne text-[40px] font-extrabold leading-none ${gradient}`}>
         {v}
         {suffix}
       </div>
-      <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground text-right max-w-[140px]">
-        {label}
-      </div>
+      <div className="mt-3 font-mono text-[11px] uppercase tracking-widest text-ink-2">{label}</div>
+      {hint && (
+        <div className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{hint}</div>
+      )}
     </div>
   );
 }
+
 
 const FALLBACK_LANGS = [
   { name: "TypeScript", pct: 40 },
