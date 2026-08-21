@@ -138,6 +138,7 @@ export type Database = {
         Row: {
           bullets: string[]
           company: string
+          company_logo_url: string | null
           created_at: string
           id: string
           period: string | null
@@ -148,6 +149,7 @@ export type Database = {
         Insert: {
           bullets?: string[]
           company: string
+          company_logo_url?: string | null
           created_at?: string
           id?: string
           period?: string | null
@@ -158,6 +160,7 @@ export type Database = {
         Update: {
           bullets?: string[]
           company?: string
+          company_logo_url?: string | null
           created_at?: string
           id?: string
           period?: string | null
