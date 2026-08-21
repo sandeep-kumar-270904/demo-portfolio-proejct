@@ -254,6 +254,7 @@ export default function Contact() {
             </MagneticButton>
           </div>
         </form>
+        </div>
 
         <div className="reveal mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
           <span>🌏 India · Remote Worldwide</span>
