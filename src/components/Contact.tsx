@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Github, Linkedin, Twitter, Code2 } from "lucide-react";
+import { Github, Linkedin, Twitter, Code2, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import MagneticButton from "./MagneticButton";
