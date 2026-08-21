@@ -1,6 +1,7 @@
 import { BadgeCheck, ExternalLink } from "lucide-react";
 import { useCertificates } from "@/hooks/useSupabase";
 import { useSiteCopy } from "@/hooks/useSiteCopy";
+import BrandLogo from "@/components/BrandLogo";
 import type { DbCertificate } from "@/data/certificatesFallback";
 
 function isRealUrl(url: string | null | undefined) {
@@ -10,8 +11,18 @@ function isRealUrl(url: string | null | undefined) {
   return /^https?:\/\//i.test(u);
 }
 
+// Accepts either a free-text date ("Mar 2025") or an ISO date from the picker.
+function formatDate(value: string | null | undefined) {
+  if (!value) return "";
+  const iso = /^\d{4}-\d{2}-\d{2}$/.test(value.trim());
+  if (!iso) return value;
+  const d = new Date(`${value}T00:00:00`);
+  return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+}
+
 function Card({ c, idx }: { c: DbCertificate; idx: number }) {
   const verified = isRealUrl(c.verify_url);
+  const dateLabel = formatDate(c.issue_date);
   return (
     <div
       className="reveal group flex h-full flex-col rounded-2xl border border-soft-2 bg-card p-6 transition-all duration-500 hover:-translate-y-1.5 hover:border-acid/40 hover:shadow-[0_25px_60px_-25px_rgba(0,255,179,0.28)]"
@@ -19,29 +30,19 @@ function Card({ c, idx }: { c: DbCertificate; idx: number }) {
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          {c.issuer_logo_url ? (
-            <img
-              src={c.issuer_logo_url}
-              alt={`${c.issuer} logo`}
-              loading="lazy"
-              className="h-10 w-10 rounded-lg border border-soft-2 bg-surface object-contain p-1"
-            />
-          ) : (
-            <div className="grid h-10 w-10 place-items-center rounded-lg border border-soft-2 bg-surface font-syne text-[15px] font-extrabold text-acid">
-              {c.issuer.charAt(0).toUpperCase()}
-            </div>
-          )}
+          <BrandLogo src={c.issuer_logo_url} name={c.issuer} />
           <div>
             <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
               {c.issuer}
             </div>
-            {c.issue_date && (
+            {dateLabel && (
               <div className="font-mono text-[10px] uppercase tracking-widest text-ink-2">
-                {c.issue_date}
+                {dateLabel}
               </div>
             )}
           </div>
         </div>
+
         {verified && (
           <span className="inline-flex items-center gap-1 rounded-full border border-acid/40 bg-acid/10 px-2.5 py-1 font-mono text-[9px] uppercase tracking-widest text-acid">
             <BadgeCheck size={11} /> Verified
