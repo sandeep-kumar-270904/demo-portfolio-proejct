@@ -52,6 +52,16 @@ export default function GitHub() {
   const langs = data?.languages?.length ? data.languages : FALLBACK_LANGS;
   const stats = data?.stats ?? { publicRepos: 25, stars: 120, contributionsThisYear: 500 };
 
+  // Current streak = consecutive active days counting back from the latest cell.
+  const dayStreak = useMemo(() => {
+    let s = 0;
+    for (let i = cells.length - 1; i >= 0; i--) {
+      if (cells[i] > 0) s++;
+      else break;
+    }
+    return s;
+  }, [cells]);
+
   return (
     <section className="relative bg-void px-6 py-14 lg:py-24">
       <div className="mx-auto max-w-[1320px]" ref={ref}>

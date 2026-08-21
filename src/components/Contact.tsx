@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Github, Linkedin, Twitter, Code2 } from "lucide-react";
+import { Github, Linkedin, Twitter, Code2, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import MagneticButton from "./MagneticButton";
@@ -140,10 +140,38 @@ export default function Contact() {
           ))}
         </div>
 
-        {/* Form */}
+        {/* Form + info panel */}
+        <div className="mt-12 grid grid-cols-1 gap-6 text-left lg:grid-cols-[300px_1fr]">
+        <aside className="reveal rounded-2xl border border-soft-2 bg-card p-6">
+          <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Direct lines</div>
+          <ul className="mt-5 space-y-4">
+            {[
+              { icon: <Mail size={15} />, label: "Email", value: SITE.email, href: `mailto:${SITE.email}` },
+              { icon: <Github size={15} />, label: "GitHub", value: `@${SITE.github}`, href: `https://github.com/${SITE.github}` },
+              { icon: <Linkedin size={15} />, label: "LinkedIn", value: "Connect", href: "#" },
+            ].map((c) => (
+              <li key={c.label}>
+                <a href={c.href} target="_blank" rel="noreferrer" className="group flex items-start gap-3">
+                  <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-soft-2 bg-surface text-acid transition-colors group-hover:border-acid/50">
+                    {c.icon}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{c.label}</span>
+                    <span className="block truncate font-sans text-[13px] text-ink transition-colors group-hover:text-acid">{c.value}</span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-6 border-t border-soft-2 pt-5 font-mono text-[10px] uppercase leading-relaxed tracking-widest text-muted-foreground">
+            <div>India · Remote worldwide</div>
+            <div className="mt-1.5 text-acid">Replies within 24h</div>
+          </div>
+        </aside>
+
         <form
           onSubmit={onSubmit}
-          className="reveal mx-auto mt-14 max-w-[680px] rounded-2xl border border-soft-2 bg-card p-6 text-left lg:p-8"
+          className="reveal rounded-2xl border border-soft-2 bg-card p-6 text-left lg:p-8"
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Name" error={errors.name}>
@@ -226,6 +254,7 @@ export default function Contact() {
             </MagneticButton>
           </div>
         </form>
+        </div>
 
         <div className="reveal mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
           <span>🌏 India · Remote Worldwide</span>
