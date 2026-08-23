@@ -170,6 +170,24 @@ export type Database = {
         }
         Relationships: []
       }
+      github_cache: {
+        Row: {
+          id: string
+          payload: Json
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          payload: Json
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          payload?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       personal_info: {
         Row: {
           id: string
