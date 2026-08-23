@@ -6,6 +6,7 @@ export type DbExperience = {
   type: "work" | "education" | null;
   bullets: string[];
   sort_order: number;
+  company_logo_url?: string | null;
 };
 
 // Mirrors the hardcoded ITEMS in Experience.tsx.
