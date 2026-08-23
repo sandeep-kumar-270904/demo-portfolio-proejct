@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import ImageUploader from "./ImageUploader";
 import {
   AdminInput,
   AdminPanel,
@@ -18,6 +19,7 @@ type Row = {
   type: string | null;
   bullets: string[];
   sort_order: number;
+  company_logo_url: string | null;
 };
 
 const empty: Omit<Row, "id"> = {
@@ -27,6 +29,7 @@ const empty: Omit<Row, "id"> = {
   type: "work",
   bullets: [],
   sort_order: 0,
+  company_logo_url: "",
 };
 
 export default function ExperienceTab() {
@@ -61,6 +64,7 @@ export default function ExperienceTab() {
       type: r.type ?? "work",
       bullets: r.bullets,
       sort_order: r.sort_order,
+      company_logo_url: r.company_logo_url ?? "",
     });
     setBulletsText(r.bullets.join("\n"));
   }
@@ -76,6 +80,7 @@ export default function ExperienceTab() {
         ...draft,
         bullets: bulletsText.split("\n").map((s) => s.trim()).filter(Boolean),
         period: draft.period || null,
+        company_logo_url: draft.company_logo_url || null,
       };
       if (editing) {
         const { error } = await supabase.from("experience").update(payload).eq("id", editing.id);
@@ -170,6 +175,15 @@ export default function ExperienceTab() {
             type="number"
             value={String(draft.sort_order)}
             onChange={(v) => setDraft({ ...draft, sort_order: Number(v) || 0 })}
+          />
+        </div>
+        <div className="mt-4">
+          <ImageUploader
+            bucket="project-images"
+            label="Company logo"
+            prefix="company-logo"
+            value={draft.company_logo_url}
+            onChange={(url) => setDraft({ ...draft, company_logo_url: url })}
           />
         </div>
         <div className="mt-4">
