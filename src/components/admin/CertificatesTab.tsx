@@ -36,6 +36,7 @@ const empty: Omit<Row, "id"> = {
 };
 
 export default function CertificatesTab() {
+  const qc = useQueryClient();
   const [rows, setRows] = useState<Row[]>([]);
   const [editing, setEditing] = useState<Row | null>(null);
   const [draft, setDraft] = useState<Omit<Row, "id">>(empty);
@@ -92,6 +93,7 @@ export default function CertificatesTab() {
         if (error) throw error;
         toast.success("Certificate created");
       }
+      qc.invalidateQueries({ queryKey: ["certificates"] });
       startNew();
       load();
     } catch (err) {
@@ -107,6 +109,7 @@ export default function CertificatesTab() {
     if (error) toast.error(error.message);
     else {
       toast.success("Deleted");
+      qc.invalidateQueries({ queryKey: ["certificates"] });
       load();
     }
   }
@@ -157,13 +160,16 @@ export default function CertificatesTab() {
           <AdminInput label="Issuer" value={draft.issuer} onChange={(v) => setDraft({ ...draft, issuer: v })} />
         </div>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <AdminInput
-            label="Issuer logo URL"
-            value={draft.issuer_logo_url ?? ""}
-            onChange={(v) => setDraft({ ...draft, issuer_logo_url: v })}
+          <ImageUploader
+            bucket="project-images"
+            label="Issuer logo"
+            prefix="issuer-logo"
+            value={draft.issuer_logo_url}
+            onChange={(url) => setDraft({ ...draft, issuer_logo_url: url })}
           />
           <AdminInput
-            label="Date issued (e.g. Mar 2025)"
+            label="Date issued"
+            type="date"
             value={draft.issue_date ?? ""}
             onChange={(v) => setDraft({ ...draft, issue_date: v })}
           />

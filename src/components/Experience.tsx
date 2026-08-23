@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useExperience } from "@/hooks/useSupabase";
 import { useSiteCopy } from "@/hooks/useSiteCopy";
+import BrandLogo from "@/components/BrandLogo";
 import type { DbExperience } from "@/data/experienceFallback";
 
 const colorMap: Record<string, { dot: string; text: string; pill: string; bg: string }> = {
@@ -130,9 +131,14 @@ export default function Experience() {
                 <div className="relative flex justify-center">
                   <div className={`relative z-10 mt-3 h-3 w-3 rounded-full ${c.dot} ${c.bg}`} />
                 </div>
-                <div className="rounded-xl border border-soft-2 bg-card p-6 lg:p-7 transition-all hover:border-acid/30 hover:-translate-y-0.5">
-                  <h3 className="font-syne text-[20px] font-bold text-ink">{it.role}</h3>
-                  <div className={`mt-1 font-syne text-[14px] font-semibold ${c.text}`}>{it.company}</div>
+                <div className="group rounded-xl border border-soft-2 bg-card p-6 lg:p-7 transition-all hover:border-acid/30 hover:-translate-y-0.5">
+                  <div className="flex items-start gap-4">
+                    <BrandLogo src={it.company_logo_url} name={it.company} />
+                    <div className="min-w-0">
+                      <h3 className="font-syne text-[20px] font-bold text-ink">{it.role}</h3>
+                      <div className={`mt-1 font-syne text-[14px] font-semibold ${c.text}`}>{it.company}</div>
+                    </div>
+                  </div>
                   {it.bullets.length > 0 && (
                     <ul className="mt-4 space-y-2">
                       {it.bullets.map((h) => (

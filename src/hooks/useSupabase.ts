@@ -1,7 +1,8 @@
 // Typed react-query hooks for the new portfolio tables.
 // Each hook falls back to a static dataset if the Supabase request fails,
 // so the site never breaks even if the backend is unavailable.
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { personalInfoFallback, type PersonalInfo } from "@/data/personalInfo";
 import { projectsFallback, type DbProject } from "@/data/projectsFallback";
@@ -121,6 +122,19 @@ export function useBlogPosts() {
 
 /* ---------------- certificates ---------------- */
 export function useCertificates() {
+  const qc = useQueryClient();
+  useEffect(() => {
+    const channel = supabase
+      .channel("certificates-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "certificates" }, () => {
+        qc.invalidateQueries({ queryKey: ["certificates"] });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
+
   return useQuery<DbCertificate[]>({
     queryKey: ["certificates"],
     queryFn: async () => {
@@ -133,7 +147,7 @@ export function useCertificates() {
       return (data as unknown as DbCertificate[]) ?? [];
     },
     placeholderData: certificatesFallback,
-    staleTime: 5 * 60_000,
+    staleTime: 10_000,
     retry: 1,
   });
 }
