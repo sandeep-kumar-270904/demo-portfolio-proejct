@@ -18,7 +18,6 @@ function StatCard({ value, suffix, label, hint, gradient, start }: { value: numb
   );
 }
 
-
 const FALLBACK_LANGS = [
   { name: "TypeScript", pct: 40 },
   { name: "JavaScript", pct: 25 },
@@ -27,40 +26,36 @@ const FALLBACK_LANGS = [
 ];
 
 const LANG_COLORS = ["#00ffb3", "#7c6fff", "#ff6b35", "#00b8ff", "#ff3b82"];
-
 const HEAT_COLORS = ["#0d0d18", "#0a1f0e", "#0a3016", "#0a4820", "#00ffb3"];
 
-function makePlaceholderHeatmap(weeks = 52) {
-  const cells: number[] = [];
-  for (let i = 0; i < weeks * 7; i++) {
-    const r = Math.random();
-    if (r < 0.35) cells.push(0);
-    else if (r < 0.55) cells.push(1);
-    else if (r < 0.74) cells.push(2);
-    else if (r < 0.84) cells.push(3);
-    else cells.push(4);
-  }
-  return cells;
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 60) return `${Math.max(m, 1)}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return `${d}d ago`;
 }
 
 export default function GitHub() {
   const { ref, inView } = useInView<HTMLDivElement>(0.2);
   const { data, loading } = useGitHubStats();
 
-  const placeholderCells = useMemo(() => makePlaceholderHeatmap(), []);
-  const cells = data?.contributionCells?.length ? data.contributionCells : placeholderCells;
+  const days = data?.days ?? [];
   const langs = data?.languages?.length ? data.languages : FALLBACK_LANGS;
-  const stats = data?.stats ?? { publicRepos: 25, stars: 120, contributionsThisYear: 500 };
+  const stats = data?.stats;
 
-  // Current streak = consecutive active days counting back from the latest cell.
-  const dayStreak = useMemo(() => {
-    let s = 0;
-    for (let i = cells.length - 1; i >= 0; i--) {
-      if (cells[i] > 0) s++;
-      else break;
-    }
-    return s;
-  }, [cells]);
+  // Pad the calendar to a full 53-week grid, most recent last.
+  const cells = useMemo(() => {
+    const levels = days.map((d) => d.level);
+    const target = 53 * 7;
+    if (levels.length >= target) return levels.slice(levels.length - target);
+    return [...Array(target - levels.length).fill(0), ...levels];
+  }, [days]);
+
+  const activity = data?.activity ?? [];
+  const latest = data?.latest ?? null;
 
   return (
     <section className="relative bg-void px-6 py-14 lg:py-24">
@@ -68,9 +63,14 @@ export default function GitHub() {
         <div className="reveal flex items-center gap-3">
           <span className="h-px w-8 bg-acid" />
           <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-acid">06 — Open Source</span>
-          {loading && (
+          {loading && !data && (
             <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
               · syncing live data
+            </span>
+          )}
+          {data?.stale && (
+            <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+              · cached
             </span>
           )}
         </div>
@@ -86,12 +86,11 @@ export default function GitHub() {
           {/* Left */}
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <StatCard value={stats.contributionsThisYear} suffix="" label="Contributions" hint={`${new Date().getFullYear()} · live`} gradient="text-grad-acid" start={inView} />
-              <StatCard value={dayStreak} suffix="" label="Day Streak" hint="Current" gradient="text-grad-acid" start={inView} />
-              <StatCard value={stats.stars} suffix="" label="Stars Earned" hint="Across repos" gradient="text-grad-fire" start={inView} />
-              <StatCard value={stats.publicRepos} suffix="" label="Repositories" hint="Public, non-fork" gradient="text-grad-plasma" start={inView} />
+              <StatCard value={stats?.contributionsThisYear ?? 0} suffix="" label="Contributions" hint="Last 12 months · live" gradient="text-grad-acid" start={inView} />
+              <StatCard value={stats?.currentStreak ?? 0} suffix="" label="Day Streak" hint={`Longest ${stats?.longestStreak ?? 0}`} gradient="text-grad-acid" start={inView} />
+              <StatCard value={stats?.stars ?? 0} suffix="" label="Stars Earned" hint="Across repos" gradient="text-grad-fire" start={inView} />
+              <StatCard value={stats?.publicRepos ?? 0} suffix="" label="Repositories" hint="Public, non-fork" gradient="text-grad-plasma" start={inView} />
             </div>
-
 
             <div className="rounded-2xl border border-soft-2 bg-card p-6">
               <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
@@ -119,50 +118,95 @@ export default function GitHub() {
                 ))}
               </div>
             </div>
+
+            {latest && (
+              <a
+                href={latest.html_url}
+                target="_blank"
+                rel="noreferrer"
+                className="block rounded-2xl border border-soft-2 bg-card p-6 transition-colors hover:border-acid/30"
+              >
+                <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+                  Currently building
+                </div>
+                <div className="mt-2 font-syne text-lg font-bold text-ink">{latest.name}</div>
+                {latest.description && (
+                  <div className="mt-1 text-sm text-ink-2 line-clamp-2">{latest.description}</div>
+                )}
+                <div className="mt-3 font-mono text-[10px] uppercase tracking-widest text-acid">
+                  {latest.language ? `${latest.language} · ` : ""}updated {timeAgo(latest.pushed_at)}
+                </div>
+              </a>
+            )}
           </div>
 
           {/* Right — Heatmap in terminal IDE frame */}
-          <div className="overflow-hidden rounded-2xl border border-soft-2 bg-card">
-            <div className="flex items-center justify-between bg-[#1a1a1a] px-4 py-2.5">
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full" style={{ background: "#ff5f57" }} />
-                <span className="h-3 w-3 rounded-full" style={{ background: "#febc2e" }} />
-                <span className="h-3 w-3 rounded-full" style={{ background: "#28c840" }} />
-              </div>
-              <span className="font-mono text-[11px] text-muted-foreground">~/sandeep/github-activity</span>
-              <span className="w-12" />
-            </div>
-            <div className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-                  Contribution Graph — {new Date().getFullYear()}
+          <div className="space-y-4">
+            <div className="overflow-hidden rounded-2xl border border-soft-2 bg-card">
+              <div className="flex items-center justify-between bg-[#1a1a1a] px-4 py-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full" style={{ background: "#ff5f57" }} />
+                  <span className="h-3 w-3 rounded-full" style={{ background: "#febc2e" }} />
+                  <span className="h-3 w-3 rounded-full" style={{ background: "#28c840" }} />
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-mono text-[9px] text-muted-foreground">less</span>
-                  {HEAT_COLORS.map((c, i) => (
-                    <span key={i} className="h-2.5 w-2.5 rounded-sm" style={{ background: c }} />
-                  ))}
-                  <span className="font-mono text-[9px] text-muted-foreground">more</span>
-                </div>
+                <span className="font-mono text-[11px] text-muted-foreground">~/sandeep/github-activity</span>
+                <span className="w-12" />
               </div>
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+                    Contribution Graph — Last 12 months
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-[9px] text-muted-foreground">less</span>
+                    {HEAT_COLORS.map((c, i) => (
+                      <span key={i} className="h-2.5 w-2.5 rounded-sm" style={{ background: c }} />
+                    ))}
+                    <span className="font-mono text-[9px] text-muted-foreground">more</span>
+                  </div>
+                </div>
 
-              <div
-                className="mt-5 grid gap-[3px] overflow-hidden"
-                style={{ gridTemplateColumns: "repeat(53, minmax(0, 1fr))", gridAutoFlow: "column", gridTemplateRows: "repeat(7, 1fr)" }}
-              >
-                {cells.map((v, i) => (
-                  <div
-                    key={i}
-                    className="aspect-square rounded-[2px] transition-transform duration-200 hover:scale-150"
-                    style={{
-                      background: HEAT_COLORS[v],
-                      opacity: inView ? 1 : 0,
-                      transition: `opacity 0.4s ease ${(i % 60) * 6}ms, transform 0.2s`,
-                    }}
-                  />
-                ))}
+                <div
+                  className="mt-5 grid gap-[3px] overflow-hidden"
+                  style={{ gridTemplateColumns: "repeat(53, minmax(0, 1fr))", gridAutoFlow: "column", gridTemplateRows: "repeat(7, 1fr)" }}
+                >
+                  {cells.map((v, i) => (
+                    <div
+                      key={i}
+                      className="aspect-square rounded-[2px] transition-transform duration-200 hover:scale-150"
+                      style={{
+                        background: HEAT_COLORS[v] ?? HEAT_COLORS[0],
+                        opacity: inView ? 1 : 0,
+                        transition: `opacity 0.4s ease ${(i % 60) * 6}ms, transform 0.2s`,
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
+
+            {activity.length > 0 && (
+              <div className="rounded-2xl border border-soft-2 bg-card p-6">
+                <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+                  Recent Activity
+                </div>
+                <ul className="mt-4 space-y-3">
+                  {activity.map((a, i) => (
+                    <li key={i}>
+                      <a href={a.url} target="_blank" rel="noreferrer" className="group flex items-start gap-3">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-acid" />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm text-ink-2 group-hover:text-ink">{a.message}</span>
+                          <span className="mt-0.5 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                            {a.repo} · {timeAgo(a.created_at)}
+                          </span>
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>
