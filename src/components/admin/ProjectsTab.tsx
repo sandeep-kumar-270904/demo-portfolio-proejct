@@ -10,6 +10,15 @@ import {
   AdminTextarea,
 } from "./AdminUI";
 import ImageUploader from "./ImageUploader";
+import ProjectDetailFields, {
+  emptyDetailFields,
+  normalizeDetailFields,
+  type DetailFields,
+} from "./ProjectDetailFields";
+
+const slugify = (s: string) =>
+  s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
 
 type Row = {
   id: string;
@@ -109,16 +118,8 @@ export default function ProjectsTab() {
   const [techInput, setTechInput] = useState("");
   const [featuresInput, setFeaturesInput] = useState("");
   const [galleryInput, setGalleryInput] = useState("");
-  const [heroImagesInput, setHeroImagesInput] = useState("");
-  const [statsJson, setStatsJson] = useState("[]");
-  const [architectureJson, setArchitectureJson] = useState('{"nodes":[],"edges":[]}');
-  const [featuresDeepJson, setFeaturesDeepJson] = useState("[]");
-  const [frontendCardsJson, setFrontendCardsJson] = useState("[]");
-  const [backendCardsJson, setBackendCardsJson] = useState("[]");
-  const [keyDecisionJson, setKeyDecisionJson] = useState("{}");
-  const [stackGroupsJson, setStackGroupsJson] = useState("[]");
-  const [glanceMediaJson, setGlanceMediaJson] = useState("{}");
-  const [architectureImagesJson, setArchitectureImagesJson] = useState("[]");
+  const [detail, setDetail] = useState<DetailFields>(emptyDetailFields);
+
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
@@ -173,14 +174,8 @@ export default function ProjectsTab() {
     setTechInput("");
     setFeaturesInput("");
     setGalleryInput("");
-    setHeroImagesInput("");
-    setStatsJson("[]");
-    setArchitectureJson('{"nodes":[],"edges":[]}');
-    setFeaturesDeepJson("[]");
-    setFrontendCardsJson("[]");
-    setBackendCardsJson("[]");
-    setKeyDecisionJson("{}");
-    setStackGroupsJson("[]");
+    setDetail(emptyDetailFields);
+
   }
   function startEdit(r: Row) {
     setEditing(r);
@@ -227,50 +222,13 @@ export default function ProjectsTab() {
     setTechInput(csv(r.tech_stack));
     setFeaturesInput((r.key_features ?? []).join("\n"));
     setGalleryInput((r.gallery ?? []).join("\n"));
-    setHeroImagesInput((r.hero_images ?? []).join("\n"));
-    setStatsJson(JSON.stringify(r.stats ?? [], null, 2));
-    setArchitectureJson(JSON.stringify(r.architecture ?? { nodes: [], edges: [] }, null, 2));
-    setFeaturesDeepJson(JSON.stringify(r.features_deep ?? [], null, 2));
-    setFrontendCardsJson(JSON.stringify(r.frontend_cards ?? [], null, 2));
-    setBackendCardsJson(JSON.stringify(r.backend_cards ?? [], null, 2));
-    setKeyDecisionJson(JSON.stringify(r.key_decision ?? {}, null, 2));
-    setStackGroupsJson(JSON.stringify(r.stack_groups ?? [], null, 2));
-    setGlanceMediaJson(JSON.stringify(r.glance_media ?? {}, null, 2));
-    setArchitectureImagesJson(JSON.stringify(r.architecture_images ?? [], null, 2));
+    setDetail(normalizeDetailFields(r as unknown as Partial<DetailFields>));
+
   }
 
   async function save() {
     if (!draft.title.trim()) {
       toast.error("Title required");
-      return;
-    }
-    let stats: { value: string; label: string; context?: string }[] = [];
-    let architecture: Row["architecture"] = { nodes: [], edges: [] };
-    let features_deep: Row["features_deep"] = [];
-    let frontend_cards: Row["frontend_cards"] = [];
-    let backend_cards: Row["backend_cards"] = [];
-    let key_decision: Row["key_decision"] = {};
-    let stack_groups: Row["stack_groups"] = [];
-    let glance_media: Row["glance_media"] = {};
-    let architecture_images: Row["architecture_images"] = [];
-    try {
-      stats = JSON.parse(statsJson || "[]");
-      if (!Array.isArray(stats)) throw new Error("stats");
-      architecture = JSON.parse(architectureJson || '{"nodes":[],"edges":[]}');
-      features_deep = JSON.parse(featuresDeepJson || "[]");
-      if (!Array.isArray(features_deep)) throw new Error("features_deep");
-      frontend_cards = JSON.parse(frontendCardsJson || "[]");
-      if (!Array.isArray(frontend_cards)) throw new Error("frontend_cards");
-      backend_cards = JSON.parse(backendCardsJson || "[]");
-      if (!Array.isArray(backend_cards)) throw new Error("backend_cards");
-      key_decision = JSON.parse(keyDecisionJson || "{}");
-      stack_groups = JSON.parse(stackGroupsJson || "[]");
-      if (!Array.isArray(stack_groups)) throw new Error("stack_groups");
-      glance_media = JSON.parse(glanceMediaJson || "{}");
-      architecture_images = JSON.parse(architectureImagesJson || "[]");
-      if (!Array.isArray(architecture_images)) throw new Error("architecture_images");
-    } catch (e) {
-      toast.error(`Invalid JSON: ${e instanceof Error ? e.message : "check fields"}`);
       return;
     }
     setSaving(true);
@@ -282,16 +240,17 @@ export default function ProjectsTab() {
       tech_stack: fromCsv(techInput),
       key_features: splitLines(featuresInput),
       gallery: splitLines(galleryInput),
-      hero_images: splitLines(heroImagesInput),
-      stats,
-      architecture,
-      features_deep,
-      frontend_cards,
-      backend_cards,
-      key_decision,
-      stack_groups,
-      glance_media,
-      architecture_images,
+      hero_images: detail.hero_images.filter(Boolean),
+      stats: detail.stats,
+      architecture: detail.architecture,
+      features_deep: detail.features_deep,
+      frontend_cards: detail.frontend_cards,
+      backend_cards: detail.backend_cards,
+      key_decision: detail.key_decision,
+      stack_groups: detail.stack_groups,
+      glance_media: detail.glance_media,
+      architecture_images: detail.architecture_images.filter((a) => a.url),
+
       live_url: draft.live_url || null,
       github_url: draft.github_url || null,
       image_url: draft.image_url || null,
@@ -655,14 +614,6 @@ export default function ProjectsTab() {
             <span className="font-mono text-[11px] uppercase tracking-widest text-ink-2">Featured</span>
           </label>
         </div>
-        <div className="mt-4">
-          <AdminTextarea
-            label='Stats (JSON: [{"value":"200+","label":"Active Users","context":"90-day window"}])'
-            value={statsJson}
-            onChange={setStatsJson}
-            rows={4}
-          />
-        </div>
 
         {/* CMS extras for Project Detail page */}
         <div className="mt-6 rounded-xl border border-soft-2 bg-surface/40 p-4">
@@ -676,77 +627,13 @@ export default function ProjectsTab() {
               onChange={(v) => setDraft({ ...draft, status_badge: v })}
             />
           </div>
-          <div className="mt-4">
-            <AdminTextarea
-              label="Hero images — one URL per line (2+ becomes auto-carousel)"
-              value={heroImagesInput}
-              onChange={setHeroImagesInput}
-              rows={3}
-            />
-          </div>
-          <div className="mt-4">
-            <AdminTextarea
-              label='Architecture (JSON: {"nodes":[{"label":"Client","sub":"React SPA"}],"edges":[[0,1]]})'
-              value={architectureJson}
-              onChange={setArchitectureJson}
-              rows={5}
-            />
-          </div>
-          <div className="mt-4">
-            <AdminTextarea
-              label='Architecture images (JSON array: [{"name":"System","url":"https://…","caption":"…"}]) — shown as tabs, overrides the diagram'
-              value={architectureImagesJson}
-              onChange={setArchitectureImagesJson}
-              rows={5}
-            />
-          </div>
-          <div className="mt-4">
-            <AdminTextarea
-              label='At-a-glance media (JSON: {"problem":["url"],"solution":["url"],"features":["url"]})'
-              value={glanceMediaJson}
-              onChange={setGlanceMediaJson}
-              rows={5}
-            />
-          </div>
-          <div className="mt-4">
-            <AdminTextarea
-              label='Feature deep-dives (JSON array: [{"title":"…","description":"…","images":["url"],"video_url":null}])'
-              value={featuresDeepJson}
-              onChange={setFeaturesDeepJson}
-              rows={6}
-            />
-          </div>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <AdminTextarea
-              label='Frontend cards (JSON: [{"h":"UI/UX","p":"…"}])'
-              value={frontendCardsJson}
-              onChange={setFrontendCardsJson}
-              rows={5}
-            />
-            <AdminTextarea
-              label='Backend cards (JSON: [{"h":"API","p":"…"}])'
-              value={backendCardsJson}
-              onChange={setBackendCardsJson}
-              rows={5}
-            />
-          </div>
-          <div className="mt-4">
-            <AdminTextarea
-              label='Key decision (JSON: {"chose":"…","instead_of":"…","because":"…"})'
-              value={keyDecisionJson}
-              onChange={setKeyDecisionJson}
-              rows={4}
-            />
-          </div>
-          <div className="mt-4">
-            <AdminTextarea
-              label='Stack groups (JSON: [{"name":"Frontend","items":["React","Tailwind"],"why":"…"}])'
-              value={stackGroupsJson}
-              onChange={setStackGroupsJson}
-              rows={6}
-            />
-          </div>
+          <ProjectDetailFields
+            value={detail}
+            onChange={setDetail}
+            slugPrefix={slugify(draft.title) || "project"}
+          />
         </div>
+
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <AdminPrimaryButton onClick={save} disabled={saving}>
             {editing ? "Update" : "Create"}
