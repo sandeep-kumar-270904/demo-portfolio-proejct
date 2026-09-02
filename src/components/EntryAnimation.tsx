@@ -7,8 +7,9 @@ import { motion, AnimatePresence } from "framer-motion";
  * Plays once per load. Skippable on key/click. Never loops.
  */
 const PHASES = ["DESIGNING.", "DEVELOPING.", "DELIVERING."];
-const WORD_MS = 1100;
-const NAME_MS = 1800;
+// Leave enough time for each word to enter, settle, and remain fully readable.
+const WORD_MS = 1800;
+const NAME_MS = 2400;
 
 const FULL_NAME = "EDHUBILLI SANDEEP KUMAR";
 const FALLBACK = "WELCOME";
@@ -62,17 +63,12 @@ export default function EntryAnimation() {
       document.body.style.overflow = "";
       setShow(false);
     };
-    // Attach skip listeners slightly later so a stray click that triggered the
-    // page load doesn't instantly dismiss the intro.
-    const attach = window.setTimeout(() => {
-      window.addEventListener("keydown", skip);
-      window.addEventListener("click", skip);
-    }, 600);
-    timers.push(attach);
+    // Keyboard-only skip prevents the page-opening click/tap from silently
+    // dismissing the word sequence before it becomes readable.
+    window.addEventListener("keydown", skip);
     return () => {
       timers.forEach(clearTimeout);
       window.removeEventListener("keydown", skip);
-      window.removeEventListener("click", skip);
       document.body.style.overflow = "";
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -139,22 +135,23 @@ export default function EntryAnimation() {
                 key={PHASES[phase]}
                 className="relative font-syne font-extrabold uppercase text-ink"
                 style={{
-                  fontSize: "clamp(40px, 7vw, 96px)",
-                  letterSpacing: "-0.04em",
+                  fontSize: "clamp(26px, 8.5vw, 96px)",
+                  letterSpacing: 0,
                   lineHeight: 1,
                 }}
-                initial={{ opacity: 0, filter: "blur(16px)", y: 10 }}
+                initial={{ opacity: 0, filter: "blur(10px)", y: 12, scale: 0.98 }}
                 animate={{
                   opacity: 1,
                   filter: "blur(0px)",
                   y: 0,
-                  transition: { duration: 0.38, ease },
+                  scale: 1,
+                  transition: { duration: 0.5, ease },
                 }}
                 exit={{
                   opacity: 0,
-                  filter: "blur(12px)",
+                  filter: "blur(8px)",
                   y: -8,
-                  transition: { duration: 0.28, ease },
+                  transition: { duration: 0.35, ease },
                 }}
               >
                 {PHASES[phase]}
