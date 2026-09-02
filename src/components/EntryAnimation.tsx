@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
  * Plays once per load. Skippable on key/click. Never loops.
  */
 const PHASES = ["DESIGNING.", "DEVELOPING.", "DELIVERING."];
-const WORD_MS = 850;
+const WORD_MS = 1100;
 const NAME_MS = 1800;
 
 const FULL_NAME = "EDHUBILLI SANDEEP KUMAR";
@@ -62,8 +62,13 @@ export default function EntryAnimation() {
       document.body.style.overflow = "";
       setShow(false);
     };
-    window.addEventListener("keydown", skip);
-    window.addEventListener("click", skip);
+    // Attach skip listeners slightly later so a stray click that triggered the
+    // page load doesn't instantly dismiss the intro.
+    const attach = window.setTimeout(() => {
+      window.addEventListener("keydown", skip);
+      window.addEventListener("click", skip);
+    }, 600);
+    timers.push(attach);
     return () => {
       timers.forEach(clearTimeout);
       window.removeEventListener("keydown", skip);
@@ -138,10 +143,19 @@ export default function EntryAnimation() {
                   letterSpacing: "-0.04em",
                   lineHeight: 1,
                 }}
-                initial={{ opacity: 0, filter: "blur(18px)", y: 8 }}
-                animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-                exit={{ opacity: 0, filter: "blur(14px)", y: -6 }}
-                transition={{ duration: 0.85, ease }}
+                initial={{ opacity: 0, filter: "blur(16px)", y: 10 }}
+                animate={{
+                  opacity: 1,
+                  filter: "blur(0px)",
+                  y: 0,
+                  transition: { duration: 0.38, ease },
+                }}
+                exit={{
+                  opacity: 0,
+                  filter: "blur(12px)",
+                  y: -8,
+                  transition: { duration: 0.28, ease },
+                }}
               >
                 {PHASES[phase]}
               </motion.h2>
