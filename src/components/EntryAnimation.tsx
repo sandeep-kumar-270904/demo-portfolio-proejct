@@ -3,25 +3,80 @@ import { motion, AnimatePresence } from "framer-motion";
 
 /**
  * Cinematic portfolio entry.
- * DESIGNING → DEVELOPING → DELIVERING → EDHUBILLI SANDEEP KUMAR → reveal site.
- * Plays once per load. Skippable on key/click. Never loops.
+ *
+ * Sequence (strictly one after another, never overlapping):
+ *   DESIGNING. → DEVELOPING. → DELIVERING. → WELCOME TO MY PORTFOLIO
+ *   → EDHUBILLI SANDEEP KUMAR → curtain lifts, site revealed.
+ *
+ * Each step animates in letter-by-letter, holds long enough to read,
+ * then animates out before the next step mounts. Plays once per page load.
  */
-const PHASES = ["DESIGNING.", "DEVELOPING.", "DELIVERING."];
-// Leave enough time for each word to enter, settle, and remain fully readable.
-const WORD_MS = 1800;
-const NAME_MS = 2400;
 
+const WORDS = ["DESIGNING.", "DEVELOPING.", "DELIVERING."];
+const WELCOME = "WELCOME TO MY PORTFOLIO";
 const FULL_NAME = "EDHUBILLI SANDEEP KUMAR";
-const FALLBACK = "WELCOME";
+const FALLBACK = "SANDEEP";
+
+// How long each step stays on screen (in + hold + out), in ms.
+const WORD_STEP_MS = 1500;
+const WELCOME_STEP_MS = 1900;
+const NAME_STEP_MS = 2600;
+
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 // Module-level flag: plays once per full page load (survives route changes,
 // replays on refresh so the intro is never "lost" to a stale session flag).
 let hasPlayed = false;
 
+/** Letter-by-letter reveal with a matching staggered exit. */
+function StaggerText({
+  text,
+  className,
+  style,
+  charDelay = 0.035,
+  baseDelay = 0,
+}: {
+  text: string;
+  className?: string;
+  style?: React.CSSProperties;
+  charDelay?: number;
+  baseDelay?: number;
+}) {
+  const chars = Array.from(text);
+  return (
+    <span className={className} style={style} aria-label={text}>
+      {chars.map((c, i) => (
+        <span
+          key={`${c}-${i}`}
+          className="inline-block overflow-hidden align-bottom"
+          style={{ lineHeight: 1 }}
+        >
+          <motion.span
+            className="inline-block will-change-transform"
+            initial={{ y: "115%", opacity: 0 }}
+            animate={{
+              y: "0%",
+              opacity: 1,
+              transition: { duration: 0.55, ease: EASE, delay: baseDelay + i * charDelay },
+            }}
+            exit={{
+              y: "-115%",
+              opacity: 0,
+              transition: { duration: 0.34, ease: EASE, delay: i * (charDelay * 0.55) },
+            }}
+          >
+            {c === " " ? "\u00A0" : c}
+          </motion.span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
 export default function EntryAnimation() {
   const [show, setShow] = useState(() => !hasPlayed);
-
-  const [phase, setPhase] = useState(0); // 0..2 = words, 3 = name
+  // 0,1,2 = words · 3 = welcome line · 4 = name
+  const [step, setStep] = useState(0);
   const [vw, setVw] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth : 1280
   );
@@ -46,16 +101,25 @@ export default function EntryAnimation() {
     }
     document.body.style.overflow = "hidden";
 
+    // Cumulative schedule so every step gets its full, uninterrupted slot.
+    const slots = [
+      WORD_STEP_MS,
+      WORD_STEP_MS,
+      WORD_STEP_MS,
+      WELCOME_STEP_MS,
+      NAME_STEP_MS,
+    ];
     const timers: number[] = [];
-    PHASES.forEach((_, i) => {
-      timers.push(window.setTimeout(() => setPhase(i), i * WORD_MS));
+    let t = 0;
+    slots.forEach((ms, i) => {
+      if (i > 0) timers.push(window.setTimeout(() => setStep(i), t));
+      t += ms;
     });
-    timers.push(window.setTimeout(() => setPhase(3), PHASES.length * WORD_MS));
     timers.push(
       window.setTimeout(() => {
         document.body.style.overflow = "";
         setShow(false);
-      }, PHASES.length * WORD_MS + NAME_MS)
+      }, t)
     );
 
     const skip = () => {
@@ -64,7 +128,7 @@ export default function EntryAnimation() {
       setShow(false);
     };
     // Keyboard-only skip prevents the page-opening click/tap from silently
-    // dismissing the word sequence before it becomes readable.
+    // dismissing the sequence before it becomes readable.
     window.addEventListener("keydown", skip);
     return () => {
       timers.forEach(clearTimeout);
@@ -74,13 +138,7 @@ export default function EntryAnimation() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const ease = [0.22, 1, 0.36, 1] as const;
-
-  // Pick a display that always fits cleanly.
-  // - Wide screens: full name on one line.
-  // - Mid screens: full name stacked (EDHUBILLI / SANDEEP KUMAR).
-  // - Narrow screens: safe fallback ("WELCOME") so nothing clips.
-  // Conservative breakpoints so the full name never clips within the padded container.
+  // Pick a name layout that always fits cleanly.
   const layout: "single" | "stacked" | "fallback" =
     vw >= 1120 ? "single" : vw >= 520 ? "stacked" : "fallback";
 
@@ -93,114 +151,125 @@ export default function EntryAnimation() {
 
   const nameFontSize =
     layout === "single"
-      ? "clamp(40px, 5.6vw, 92px)"
+      ? "clamp(40px, 5.2vw, 88px)"
       : layout === "stacked"
-      ? "clamp(36px, 9vw, 78px)"
-      : "clamp(48px, 15vw, 104px)";
+      ? "clamp(34px, 8.4vw, 74px)"
+      : "clamp(44px, 14vw, 96px)";
+
+  const totalMs = WORD_STEP_MS * 3 + WELCOME_STEP_MS + NAME_STEP_MS;
 
   return (
     <AnimatePresence>
       {show && (
         <motion.div
           key="entry"
-          className="fixed inset-0 z-[10000] flex items-center justify-center overflow-hidden bg-void px-6"
+          className="fixed inset-0 z-[10000] flex flex-col items-center justify-center overflow-hidden bg-void px-6"
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 0.9, ease } }}
+          exit={{ opacity: 0, transition: { duration: 0.85, ease: EASE } }}
         >
+          {/* Ambient glow */}
           <motion.div
             className="pointer-events-none absolute inset-0"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1.2, ease }}
+            transition={{ duration: 1.2, ease: EASE }}
             style={{
               background:
-                "radial-gradient(circle at 50% 50%, hsl(var(--acid)/0.18) 0%, transparent 55%)",
+                "radial-gradient(circle at 50% 50%, hsl(var(--acid)/0.16) 0%, transparent 55%)",
             }}
           />
           <motion.div
             className="pointer-events-none absolute inset-0"
-            initial={{ scale: 1, opacity: 0 }}
-            animate={phase >= 3 ? { scale: 1.15, opacity: 0.7 } : { opacity: 0.4 }}
-            transition={{ duration: 2.4, ease }}
+            initial={{ scale: 1, opacity: 0.3 }}
+            animate={step >= 4 ? { scale: 1.15, opacity: 0.75 } : { scale: 1, opacity: 0.35 }}
+            transition={{ duration: 2.2, ease: EASE }}
             style={{
               background:
                 "radial-gradient(circle at 50% 50%, hsl(var(--acid)/0.10) 0%, transparent 60%)",
             }}
           />
 
-          {/* Word sequence */}
-          <AnimatePresence mode="wait">
-            {phase < 3 && (
-              <motion.h2
-                key={PHASES[phase]}
-                className="relative font-syne font-extrabold uppercase text-ink"
-                style={{
-                  fontSize: "clamp(26px, 8.5vw, 96px)",
-                  letterSpacing: 0,
-                  lineHeight: 1,
-                }}
-                initial={{ opacity: 0, filter: "blur(10px)", y: 12, scale: 0.98 }}
-                animate={{
-                  opacity: 1,
-                  filter: "blur(0px)",
-                  y: 0,
-                  scale: 1,
-                  transition: { duration: 0.5, ease },
-                }}
-                exit={{
-                  opacity: 0,
-                  filter: "blur(8px)",
-                  y: -8,
-                  transition: { duration: 0.35, ease },
-                }}
-              >
-                {PHASES[phase]}
-              </motion.h2>
-            )}
-          </AnimatePresence>
+          {/* Step content — mode="wait" guarantees no two steps overlap */}
+          <div className="relative flex min-h-[1.2em] w-full max-w-[1400px] items-center justify-center text-center">
+            <AnimatePresence mode="wait">
+              {step < 3 && (
+                <motion.h2
+                  key={`w-${step}`}
+                  className="font-syne font-extrabold uppercase text-ink"
+                  style={{ fontSize: "clamp(28px, 8.2vw, 96px)", lineHeight: 1 }}
+                >
+                  <StaggerText text={WORDS[step]} charDelay={0.038} />
+                </motion.h2>
+              )}
 
-          {/* Final name (or safe fallback) — settles and stays until dismiss */}
-          <AnimatePresence>
-            {phase >= 3 && (
-              <motion.div
-                key="name"
-                className="relative flex w-full max-w-[1400px] flex-col items-center text-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0, transition: { duration: 0.6, ease } }}
-              >
-                {displayLines.map((line, i) => (
-                  <span
-                    key={line}
-                    className="block overflow-hidden pb-[0.12em]"
-                    style={{ lineHeight: 1 }}
-                  >
-                    <motion.span
-                      className="inline-block font-syne font-extrabold uppercase text-ink whitespace-nowrap"
-                      style={{
-                        fontSize: nameFontSize,
-                        letterSpacing: "-0.045em",
-                        lineHeight: 1,
-                      }}
-                      initial={{ y: "110%", filter: "blur(16px)" }}
-                      animate={{ y: "0%", filter: "blur(0px)" }}
-                      transition={{ delay: 0.05 + i * 0.14, duration: 1.0, ease }}
-                    >
-                      {line}
-                    </motion.span>
-                  </span>
-                ))}
+              {step === 3 && (
+                <motion.h2
+                  key="welcome"
+                  className="font-syne font-extrabold uppercase text-grad-acid"
+                  style={{
+                    fontSize: "clamp(22px, 5.2vw, 62px)",
+                    lineHeight: 1.05,
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  <StaggerText text={WELCOME} charDelay={0.022} />
+                </motion.h2>
+              )}
 
+              {step === 4 && (
                 <motion.div
-                  className="mt-7 h-[2px] origin-left bg-acid glow-acid-sm"
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ delay: 0.55, duration: 1.0, ease }}
-                  style={{ width: 280 }}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  key="name"
+                  className="flex w-full flex-col items-center"
+                  exit={{ opacity: 0, transition: { duration: 0.5, ease: EASE } }}
+                >
+                  {displayLines.map((line, i) => (
+                    <span
+                      key={line}
+                      className="block overflow-hidden pb-[0.12em]"
+                      style={{ lineHeight: 1 }}
+                    >
+                      <motion.span
+                        className="inline-block whitespace-nowrap font-syne font-extrabold uppercase text-ink"
+                        style={{
+                          fontSize: nameFontSize,
+                          letterSpacing: "-0.04em",
+                          lineHeight: 1,
+                        }}
+                        initial={{ y: "112%", opacity: 0 }}
+                        animate={{ y: "0%", opacity: 1 }}
+                        transition={{ delay: 0.06 + i * 0.14, duration: 0.95, ease: EASE }}
+                      >
+                        {line}
+                      </motion.span>
+                    </span>
+                  ))}
+
+                  <motion.div
+                    className="mt-7 h-[2px] origin-left bg-acid glow-acid-sm"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ delay: 0.5, duration: 1.0, ease: EASE }}
+                    style={{ width: 280 }}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Progress bar for the whole sequence */}
+          <motion.div
+            className="absolute bottom-[74px] left-1/2 h-[2px] w-[180px] -translate-x-1/2 overflow-hidden rounded-full bg-ink/10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+          >
+            <motion.div
+              className="h-full w-full origin-left bg-acid"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: totalMs / 1000, ease: "linear" }}
+            />
+          </motion.div>
 
           <motion.div
             className="absolute bottom-8 left-1/2 -translate-x-1/2 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground"
