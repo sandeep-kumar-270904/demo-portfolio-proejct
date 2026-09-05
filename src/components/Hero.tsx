@@ -1,5 +1,6 @@
+import { useRef } from "react";
 import { Download } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import Terminal from "./Terminal";
 import ParticleNetwork from "./ParticleNetwork";
 import { useCounter, useInView } from "@/hooks/useCounter";
@@ -7,7 +8,7 @@ import MagneticButton from "./MagneticButton";
 import { SITE } from "@/config";
 import { usePersonalInfo } from "@/hooks/useSupabase";
 import { useSiteCopy } from "@/hooks/useSiteCopy";
-import { ease } from "@/lib/motion";
+import { ease, usePointerDepth } from "@/lib/motion";
 
 // Linear-style word-by-word reveal for hero name lines.
 function WordReveal({
@@ -70,14 +71,41 @@ function Stat({ value, suffix = "", label, start }: { value: number; suffix?: st
 
 export default function Hero() {
   const { ref, inView } = useInView<HTMLDivElement>(0.2);
+  const sectionRef = useRef<HTMLElement>(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+  const k = reduce ? 0 : 1;
+
+  // Scroll-linked exit — the hero leaves the viewport in layers instead of
+  // simply scrolling away as one flat block.
+  const headY = useTransform(scrollYProgress, [0, 1], [0, -80 * k]);
+  const copyY = useTransform(scrollYProgress, [0, 1], [0, -46 * k]);
+  const termY = useTransform(scrollYProgress, [0, 1], [0, -45 * k]);
+  const termScale = useTransform(scrollYProgress, [0, 1], [1, 1 - 0.04 * k]);
+  const bgY = useTransform(scrollYProgress, [0, 1], [0, -25 * k]);
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.85], [1, reduce ? 1 : 0.18]);
+
+  // Pointer depth — ambient in the back, strongest on the terminal.
+  const { x: pxv, y: pyv } = usePointerDepth();
+  const meshX = useTransform(pxv, [-1, 1], [-10 * k, 10 * k]);
+  const meshY = useTransform(pyv, [-1, 1], [-10 * k, 10 * k]);
+  const gridX = useTransform(pxv, [-1, 1], [-16 * k, 16 * k]);
+  const gridY = useTransform(pyv, [-1, 1], [-16 * k, 16 * k]);
+  const termX = useTransform(pxv, [-1, 1], [-18 * k, 18 * k]);
+  const termTiltY = useTransform(pyv, [-1, 1], [-14 * k, 14 * k]);
+  const headX = useTransform(pxv, [-1, 1], [-6 * k, 6 * k]);
   const { data: info } = usePersonalInfo();
   const { t } = useSiteCopy();
   const resumeUrl = info?.resume_url || SITE.resumeUrl;
 
   return (
-    <section id="top" className="relative min-h-screen overflow-hidden bg-void">
+    <section ref={sectionRef} id="top" className="relative min-h-screen overflow-hidden bg-void">
       {/* Animated mesh gradient */}
-      <div
+      <motion.div
+        style={{ x: meshX, y: bgY }}
         className="pointer-events-none absolute inset-0 opacity-[0.06]"
         style={{
           backgroundImage:
@@ -87,8 +115,9 @@ export default function Hero() {
         }}
       />
       {/* Dot grid */}
-      <div
-        className="absolute inset-0 opacity-[0.5]"
+      <motion.div
+        style={{ x: gridX, y: gridY }}
+        className="pointer-events-none absolute inset-0 opacity-[0.5]"
         style={{
           backgroundImage:
             "linear-gradient(hsl(var(--acid)/0.06) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--acid)/0.06) 1px, transparent 1px)",
@@ -99,9 +128,11 @@ export default function Hero() {
       />
       <ParticleNetwork />
 
-      <div className="relative mx-auto grid max-w-[1320px] grid-cols-1 items-center gap-16 px-6 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12 lg:py-28">
+      <motion.div
+        style={{ opacity: contentOpacity }}
+        className="relative mx-auto grid max-w-[1320px] grid-cols-1 items-center gap-16 px-6 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12 lg:py-28">
         {/* Left */}
-        <div ref={ref}>
+        <motion.div ref={ref} style={{ y: headY, x: headX }}>
           <div className="inline-flex items-center gap-2.5 rounded-full border border-acid/25 bg-acid/10 px-3.5 py-1.5">
             <span className="relative flex h-1.5 w-1.5">
               <span className="absolute inline-flex h-full w-full animate-sonar rounded-full bg-acid" />
@@ -131,9 +162,9 @@ export default function Hero() {
             </span>
           </h1>
 
-          <p className="mt-8 max-w-[540px] text-[17px] leading-[1.8] text-ink-2">
+          <motion.p style={{ y: copyY }} className="mt-8 max-w-[540px] text-[17px] leading-[1.8] text-ink-2">
             {t("hero_subtitle")}
-          </p>
+          </motion.p>
 
           <div className="mt-9 flex flex-wrap items-center gap-4">
             <MagneticButton>
@@ -164,13 +195,18 @@ export default function Hero() {
             <div className="px-6"><Stat value={3} suffix="+" label="Years Building" start={inView} /></div>
             <div className="pl-6"><Stat value={42} suffix="%" label="Perf Improvement" start={inView} /></div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Right */}
-        <div className="lg:pl-6">
-          <Terminal />
-        </div>
-      </div>
+        <motion.div
+          className="lg:pl-6 will-change-transform"
+          style={{ y: termY, x: termX, scale: termScale, translateZ: 0 }}
+        >
+          <motion.div style={{ y: termTiltY }}>
+            <Terminal />
+          </motion.div>
+        </motion.div>
+      </motion.div>
 
       {/* Scroll indicator */}
       <div className="pointer-events-none absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 lg:flex">
