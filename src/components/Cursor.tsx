@@ -1,14 +1,33 @@
 import { useEffect, useRef, useState } from "react";
 
+type CursorState = "default" | "link" | "button" | "project" | "text";
+
+// Ring / dot sizing per context — kept small so the UI is never covered.
+const RING: Record<CursorState, number> = {
+  default: 36,
+  link: 44,
+  button: 52,
+  project: 74,
+  text: 30,
+};
+const DOT: Record<CursorState, number> = {
+  default: 8,
+  link: 10,
+  button: 12,
+  project: 6,
+  text: 4,
+};
+
 export default function Cursor() {
   const ringRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLDivElement>(null);
-  const [hover, setHover] = useState(false);
+  const [state, setState] = useState<CursorState>("default");
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (window.matchMedia("(hover: none)").matches || window.innerWidth < 768) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     setEnabled(true);
 
     const target = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
@@ -24,17 +43,18 @@ export default function Cursor() {
 
     const onOver = (e: MouseEvent) => {
       const t = e.target as HTMLElement;
-      if (t.closest("a, button, [data-cursor='hover'], input, textarea, [role='button']")) {
-        setHover(true);
-      } else {
-        setHover(false);
-      }
+      if (t.closest("[data-cursor='project']")) setState("project");
+      else if (t.closest("button, [role='button'], [data-cursor='button']")) setState("button");
+      else if (t.closest("input, textarea, [data-cursor='text']")) setState("text");
+      else if (t.closest("a, [data-cursor='hover']")) setState("link");
+      else setState("default");
     };
 
     let raf = 0;
     const tick = () => {
-      ring.x += (target.x - ring.x) * 0.11;
-      ring.y += (target.y - ring.y) * 0.11;
+      // Slightly softer follow on the larger states so the ring feels weighty.
+      ring.x += (target.x - ring.x) * 0.13;
+      ring.y += (target.y - ring.y) * 0.13;
       if (ringRef.current) {
         ringRef.current.style.transform = `translate3d(${ring.x}px, ${ring.y}px, 0) translate(-50%, -50%)`;
       }
@@ -42,8 +62,8 @@ export default function Cursor() {
     };
     raf = requestAnimationFrame(tick);
 
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseover", onOver);
+    window.addEventListener("mousemove", onMove, { passive: true });
+    window.addEventListener("mouseover", onOver, { passive: true });
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("mousemove", onMove);
@@ -57,20 +77,27 @@ export default function Cursor() {
     <>
       <div
         ref={dotRef}
-        className="pointer-events-none fixed left-0 top-0 z-[10000] rounded-full bg-white transition-[width,height] duration-200"
+        className="pointer-events-none fixed left-0 top-0 z-[10000] rounded-full bg-white transition-[width,height,opacity] duration-[220ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]"
         style={{
-          width: hover ? 14 : 8,
-          height: hover ? 14 : 8,
+          width: DOT[state],
+          height: DOT[state],
+          opacity: state === "project" ? 0.6 : 1,
           mixBlendMode: "difference",
         }}
       />
       <div
         ref={ringRef}
-        className="pointer-events-none fixed left-0 top-0 z-[10000] rounded-full border-2 border-acid transition-[width,height] duration-200"
+        className="pointer-events-none fixed left-0 top-0 z-[10000] rounded-full border-2 border-acid transition-[width,height,opacity,border-width,background-color] duration-[280ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]"
         style={{
-          width: hover ? 54 : 36,
-          height: hover ? 54 : 36,
-          boxShadow: "0 0 12px hsl(var(--acid) / 0.8), 0 0 24px hsl(var(--acid) / 0.4)",
+          width: RING[state],
+          height: RING[state],
+          borderWidth: state === "project" ? 1 : 2,
+          backgroundColor: state === "project" ? "hsl(var(--acid) / 0.07)" : "transparent",
+          opacity: state === "text" ? 0.5 : 1,
+          boxShadow:
+            state === "project"
+              ? "0 0 18px hsl(var(--acid) / 0.5)"
+              : "0 0 12px hsl(var(--acid) / 0.8), 0 0 24px hsl(var(--acid) / 0.4)",
         }}
       />
     </>
