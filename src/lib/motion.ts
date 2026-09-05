@@ -125,7 +125,8 @@ export function useParallax<T extends HTMLElement = HTMLElement>(strength = 0.08
   const px = typeof window !== "undefined" ? window.innerHeight * strength : 0;
   const raw = useTransform(scrollYProgress, [0, 1], [px, -px]);
   const y = useSpring(raw, { stiffness: 120, damping: 30, mass: 0.4 });
-  return { ref, y: (reduce ? useMotionValue(0) : y) as MotionValue<number> };
+  const still = useMotionValue(0);
+  return { ref, y: (reduce ? still : y) as MotionValue<number> };
 }
 
 /**
