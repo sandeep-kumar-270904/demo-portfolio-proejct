@@ -105,9 +105,10 @@ export default function Hero() {
     <section ref={sectionRef} id="top" className="relative min-h-screen overflow-hidden bg-void">
       {/* Animated mesh gradient */}
       <motion.div
-        style={{ x: meshX, y: bgY }}
         className="pointer-events-none absolute inset-0 opacity-[0.06]"
         style={{
+          x: meshX,
+          y: bgY,
           backgroundImage:
             "radial-gradient(circle at 20% 30%, #00ffb3 0%, transparent 40%), radial-gradient(circle at 80% 70%, #7c6fff 0%, transparent 45%), radial-gradient(circle at 50% 50%, #00b8ff 0%, transparent 50%)",
           backgroundSize: "200% 200%",
@@ -116,9 +117,10 @@ export default function Hero() {
       />
       {/* Dot grid */}
       <motion.div
-        style={{ x: gridX, y: gridY }}
         className="pointer-events-none absolute inset-0 opacity-[0.5]"
         style={{
+          x: gridX,
+          y: gridY,
           backgroundImage:
             "linear-gradient(hsl(var(--acid)/0.06) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--acid)/0.06) 1px, transparent 1px)",
           backgroundSize: "80px 80px",
@@ -126,6 +128,7 @@ export default function Hero() {
           WebkitMaskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
         }}
       />
+
       <ParticleNetwork />
 
       <motion.div
