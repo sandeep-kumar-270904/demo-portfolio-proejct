@@ -1,3 +1,5 @@
+import { useScrollVelocity } from "@/lib/motion";
+
 const ROW1 = [
   "Edhubilli Sandeep Kumar",
   "Full Stack Engineer",
@@ -14,11 +16,14 @@ const ROW1 = [
 
 const ROW2 = [...ROW1].reverse();
 
-function Row({ items, dir }: { items: string[]; dir: "left" | "right" }) {
+function Row({ items, dir, speed }: { items: string[]; dir: "left" | "right"; speed: number }) {
   const dup = [...items, ...items, ...items, ...items];
   return (
     <div className="marquee-mask overflow-hidden pause-on-hover">
-      <div className={`flex w-max ${dir === "left" ? "animate-marquee-left" : "animate-marquee-right"}`}>
+      <div
+        className={`flex w-max ${dir === "left" ? "animate-marquee-left" : "animate-marquee-right"}`}
+        style={{ animationDuration: `${speed}s` }}
+      >
         {dup.map((it, i) => {
           const accent = it === ROW1[0] || it === "Available for Hire";
           return (
@@ -34,11 +39,15 @@ function Row({ items, dir }: { items: string[]; dir: "left" | "right" }) {
 }
 
 export default function Marquee() {
+  // Scroll velocity subtly accelerates the marquee (shorter duration = faster).
+  const v = useScrollVelocity();
+  const speed = 40 - Math.min(1, v) * 18;
+
   return (
     <section className="border-y border-soft-2 bg-surface py-5">
-      <Row items={ROW1} dir="left" />
+      <Row items={ROW1} dir="left" speed={speed} />
       <div className="h-2" />
-      <Row items={ROW2} dir="right" />
+      <Row items={ROW2} dir="right" speed={speed} />
     </section>
   );
 }

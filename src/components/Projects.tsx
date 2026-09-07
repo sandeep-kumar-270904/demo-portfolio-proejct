@@ -42,6 +42,7 @@ function FeaturedCard({ p }: { p: Project }) {
   return (
     <Link
       to={`/projects/${p.slug}`}
+      data-cursor="project"
       className="reveal group relative block w-full overflow-hidden rounded-2xl border border-soft-2 bg-card text-left transition-all duration-500 hover:border-acid/40 hover:shadow-[0_30px_80px_-20px_rgba(0,255,179,0.25)]"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2">
@@ -98,6 +99,7 @@ function GridCard({ p, idx }: { p: Project; idx: number }) {
   return (
     <Link
       to={`/projects/${p.slug}`}
+      data-cursor="project"
       className="reveal group relative block overflow-hidden rounded-2xl border border-soft-2 bg-card text-left transition-all duration-500 hover:-translate-y-1.5 hover:border-acid/40 hover:shadow-[0_25px_60px_-20px_rgba(0,255,179,0.2)]"
       style={{ transitionDelay: `${idx * 60}ms` }}
     >
