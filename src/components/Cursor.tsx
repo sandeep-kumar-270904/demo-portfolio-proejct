@@ -77,12 +77,14 @@ export default function Cursor() {
     <>
       <div
         ref={dotRef}
-        className="pointer-events-none fixed left-0 top-0 z-[10000] rounded-full bg-white transition-[width,height,opacity] duration-[220ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]"
+        className="pointer-events-none fixed left-0 top-0 z-[10000] rounded-full bg-acid"
         style={{
           width: DOT[state],
           height: DOT[state],
-          opacity: state === "project" ? 0.6 : 1,
-          mixBlendMode: "difference",
+          opacity: 1,
+          boxShadow:
+            "0 0 0 1.5px hsl(var(--void) / 0.85), 0 0 10px hsl(var(--acid) / 0.9), 0 0 22px hsl(var(--acid) / 0.5)",
+          transition: "width 220ms cubic-bezier(0.16,1,0.3,1), height 220ms cubic-bezier(0.16,1,0.3,1)",
         }}
       />
       <div
