@@ -18,9 +18,9 @@ const FULL_NAME = "EDHUBILLI SANDEEP KUMAR";
 const FALLBACK = "SANDEEP";
 
 // How long each step stays on screen (in + hold + out), in ms.
-const WORD_STEP_MS = 1500;
-const WELCOME_STEP_MS = 1900;
-const NAME_STEP_MS = 2600;
+const WORD_STEP_MS = 2400;
+const WELCOME_STEP_MS = 2800;
+const NAME_STEP_MS = 3200;
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -57,12 +57,12 @@ function StaggerText({
             animate={{
               y: "0%",
               opacity: 1,
-              transition: { duration: 0.55, ease: EASE, delay: baseDelay + i * charDelay },
+              transition: { duration: 0.85, ease: EASE, delay: baseDelay + i * charDelay },
             }}
             exit={{
               y: "-115%",
               opacity: 0,
-              transition: { duration: 0.34, ease: EASE, delay: i * (charDelay * 0.55) },
+              transition: { duration: 0.6, ease: EASE, delay: i * (charDelay * 0.5) },
             }}
           >
             {c === " " ? "\u00A0" : c}
