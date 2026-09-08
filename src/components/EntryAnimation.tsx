@@ -24,9 +24,32 @@ const NAME_STEP_MS = 3200;
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-// Module-level flag: plays once per full page load (survives route changes,
-// replays on refresh so the intro is never "lost" to a stale session flag).
-let hasPlayed = false;
+const SLOTS = [
+  WORD_STEP_MS,
+  WORD_STEP_MS,
+  WORD_STEP_MS,
+  WELCOME_STEP_MS,
+  NAME_STEP_MS,
+];
+const TOTAL_MS = SLOTS.reduce((a, b) => a + b, 0);
+
+// Module-level clock: the intro runs once per full page load. Storing the
+// start time (instead of a played/not-played flag) means a remount mid-intro
+// (hot reload, route change, provider re-render) RESUMES the sequence at the
+// right step instead of killing it after a fraction of a second.
+let startedAt: number | null = null;
+let finished = false;
+
+/** Which step should be on screen after `elapsed` ms. */
+function stepFor(elapsed: number) {
+  let t = 0;
+  for (let i = 0; i < SLOTS.length; i++) {
+    t += SLOTS[i];
+    if (elapsed < t) return i;
+  }
+  return SLOTS.length;
+}
+
 
 /** Letter-by-letter reveal with a matching staggered exit. */
 function StaggerText({
