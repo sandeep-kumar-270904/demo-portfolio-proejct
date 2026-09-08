@@ -24,9 +24,32 @@ const NAME_STEP_MS = 3200;
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-// Module-level flag: plays once per full page load (survives route changes,
-// replays on refresh so the intro is never "lost" to a stale session flag).
-let hasPlayed = false;
+const SLOTS = [
+  WORD_STEP_MS,
+  WORD_STEP_MS,
+  WORD_STEP_MS,
+  WELCOME_STEP_MS,
+  NAME_STEP_MS,
+];
+const TOTAL_MS = SLOTS.reduce((a, b) => a + b, 0);
+
+// Module-level clock: the intro runs once per full page load. Storing the
+// start time (instead of a played/not-played flag) means a remount mid-intro
+// (hot reload, route change, provider re-render) RESUMES the sequence at the
+// right step instead of killing it after a fraction of a second.
+let startedAt: number | null = null;
+let finished = false;
+
+/** Which step should be on screen after `elapsed` ms. */
+function stepFor(elapsed: number) {
+  let t = 0;
+  for (let i = 0; i < SLOTS.length; i++) {
+    t += SLOTS[i];
+    if (elapsed < t) return i;
+  }
+  return SLOTS.length;
+}
+
 
 /** Letter-by-letter reveal with a matching staggered exit. */
 function StaggerText({
@@ -74,9 +97,10 @@ function StaggerText({
 }
 
 export default function EntryAnimation() {
-  const [show, setShow] = useState(() => !hasPlayed);
-  // 0,1,2 = words · 3 = welcome line · 4 = name
-  const [step, setStep] = useState(0);
+  const [show, setShow] = useState(() => !finished);
+  const [step, setStep] = useState(() =>
+    startedAt === null ? 0 : stepFor(Date.now() - startedAt)
+  );
   const [vw, setVw] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth : 1280
   );
@@ -89,40 +113,47 @@ export default function EntryAnimation() {
 
   useEffect(() => {
     if (!show) return;
-    // Mark as played immediately so route changes within this load skip it.
-    hasPlayed = true;
 
     const reduced =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     if (reduced) {
+      finished = true;
       setShow(false);
       return;
     }
-    document.body.style.overflow = "hidden";
 
-    // Cumulative schedule so every step gets its full, uninterrupted slot.
-    const slots = [
-      WORD_STEP_MS,
-      WORD_STEP_MS,
-      WORD_STEP_MS,
-      WELCOME_STEP_MS,
-      NAME_STEP_MS,
-    ];
+    if (startedAt === null) startedAt = Date.now();
+    const elapsed = Date.now() - startedAt;
+    if (elapsed >= TOTAL_MS) {
+      finished = true;
+      setShow(false);
+      return;
+    }
+
+    document.body.style.overflow = "hidden";
+    setStep(stepFor(elapsed));
+
+    // Cumulative schedule, offset by however much already elapsed, so a
+    // remount picks the sequence up exactly where it left off.
     const timers: number[] = [];
     let t = 0;
-    slots.forEach((ms, i) => {
-      if (i > 0) timers.push(window.setTimeout(() => setStep(i), t));
+    SLOTS.forEach((ms, i) => {
+      if (i > 0 && t > elapsed) {
+        timers.push(window.setTimeout(() => setStep(i), t - elapsed));
+      }
       t += ms;
     });
     timers.push(
       window.setTimeout(() => {
+        finished = true;
         document.body.style.overflow = "";
         setShow(false);
-      }, t)
+      }, TOTAL_MS - elapsed)
     );
 
     const skip = () => {
+      finished = true;
       timers.forEach(clearTimeout);
       document.body.style.overflow = "";
       setShow(false);
@@ -137,6 +168,7 @@ export default function EntryAnimation() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   // Pick a name layout that always fits cleanly.
   const layout: "single" | "stacked" | "fallback" =
