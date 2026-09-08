@@ -97,9 +97,10 @@ function StaggerText({
 }
 
 export default function EntryAnimation() {
-  const [show, setShow] = useState(() => !hasPlayed);
-  // 0,1,2 = words · 3 = welcome line · 4 = name
-  const [step, setStep] = useState(0);
+  const [show, setShow] = useState(() => !finished);
+  const [step, setStep] = useState(() =>
+    startedAt === null ? 0 : stepFor(Date.now() - startedAt)
+  );
   const [vw, setVw] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth : 1280
   );
@@ -112,40 +113,47 @@ export default function EntryAnimation() {
 
   useEffect(() => {
     if (!show) return;
-    // Mark as played immediately so route changes within this load skip it.
-    hasPlayed = true;
 
     const reduced =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     if (reduced) {
+      finished = true;
       setShow(false);
       return;
     }
-    document.body.style.overflow = "hidden";
 
-    // Cumulative schedule so every step gets its full, uninterrupted slot.
-    const slots = [
-      WORD_STEP_MS,
-      WORD_STEP_MS,
-      WORD_STEP_MS,
-      WELCOME_STEP_MS,
-      NAME_STEP_MS,
-    ];
+    if (startedAt === null) startedAt = Date.now();
+    const elapsed = Date.now() - startedAt;
+    if (elapsed >= TOTAL_MS) {
+      finished = true;
+      setShow(false);
+      return;
+    }
+
+    document.body.style.overflow = "hidden";
+    setStep(stepFor(elapsed));
+
+    // Cumulative schedule, offset by however much already elapsed, so a
+    // remount picks the sequence up exactly where it left off.
     const timers: number[] = [];
     let t = 0;
-    slots.forEach((ms, i) => {
-      if (i > 0) timers.push(window.setTimeout(() => setStep(i), t));
+    SLOTS.forEach((ms, i) => {
+      if (i > 0 && t > elapsed) {
+        timers.push(window.setTimeout(() => setStep(i), t - elapsed));
+      }
       t += ms;
     });
     timers.push(
       window.setTimeout(() => {
+        finished = true;
         document.body.style.overflow = "";
         setShow(false);
-      }, t)
+      }, TOTAL_MS - elapsed)
     );
 
     const skip = () => {
+      finished = true;
       timers.forEach(clearTimeout);
       document.body.style.overflow = "";
       setShow(false);
@@ -160,6 +168,7 @@ export default function EntryAnimation() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   // Pick a name layout that always fits cleanly.
   const layout: "single" | "stacked" | "fallback" =
