@@ -93,18 +93,20 @@ function FeaturedCard({ p }: { p: Project }) {
         </div>
       </div>
     </Link>
+    </TiltCard>
   );
 }
 
 function GridCard({ p, idx }: { p: Project; idx: number }) {
   return (
+    <TiltCard className="reveal rounded-2xl" max={7}>
     <Link
       to={`/projects/${p.slug}`}
       data-cursor="project"
-      className="reveal group relative block overflow-hidden rounded-2xl border border-soft-2 bg-card text-left transition-all duration-500 hover:-translate-y-1.5 hover:border-acid/40 hover:shadow-[0_25px_60px_-20px_rgba(0,255,179,0.2)]"
+      className="group relative block overflow-hidden rounded-2xl border border-soft-2 bg-card text-left transition-all duration-500 hover:border-acid/40 hover:shadow-[0_25px_60px_-20px_rgba(0,255,179,0.2)]"
       style={{ transitionDelay: `${idx * 60}ms` }}
     >
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div className="media-zoom relative aspect-[4/3] overflow-hidden">
         {p.visual}
         <div className="absolute inset-0 bg-gradient-to-t from-void/80 to-transparent" />
         <span className="absolute left-5 top-5 font-mono text-[10px] uppercase tracking-widest text-acid">
