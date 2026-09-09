@@ -17,10 +17,11 @@ const WELCOME = "WELCOME TO MY PORTFOLIO";
 const FULL_NAME = "EDHUBILLI SANDEEP KUMAR";
 const FALLBACK = "SANDEEP";
 
-// How long each step stays on screen (in + hold + out), in ms.
-const WORD_STEP_MS = 2800;
-const WELCOME_STEP_MS = 2800;
-const NAME_STEP_MS = 3200;
+// Every phrase owns its complete reveal → hold → fade timeline. The next
+// phrase cannot mount until this duration has finished.
+const WORD_STEP_MS = 3600;
+const WELCOME_STEP_MS = 3800;
+const NAME_STEP_MS = 3800;
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -33,37 +34,19 @@ const SLOTS = [
 ];
 const TOTAL_MS = SLOTS.reduce((a, b) => a + b, 0);
 
-// Module-level clock: the intro runs once per full page load. Storing the
-// start time (instead of a played/not-played flag) means a remount mid-intro
-// (hot reload, route change, provider re-render) RESUMES the sequence at the
-// right step instead of killing it after a fraction of a second.
-let startedAt: number | null = null;
-let finished = false;
-
-/** Which step should be on screen after `elapsed` ms. */
-function stepFor(elapsed: number) {
-  let t = 0;
-  for (let i = 0; i < SLOTS.length; i++) {
-    t += SLOTS[i];
-    if (elapsed < t) return i;
-  }
-  return SLOTS.length;
-}
-
-
 /** Letter-by-letter reveal with a matching staggered exit. */
 function StaggerText({
   text,
   className,
   style,
   charDelay = 0.035,
-  baseDelay = 0,
+  duration = WORD_STEP_MS / 1000,
 }: {
   text: string;
   className?: string;
   style?: React.CSSProperties;
   charDelay?: number;
-  baseDelay?: number;
+  duration?: number;
 }) {
   const chars = Array.from(text);
   return (
@@ -76,16 +59,17 @@ function StaggerText({
         >
           <motion.span
             className="inline-block will-change-transform"
-            initial={{ y: "115%", opacity: 0 }}
+            initial={{ y: "115%", opacity: 0, filter: "blur(8px)" }}
             animate={{
-              y: "0%",
-              opacity: 1,
-              transition: { duration: 0.85, ease: EASE, delay: baseDelay + i * charDelay },
+              y: ["115%", "0%", "0%", "-115%"],
+              opacity: [0, 1, 1, 0],
+              filter: ["blur(8px)", "blur(0px)", "blur(0px)", "blur(7px)"],
             }}
-            exit={{
-              y: "-115%",
-              opacity: 0,
-              transition: { duration: 0.6, ease: EASE, delay: i * (charDelay * 0.5) },
+            transition={{
+              duration,
+              times: [0, 0.2, 0.78, 1],
+              ease: EASE,
+              delay: i * charDelay,
             }}
           >
             {c === " " ? "\u00A0" : c}
@@ -97,10 +81,8 @@ function StaggerText({
 }
 
 export default function EntryAnimation() {
-  const [show, setShow] = useState(() => !finished);
-  const [step, setStep] = useState(() =>
-    startedAt === null ? 0 : stepFor(Date.now() - startedAt)
-  );
+  const [show, setShow] = useState(true);
+  const [step, setStep] = useState(0);
   const [vw, setVw] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth : 1280
   );
@@ -118,42 +100,27 @@ export default function EntryAnimation() {
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     if (reduced) {
-      finished = true;
-      setShow(false);
-      return;
-    }
-
-    if (startedAt === null) startedAt = Date.now();
-    const elapsed = Date.now() - startedAt;
-    if (elapsed >= TOTAL_MS) {
-      finished = true;
       setShow(false);
       return;
     }
 
     document.body.style.overflow = "hidden";
-    setStep(stepFor(elapsed));
-
-    // Cumulative schedule, offset by however much already elapsed, so a
-    // remount picks the sequence up exactly where it left off.
     const timers: number[] = [];
     let t = 0;
     SLOTS.forEach((ms, i) => {
-      if (i > 0 && t > elapsed) {
-        timers.push(window.setTimeout(() => setStep(i), t - elapsed));
+      if (i > 0) {
+        timers.push(window.setTimeout(() => setStep(i), t));
       }
       t += ms;
     });
     timers.push(
       window.setTimeout(() => {
-        finished = true;
         document.body.style.overflow = "";
         setShow(false);
-      }, TOTAL_MS - elapsed)
+      }, TOTAL_MS)
     );
 
     const skip = () => {
-      finished = true;
       timers.forEach(clearTimeout);
       document.body.style.overflow = "";
       setShow(false);
@@ -221,16 +188,16 @@ export default function EntryAnimation() {
             }}
           />
 
-          {/* Step content — mode="wait" guarantees no two steps overlap */}
+          {/* Each keyed step completes its own reveal, hold and fade. */}
           <div className="relative flex min-h-[1.2em] w-full max-w-[1400px] items-center justify-center text-center">
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="sync">
               {step < 3 && (
                 <motion.h2
                   key={`w-${step}`}
                   className="font-syne font-extrabold uppercase text-ink"
                   style={{ fontSize: "clamp(28px, 8.2vw, 96px)", lineHeight: 1 }}
                 >
-                  <StaggerText text={WORDS[step]} charDelay={0.028} />
+                  <StaggerText text={WORDS[step]} charDelay={0.025} duration={3.35} />
                 </motion.h2>
               )}
 
@@ -244,7 +211,7 @@ export default function EntryAnimation() {
                     letterSpacing: "-0.02em",
                   }}
                 >
-                  <StaggerText text={WELCOME} charDelay={0.022} />
+                  <StaggerText text={WELCOME} charDelay={0.018} duration={3.35} />
                 </motion.h2>
               )}
 
@@ -268,8 +235,16 @@ export default function EntryAnimation() {
                           lineHeight: 1,
                         }}
                         initial={{ y: "112%", opacity: 0 }}
-                        animate={{ y: "0%", opacity: 1 }}
-                        transition={{ delay: 0.06 + i * 0.14, duration: 0.95, ease: EASE }}
+                        animate={{
+                          y: ["112%", "0%", "0%", "-112%"],
+                          opacity: [0, 1, 1, 0],
+                        }}
+                        transition={{
+                          delay: 0.06 + i * 0.12,
+                          duration: 3.5,
+                          times: [0, 0.2, 0.8, 1],
+                          ease: EASE,
+                        }}
                       >
                         {line}
                       </motion.span>
