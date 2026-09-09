@@ -188,7 +188,7 @@ export default function EntryAnimation() {
       ? "clamp(34px, 8.4vw, 74px)"
       : "clamp(44px, 14vw, 96px)";
 
-  const totalMs = WORD_STEP_MS * 3 + WELCOME_STEP_MS + NAME_STEP_MS;
+  const totalMs = TOTAL_MS;
 
   return (
     <AnimatePresence>
