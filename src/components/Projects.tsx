@@ -130,6 +130,7 @@ function GridCard({ p, idx }: { p: Project; idx: number }) {
         </div>
       </div>
     </Link>
+    </TiltCard>
   );
 }
 
