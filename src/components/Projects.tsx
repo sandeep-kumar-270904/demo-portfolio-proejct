@@ -40,13 +40,14 @@ function toProject(p: DbProject, idx: number): Project {
 
 function FeaturedCard({ p }: { p: Project }) {
   return (
+    <TiltCard className="reveal rounded-2xl" max={4}>
     <Link
       to={`/projects/${p.slug}`}
       data-cursor="project"
-      className="reveal group relative block w-full overflow-hidden rounded-2xl border border-soft-2 bg-card text-left transition-all duration-500 hover:border-acid/40 hover:shadow-[0_30px_80px_-20px_rgba(0,255,179,0.25)]"
+      className="group relative block w-full overflow-hidden rounded-2xl border border-soft-2 bg-card text-left transition-all duration-500 hover:border-acid/40 hover:shadow-[0_30px_80px_-20px_rgba(0,255,179,0.25)]"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2">
-        <div className="relative aspect-[5/4] lg:aspect-auto">
+        <div className="media-zoom relative aspect-[5/4] overflow-hidden lg:aspect-auto">
           {p.visual}
           <div className="absolute inset-0 bg-gradient-to-t from-void/90 via-void/20 to-transparent" />
           <span className="absolute left-6 top-6 font-mono text-[11px] uppercase tracking-widest text-acid">
