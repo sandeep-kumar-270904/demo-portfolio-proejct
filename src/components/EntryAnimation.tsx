@@ -18,7 +18,7 @@ const FULL_NAME = "EDHUBILLI SANDEEP KUMAR";
 const FALLBACK = "SANDEEP";
 
 // How long each step stays on screen (in + hold + out), in ms.
-const WORD_STEP_MS = 2400;
+const WORD_STEP_MS = 2800;
 const WELCOME_STEP_MS = 2800;
 const NAME_STEP_MS = 3200;
 
@@ -230,7 +230,7 @@ export default function EntryAnimation() {
                   className="font-syne font-extrabold uppercase text-ink"
                   style={{ fontSize: "clamp(28px, 8.2vw, 96px)", lineHeight: 1 }}
                 >
-                  <StaggerText text={WORDS[step]} charDelay={0.038} />
+                  <StaggerText text={WORDS[step]} charDelay={0.028} />
                 </motion.h2>
               )}
 
