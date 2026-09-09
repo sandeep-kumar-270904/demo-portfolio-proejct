@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import TiltCard from "@/components/TiltCard";
 import { Link } from "react-router-dom";
 import { useProjects } from "@/hooks/useSupabase";
 import { useSiteCopy } from "@/hooks/useSiteCopy";
