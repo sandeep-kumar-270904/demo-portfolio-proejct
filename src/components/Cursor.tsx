@@ -29,6 +29,7 @@ export default function Cursor() {
     if (window.matchMedia("(hover: none)").matches || window.innerWidth < 768) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     setEnabled(true);
+    document.body.classList.add("custom-cursor-active");
 
     const target = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     const ring = { x: target.x, y: target.y };
@@ -38,6 +39,11 @@ export default function Cursor() {
       target.y = e.clientY;
       if (dotRef.current) {
         dotRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+      }
+      if (ringRef.current && !ringRef.current.style.transform) {
+        ring.x = e.clientX;
+        ring.y = e.clientY;
+        ringRef.current.style.transform = `translate3d(${ring.x}px, ${ring.y}px, 0) translate(-50%, -50%)`;
       }
     };
 
@@ -65,6 +71,7 @@ export default function Cursor() {
     window.addEventListener("mousemove", onMove, { passive: true });
     window.addEventListener("mouseover", onOver, { passive: true });
     return () => {
+      document.body.classList.remove("custom-cursor-active");
       cancelAnimationFrame(raf);
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseover", onOver);
