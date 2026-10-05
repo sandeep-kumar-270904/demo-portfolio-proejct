@@ -132,12 +132,12 @@ export default function Experience() {
                 <div className="pt-2">
                   <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
                     {it.period}
-               </motion.div>
+                   </div>
                   <div
                     className={`mt-2 inline-block rounded-md border px-2 py-1 font-mono text-[10px] uppercase tracking-wider ${c.pill}`}
                   >
                     {it.badge}
-                  </div>
+               </motion.div>
                 </div>
                 <div className="relative flex justify-center">
                   <div className={`relative z-10 mt-3 h-3 w-3 rounded-full ${c.dot} ${c.bg}`} />
