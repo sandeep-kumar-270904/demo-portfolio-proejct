@@ -11,7 +11,9 @@ export default function LiveUsers() {
 
   useEffect(() => {
     const id = (crypto as Crypto).randomUUID?.() ?? Math.random().toString(36).slice(2);
-    const channel = supabase.channel("presence:site", {
+    // A unique topic prevents a departing page's subscribed channel from being reused
+    // while the incoming page mounts during the shared-layout route transition.
+    const channel = supabase.channel(`presence:site:${id}`, {
       config: { presence: { key: id } },
     });
 
