@@ -121,11 +121,18 @@ export default function Experience() {
           {items.map((it, i) => {
             const c = colorMap[it.color] ?? colorMap.acid;
             return (
-              <div key={`${filter}-${it.id}-${i}`} className="reveal grid grid-cols-[110px_28px_1fr] gap-4 md:grid-cols-[200px_40px_1fr] md:gap-8">
+               <motion.div
+                 key={`${filter}-${it.id}-${i}`}
+                 className="grid grid-cols-[110px_28px_1fr] gap-4 md:grid-cols-[200px_40px_1fr] md:gap-8"
+                 initial={reduce ? false : { opacity: 0, y: 18 }}
+                 whileInView={{ opacity: 1, y: 0 }}
+                 viewport={{ root: scrollRef, once: true, amount: 0.12 }}
+                 transition={{ duration: reduce ? 0 : 0.6, delay: reduce ? 0 : Math.min(i, 4) * 0.06, ease: [0.16, 1, 0.3, 1] }}
+               >
                 <div className="pt-2">
                   <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
                     {it.period}
-                  </div>
+               </motion.div>
                   <div
                     className={`mt-2 inline-block rounded-md border px-2 py-1 font-mono text-[10px] uppercase tracking-wider ${c.pill}`}
                   >
