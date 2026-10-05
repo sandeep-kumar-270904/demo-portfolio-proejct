@@ -1,0 +1,3 @@
+- Keep homepage section choreography in the shared reveal observer so asynchronously loaded CMS sections enter consistently without duplicated per-section observers.
+- Keep project-card/detail transitions in a shared Framer Motion layout group around route presence so the canonical project URL remains navigable and direct links still render independently.
+- Activate the decorative cursor only after a real fine-pointer movement and mounted cursor elements so native pointer access remains available whenever motion is unavailable.

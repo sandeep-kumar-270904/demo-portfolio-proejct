@@ -1,0 +1,5 @@
+- [x] Restore visible pointer with native fallback and high-contrast custom cursor.
+- [x] Coordinate portfolio section reveals within the existing motion budget.
+- [x] Connect project cards to detail heroes with shared-layout expansion.
+- [x] Animate the existing scrollable milestone timeline and progress line.
+- [ ] Verify desktop/mobile, reduced motion, project navigation, and tests.
