@@ -58,7 +58,7 @@ export default function GitHub() {
   const latest = data?.latest ?? null;
 
   return (
-    <section className="relative bg-void px-6 py-14 lg:py-24">
+    <section id="github" className="relative bg-void px-6 py-14 lg:py-24">
       <div className="mx-auto max-w-[1320px]" ref={ref}>
         <div className="reveal flex items-center gap-3">
           <span className="h-px w-8 bg-acid" />
@@ -84,7 +84,7 @@ export default function GitHub() {
 
         <div className="mt-12 grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Left */}
-          <div className="space-y-4">
+          <div className="reveal space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <StatCard value={stats?.contributionsThisYear ?? 0} suffix="" label="Contributions" hint="Last 12 months · live" gradient="text-grad-acid" start={inView} />
               <StatCard value={stats?.currentStreak ?? 0} suffix="" label="Day Streak" hint={`Longest ${stats?.longestStreak ?? 0}`} gradient="text-grad-acid" start={inView} />
@@ -141,7 +141,7 @@ export default function GitHub() {
           </div>
 
           {/* Right — Heatmap in terminal IDE frame */}
-          <div className="space-y-4">
+          <div className="reveal space-y-4">
             <div className="overflow-hidden rounded-2xl border border-soft-2 bg-card">
               <div className="flex items-center justify-between bg-[#1a1a1a] px-4 py-2.5">
                 <div className="flex items-center gap-2">
