@@ -117,8 +117,8 @@ function GridCard({ p, idx }: { p: Project; idx: number }) {
         <span className="absolute bottom-5 left-5 font-syne text-[24px] font-extrabold leading-none text-ink">
           {p.name}
         </span>
-      </div>
-      <div className="p-6">
+       </motion.div>
+       <div className="p-6">
         <p className="text-[14px] leading-relaxed text-ink-2 min-h-[60px]">{p.description}</p>
         <div className="mt-5 flex flex-wrap gap-2">
           {p.pills.map((pl) => (
@@ -129,8 +129,8 @@ function GridCard({ p, idx }: { p: Project; idx: number }) {
               {pl}
             </span>
           ))}
-        </motion.div>
-      </div>
+         </div>
+       </div>
     </Link>
     </TiltCard>
   );
