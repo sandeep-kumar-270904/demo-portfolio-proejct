@@ -37,7 +37,7 @@ export default function About() {
     <section id="about" className="relative bg-base px-6 py-14 lg:py-24">
       <div className="mx-auto grid max-w-[1320px] grid-cols-1 gap-16 lg:grid-cols-2 lg:gap-24">
         {/* Left — square profile photo */}
-        <div className="relative flex flex-col items-center lg:items-start">
+        <div className="reveal relative flex flex-col items-center lg:items-start">
           <div className="relative">
             <div className="absolute -inset-3 rounded-2xl bg-gradient-to-br from-acid/30 via-cyan/10 to-plasma/20 blur-2xl opacity-60" />
             <div className="relative h-[320px] w-[320px] overflow-hidden rounded-2xl border border-acid/40 bg-surface shadow-[0_20px_60px_-20px_hsl(var(--acid)/0.4)] lg:h-[380px] lg:w-[380px]">

@@ -3,6 +3,7 @@ import { useExperience } from "@/hooks/useSupabase";
 import { useSiteCopy } from "@/hooks/useSiteCopy";
 import BrandLogo from "@/components/BrandLogo";
 import type { DbExperience } from "@/data/experienceFallback";
+import { motion, useReducedMotion } from "framer-motion";
 
 const colorMap: Record<string, { dot: string; text: string; pill: string; bg: string }> = {
   acid: { dot: "bg-acid", text: "text-acid", pill: "border-acid/30 text-acid bg-acid/10", bg: "shadow-[0_0_20px_hsl(var(--acid)/0.6)]" },
@@ -32,6 +33,7 @@ export default function Experience() {
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["key"]>("all");
   const { data: rows = [] } = useExperience();
   const { t } = useSiteCopy();
+  const reduce = useReducedMotion();
 
   const items = useMemo(() => {
     const list = filter === "all" ? rows : rows.filter((i) => i.type === filter);
@@ -102,26 +104,35 @@ export default function Experience() {
             className="relative max-h-[640px] space-y-10 overflow-y-auto pr-2 [scrollbar-color:hsl(var(--acid))_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-acid/40 [&::-webkit-scrollbar-track]:bg-transparent"
           >
             <div className="pointer-events-none absolute left-[124px] top-0 hidden h-full w-px bg-soft-2 md:block" style={{ left: "220px" }}>
-              <div
+               <motion.div
                 className="h-full w-full origin-top bg-gradient-to-b from-acid via-acid/70 to-acid/0"
-                style={{ transform: `scaleY(${progress})`, transition: "transform 0.2s linear" }}
+                 animate={{ scaleY: progress }}
+                 transition={{ duration: reduce ? 0 : 0.45, ease: [0.16, 1, 0.3, 1] }}
               />
             </div>
             <div className="pointer-events-none absolute left-[124px] top-0 h-full w-px bg-soft-2 md:hidden">
-              <div
+               <motion.div
                 className="h-full w-full origin-top bg-gradient-to-b from-acid via-acid/70 to-acid/0"
-                style={{ transform: `scaleY(${progress})`, transition: "transform 0.2s linear" }}
+                 animate={{ scaleY: progress }}
+                 transition={{ duration: reduce ? 0 : 0.45, ease: [0.16, 1, 0.3, 1] }}
               />
             </div>
 
           {items.map((it, i) => {
             const c = colorMap[it.color] ?? colorMap.acid;
             return (
-              <div key={`${filter}-${it.id}-${i}`} className="reveal grid grid-cols-[110px_28px_1fr] gap-4 md:grid-cols-[200px_40px_1fr] md:gap-8">
+               <motion.div
+                 key={`${filter}-${it.id}-${i}`}
+                 className="grid grid-cols-[110px_28px_1fr] gap-4 md:grid-cols-[200px_40px_1fr] md:gap-8"
+                 initial={reduce ? false : { opacity: 0, y: 18 }}
+                 whileInView={{ opacity: 1, y: 0 }}
+                 viewport={{ root: scrollRef, once: true, amount: 0.12 }}
+                 transition={{ duration: reduce ? 0 : 0.6, delay: reduce ? 0 : Math.min(i, 4) * 0.06, ease: [0.16, 1, 0.3, 1] }}
+               >
                 <div className="pt-2">
                   <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
                     {it.period}
-                  </div>
+                   </div>
                   <div
                     className={`mt-2 inline-block rounded-md border px-2 py-1 font-mono text-[10px] uppercase tracking-wider ${c.pill}`}
                   >
@@ -150,7 +161,7 @@ export default function Experience() {
                     </ul>
                   )}
                 </div>
-              </div>
+              </motion.div>
             );
           })}
           </div>

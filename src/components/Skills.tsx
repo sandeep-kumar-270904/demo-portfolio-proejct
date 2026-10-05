@@ -24,7 +24,7 @@ function SkillBar({ s, active }: { s: DbSkill; active: boolean }) {
   const tag = tagFor(s.level);
   const level = s.level ?? 0;
   return (
-    <div className="rounded-xl border border-soft-2 bg-card p-5">
+    <div className="reveal rounded-xl border border-soft-2 bg-card p-5">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-soft-2 bg-surface text-base">
@@ -48,8 +48,10 @@ function SkillBar({ s, active }: { s: DbSkill; active: boolean }) {
           key={active ? "on" : "off"}
           className="relative h-full rounded-full bg-acid transition-shadow duration-300 group-hover/bar:shadow-[0_0_12px_hsl(var(--acid)/0.6)]"
           style={{
-            width: active ? `${level}%` : "0%",
-            transition: "width 1.1s cubic-bezier(0.16, 1, 0.3, 1)",
+             width: `${level}%`,
+             transform: active ? "scaleX(1)" : "scaleX(0)",
+             transformOrigin: "left",
+             transition: "transform 0.78s cubic-bezier(0.16, 1, 0.3, 1)",
             boxShadow: "0 0 12px hsl(var(--acid)/0.5)",
           }}
         >
@@ -93,7 +95,7 @@ export default function Skills() {
         </h2>
 
         <div className="mt-14 grid grid-cols-1 gap-8 lg:grid-cols-[280px_1fr]">
-          <ul className="flex flex-wrap gap-2 lg:flex-col lg:gap-1 lg:sticky lg:top-24 self-start">
+          <ul className="reveal flex flex-wrap gap-2 lg:flex-col lg:gap-1 lg:sticky lg:top-24 self-start">
             {tabs.map((t, i) => {
               const a = i === safeIdx;
               return (
@@ -119,7 +121,7 @@ export default function Skills() {
             })}
           </ul>
 
-          <div>
+          <div className="reveal">
             <h3 className="font-syne text-[24px] font-bold text-ink">{tab.label} Stack</h3>
             <p className="mt-1 text-[14px] text-muted-foreground">
               {tab.skills.length} technologies · production-ready

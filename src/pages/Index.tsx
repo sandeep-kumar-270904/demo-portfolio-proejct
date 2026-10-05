@@ -23,10 +23,8 @@ import { initRevealAll } from "@/hooks/useReveal";
 const Index = () => {
   useEffect(() => {
     const cleanup = initRevealAll();
-    const t = setTimeout(() => initRevealAll(), 500);
     return () => {
       if (cleanup) cleanup();
-      clearTimeout(t);
     };
   }, []);
 
