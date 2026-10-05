@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 import { ease, duration } from "@/lib/motion";
 
 /**
@@ -8,7 +9,12 @@ import { ease, duration } from "@/lib/motion";
  */
 export default function PageTransition({ children }: { children: ReactNode }) {
   const reduce = useReducedMotion();
+  const location = useLocation();
   if (reduce) return <>{children}</>;
+  // Keep the source card visible while Framer Motion morphs its media into the destination.
+  if (location.pathname === "/" || location.pathname.startsWith("/projects/")) {
+    return <motion.div exit={{ opacity: 1 }} transition={{ duration: 0.48 }}>{children}</motion.div>;
+  }
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}

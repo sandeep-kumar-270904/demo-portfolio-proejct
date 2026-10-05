@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import TiltCard from "@/components/TiltCard";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useProjects } from "@/hooks/useSupabase";
 import { useSiteCopy } from "@/hooks/useSiteCopy";
@@ -48,7 +49,7 @@ function FeaturedCard({ p }: { p: Project }) {
       className="group relative block w-full overflow-hidden rounded-2xl border border-soft-2 bg-card text-left transition-all duration-500 hover:border-acid/40 hover:shadow-[0_30px_80px_-20px_rgba(0,255,179,0.25)]"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2">
-        <div className="media-zoom relative aspect-[5/4] overflow-hidden lg:aspect-auto">
+        <motion.div layoutId={`project-media-${p.slug}`} className="media-zoom relative aspect-[5/4] overflow-hidden lg:aspect-auto" transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
           {p.visual}
           <div className="absolute inset-0 bg-gradient-to-t from-void/90 via-void/20 to-transparent" />
           <span className="absolute left-6 top-6 font-mono text-[11px] uppercase tracking-widest text-acid">
@@ -57,7 +58,7 @@ function FeaturedCard({ p }: { p: Project }) {
           <span className="absolute bottom-6 left-6 font-syne text-[30px] font-extrabold leading-none text-ink lg:text-[34px]">
             {p.name}
           </span>
-        </div>
+        </motion.div>
         <div className="flex flex-col justify-center p-8 lg:p-12">
           <div className="flex items-center gap-3">
             <span className="h-px w-6 bg-acid" />
@@ -107,7 +108,7 @@ function GridCard({ p, idx }: { p: Project; idx: number }) {
       className="group relative block overflow-hidden rounded-2xl border border-soft-2 bg-card text-left transition-all duration-500 hover:border-acid/40 hover:shadow-[0_25px_60px_-20px_rgba(0,255,179,0.2)]"
       style={{ transitionDelay: `${idx * 60}ms` }}
     >
-      <div className="media-zoom relative aspect-[4/3] overflow-hidden">
+        <motion.div layoutId={`project-media-${p.slug}`} className="media-zoom relative aspect-[4/3] overflow-hidden" transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
         {p.visual}
         <div className="absolute inset-0 bg-gradient-to-t from-void/80 to-transparent" />
         <span className="absolute left-5 top-5 font-mono text-[10px] uppercase tracking-widest text-acid">
@@ -128,7 +129,7 @@ function GridCard({ p, idx }: { p: Project; idx: number }) {
               {pl}
             </span>
           ))}
-        </div>
+        </motion.div>
       </div>
     </Link>
     </TiltCard>

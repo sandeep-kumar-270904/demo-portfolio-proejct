@@ -716,8 +716,10 @@ export default function ProjectDetail() {
       <main className="bg-void">
         {/* 1. HERO */}
         <section ref={heroRef} className="relative h-[520px] w-full overflow-hidden">
-          <motion.div className="absolute inset-0 will-change-transform" style={{ y: heroY, scale: heroScale }}>
+          <motion.div layoutId={reduce ? undefined : `project-media-${heroSlug}`} className="absolute inset-0 overflow-hidden will-change-transform" transition={{ duration: 0.7, ease: ease.brand }}>
+            <motion.div className="absolute inset-0" style={{ y: heroY, scale: heroScale }}>
             {hero}
+            </motion.div>
           </motion.div>
           <motion.div
             className="absolute inset-0 bg-gradient-to-t from-void via-void/70 to-transparent"

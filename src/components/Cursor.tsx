@@ -26,17 +26,30 @@ export default function Cursor() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (window.matchMedia("(hover: none)").matches || window.innerWidth < 768) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    setEnabled(true);
-    document.body.classList.add("custom-cursor-active");
+    const supportsCursor = () => window.matchMedia("(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)").matches && window.innerWidth >= 768;
+    if (!supportsCursor()) return;
 
     const target = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     const ring = { x: target.x, y: target.y };
 
     const onMove = (e: MouseEvent) => {
+      if (!supportsCursor()) {
+        document.body.classList.remove("custom-cursor-active");
+        setEnabled(false);
+        return;
+      }
       target.x = e.clientX;
       target.y = e.clientY;
+      if (!document.body.classList.contains("custom-cursor-active")) {
+        setEnabled(true);
+        requestAnimationFrame(() => {
+          if (dotRef.current && ringRef.current) {
+            dotRef.current.style.transform = `translate3d(${target.x}px, ${target.y}px, 0) translate(-50%, -50%)`;
+            ringRef.current.style.transform = dotRef.current.style.transform;
+            document.body.classList.add("custom-cursor-active");
+          }
+        });
+      }
       if (dotRef.current) {
         dotRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
       }
@@ -70,11 +83,19 @@ export default function Cursor() {
 
     window.addEventListener("mousemove", onMove, { passive: true });
     window.addEventListener("mouseover", onOver, { passive: true });
+    const onResize = () => {
+      if (!supportsCursor()) {
+        document.body.classList.remove("custom-cursor-active");
+        setEnabled(false);
+      }
+    };
+    window.addEventListener("resize", onResize);
     return () => {
       document.body.classList.remove("custom-cursor-active");
       cancelAnimationFrame(raf);
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseover", onOver);
+      window.removeEventListener("resize", onResize);
     };
   }, []);
 

@@ -1,4 +1,4 @@
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, LayoutGroup } from "framer-motion";
 import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
@@ -30,7 +30,8 @@ const AnimatedRoutes = () => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [location.pathname]);
   return (
-    <AnimatePresence mode="wait">
+    <LayoutGroup id="project-expansion">
+    <AnimatePresence mode="sync">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageTransition><Index /></PageTransition>} />
         <Route path="/blog" element={<PageTransition><Blog /></PageTransition>} />
@@ -41,6 +42,7 @@ const AnimatedRoutes = () => {
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
     </AnimatePresence>
+    </LayoutGroup>
   );
 };
 
