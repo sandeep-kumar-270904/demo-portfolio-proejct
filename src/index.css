@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@300;400;500&display=swap');
 
 /* Markdown article styles */
 .prose-portfolio { color: hsl(var(--ink-2)); font-size: 16px; line-height: 1.8; }
@@ -64,6 +63,10 @@
     --ring: 161 100% 50%;
     --card-foreground: 240 100% 97%;
     --radius: 0.75rem;
+    --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --motion-reveal: 780ms;
+    --nav-shadow: 0 4px 18px hsl(var(--void) / 0.5);
+    --nav-shadow-scrolled: 0 8px 32px hsl(var(--void) / 0.8), 0 0 0 1px hsl(var(--acid) / 0.08);
 
     --sidebar-background: 240 33% 5%;
     --sidebar-foreground: 240 100% 97%;
@@ -78,7 +81,11 @@
 
 @layer base {
   * { @apply border-border; }
-  html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+  html { scroll-behavior: auto; scroll-padding-top: 90px; }
+  html.lenis, html.lenis body { height: auto; }
+  .lenis-smooth { scroll-behavior: auto !important; }
+  .lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+  .lenis-stopped { overflow: hidden; }
   :focus-visible { outline: 2px solid hsl(var(--acid) / 0.55); outline-offset: 2px; border-radius: 4px; }
   body {
     @apply bg-void text-ink font-sans antialiased;
@@ -110,6 +117,23 @@
 }
 
 @layer utilities {
+  .entry-stage { width: 100%; max-width: 1100px; }
+  .entry-phrase { font-size: 80px; line-height: 1.15; letter-spacing: 0; }
+  .entry-name { font-size: 52px; }
+  .entry-name span { display: inline-block; }
+  .entry-step { transition: background-color 400ms var(--motion-ease); }
+  .nav-capsule { box-shadow: var(--nav-shadow); transition: box-shadow 400ms var(--motion-ease), background-color 400ms var(--motion-ease); }
+  .nav-capsule[data-scrolled="true"] { box-shadow: var(--nav-shadow-scrolled); }
+  @media (max-width: 767px) {
+    .entry-phrase { font-size: 42px; }
+    .entry-name { font-size: 36px; }
+    .entry-name span { display: block; }
+  }
+  @media (max-width: 359px) {
+    .entry-phrase { font-size: 32px; }
+    .entry-name { font-size: 30px; }
+  }
+
   .text-grad-acid { background: linear-gradient(135deg, #00ffb3, #00b8ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .text-grad-fire { background: linear-gradient(135deg, #ff6b35, #ff3b82); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .text-grad-plasma { background: linear-gradient(135deg, #7c6fff, #00ffb3); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -132,14 +156,14 @@
      (no side-flying — reads busier than the intended premium feel). */
   .reveal, .revl, .revr {
     opacity: 0;
-    transform: translate3d(0, 34px, 0) scale(0.985);
+    transform: translate3d(0, 24px, 0);
     transition:
-      opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
-      transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
-    will-change: opacity, transform;
+      opacity var(--motion-reveal) var(--motion-ease),
+      transform var(--motion-reveal) var(--motion-ease);
+    transition-delay: var(--reveal-delay, 0ms);
   }
-  .revl { transform: translate3d(-28px, 18px, 0) scale(0.985); }
-  .revr { transform: translate3d(28px, 18px, 0) scale(0.985); }
+  .revl { transform: translate3d(-16px, 18px, 0); }
+  .revr { transform: translate3d(16px, 18px, 0); }
   .reveal.is-visible,
   .revl.is-visible,
   .revr.is-visible {
@@ -162,7 +186,7 @@
       box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
       border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .float-hover:hover { transform: translate3d(0, -6px, 0) scale(1.012); }
+  .float-hover:hover { transform: translate3d(0, -4px, 0); }
   @media (prefers-reduced-motion: reduce) {
     .float-hover, .float-hover:hover { transform: none !important; transition: none !important; }
 
@@ -219,10 +243,10 @@
 
   /* Press feedback for every control — tiny, instant, universal */
   button:active, a[role="button"]:active, .press:active {
-    transform: scale(0.975);
+    scale: 0.975;
   }
   button, a[role="button"], .press {
-    transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: scale 0.14s var(--motion-ease), background-color 0.22s ease-out, color 0.22s ease-out, border-color 0.22s ease-out;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -230,6 +254,7 @@
     .media-zoom img, .media-zoom svg, .media-zoom video,
     button, a[role="button"], .press {
       transform: none !important;
+      scale: 1 !important;
       transition: none !important;
     }
   }

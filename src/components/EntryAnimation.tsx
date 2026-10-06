@@ -1,299 +1,105 @@
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState, type ReactNode } from "react";
+import { motion } from "framer-motion";
+import { useLocation } from "react-router-dom";
+import { ease } from "@/lib/motion";
 
-/**
- * Cinematic portfolio entry.
- *
- * Sequence (strictly one after another, never overlapping):
- *   DESIGNING. → DEVELOPING. → DELIVERING. → WELCOME TO MY PORTFOLIO
- *   → EDHUBILLI SANDEEP KUMAR → curtain lifts, site revealed.
- *
- * Each step animates in letter-by-letter, holds long enough to read,
- * then animates out before the next step mounts. Plays once per tab session.
- */
+export const ENTRY_SESSION_KEY = "portfolio-entry-sequential-v3";
+export const ENTRY_PHRASES = ["DESIGNING", "DEVELOPING", "EDHUBILLI SANDEEP KUMAR"];
+export const ENTRY_HOLD_MS = [2400, 2400, 2800];
+type Phase = "reveal" | "hold" | "fade" | "gap" | "curtain";
 
-const WORDS = ["DESIGNING.", "DEVELOPING.", "DELIVERING."];
-const WELCOME = "WELCOME TO MY PORTFOLIO";
-const FULL_NAME = "EDHUBILLI SANDEEP KUMAR";
-const FALLBACK = "SANDEEP";
-const SESSION_KEY = "portfolio-entry-played";
-
-// Every phrase owns its complete reveal → hold → fade timeline. The next
-// phrase cannot mount until this duration has finished.
-const WORD_STEP_MS = 3600;
-const WELCOME_STEP_MS = 3800;
-const NAME_STEP_MS = 3800;
-
-const EASE = [0.22, 1, 0.36, 1] as const;
-
-const SLOTS = [
-  WORD_STEP_MS,
-  WORD_STEP_MS,
-  WORD_STEP_MS,
-  WELCOME_STEP_MS,
-  NAME_STEP_MS,
-];
-const TOTAL_MS = SLOTS.reduce((a, b) => a + b, 0);
-
-/** Letter-by-letter reveal with a matching staggered exit. */
-function StaggerText({
-  text,
-  className,
-  style,
-  charDelay = 0.035,
-  duration = WORD_STEP_MS / 1000,
-}: {
-  text: string;
-  className?: string;
-  style?: React.CSSProperties;
-  charDelay?: number;
-  duration?: number;
-}) {
-  const chars = Array.from(text);
-  return (
-    <span className={className} style={style} aria-label={text}>
-      {chars.map((c, i) => (
-        <span
-          key={`${c}-${i}`}
-          className="inline-block overflow-hidden align-bottom"
-          style={{ lineHeight: 1 }}
-        >
-          <motion.span
-            className="inline-block will-change-transform"
-            initial={{ y: "115%", opacity: 0, filter: "blur(8px)" }}
-            animate={{
-              y: ["115%", "0%", "0%", "-115%"],
-              opacity: [0, 1, 1, 0],
-              filter: ["blur(8px)", "blur(0px)", "blur(0px)", "blur(7px)"],
-            }}
-            transition={{
-              duration,
-              times: [0, 0.2, 0.78, 1],
-              ease: EASE,
-              delay: i * charDelay,
-            }}
-          >
-            {c === " " ? "\u00A0" : c}
-          </motion.span>
-        </span>
-      ))}
-    </span>
-  );
+function shouldPlay(pathname: string) {
+  if (pathname !== "/" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+  try { return sessionStorage.getItem(ENTRY_SESSION_KEY) !== "1"; }
+  catch { return true; }
 }
 
-export default function EntryAnimation() {
-  const [show, setShow] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.sessionStorage.getItem(SESSION_KEY) !== "1";
-  });
+/** The page is mounted only after all three phrases and the final fade finish. */
+export default function EntryAnimation({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
+  const [playing, setPlaying] = useState(() => shouldPlay(pathname));
   const [step, setStep] = useState(0);
-  const [vw, setVw] = useState(() =>
-    typeof window !== "undefined" ? window.innerWidth : 1280
-  );
+  const [phase, setPhase] = useState<Phase>("reveal");
+
+  const finish = () => {
+    try { sessionStorage.setItem(ENTRY_SESSION_KEY, "1"); } catch { /* Storage is optional. */ }
+    setPlaying(false);
+  };
 
   useEffect(() => {
-    const onResize = () => setVw(window.innerWidth);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
-  useEffect(() => {
-    if (!show) return;
-
-    window.sessionStorage.setItem(SESSION_KEY, "1");
-
-    const reduced =
-      typeof window !== "undefined" &&
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) {
-      setShow(false);
-      return;
-    }
-
+    if (!playing) return;
+    const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const timers: number[] = [];
-    let t = 0;
-    SLOTS.forEach((ms, i) => {
-      if (i > 0) {
-        timers.push(window.setTimeout(() => setStep(i), t));
-      }
-      t += ms;
-    });
-    timers.push(
-      window.setTimeout(() => {
-        document.body.style.overflow = "";
-        setShow(false);
-      }, TOTAL_MS)
-    );
-
-    const skip = () => {
-      timers.forEach(clearTimeout);
-      document.body.style.overflow = "";
-      setShow(false);
-    };
-    // Keyboard-only skip prevents the page-opening click/tap from silently
-    // dismissing the sequence before it becomes readable.
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const skip = (event: KeyboardEvent) => { if (event.key === "Escape") finish(); };
+    const reduce = () => { if (preference.matches) finish(); };
     window.addEventListener("keydown", skip);
+    preference.addEventListener("change", reduce);
     return () => {
-      timers.forEach(clearTimeout);
+      document.body.style.overflow = overflow;
       window.removeEventListener("keydown", skip);
-      document.body.style.overflow = "";
+      preference.removeEventListener("change", reduce);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [playing]);
 
+  // Hold begins AFTER the reveal actually completes, not at page-load time.
+  // Returning from a background tab gets a fresh readable hold, never a flash.
+  useEffect(() => {
+    if (!playing || (phase !== "hold" && phase !== "gap")) return;
+    let timer = 0;
+    const schedule = () => {
+      window.clearTimeout(timer);
+      if (document.hidden) return;
+      timer = window.setTimeout(() => {
+        if (phase === "hold") setPhase("fade");
+        else if (step < ENTRY_PHRASES.length - 1) {
+          setStep(step + 1);
+          setPhase("reveal");
+        } else setPhase("curtain");
+      }, phase === "hold" ? ENTRY_HOLD_MS[step] : 180);
+    };
+    schedule();
+    document.addEventListener("visibilitychange", schedule);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", schedule);
+    };
+  }, [playing, phase, step]);
 
-  // Pick a name layout that always fits cleanly.
-  const layout: "single" | "stacked" | "fallback" =
-    vw >= 1120 ? "single" : vw >= 520 ? "stacked" : "fallback";
-
-  const displayLines: string[] =
-    layout === "single"
-      ? [FULL_NAME]
-      : layout === "stacked"
-      ? ["EDHUBILLI", "SANDEEP KUMAR"]
-      : [FALLBACK];
-
-  const nameFontSize =
-    layout === "single"
-      ? "clamp(40px, 5.2vw, 88px)"
-      : layout === "stacked"
-      ? "clamp(34px, 8.4vw, 74px)"
-      : "clamp(44px, 14vw, 96px)";
-
-  const totalMs = TOTAL_MS;
-
+  if (!playing) return <>{children}</>;
+  const fading = phase === "fade" || phase === "gap" || phase === "curtain";
   return (
-    <AnimatePresence>
-      {show && (
-        <motion.div
-          key="entry"
-          className="fixed inset-0 z-[10000] flex flex-col items-center justify-center overflow-hidden bg-void px-6"
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 0.85, ease: EASE } }}
+    <motion.div
+      data-testid="portfolio-intro"
+      data-phase={phase}
+      data-step={step}
+      className="entry-screen fixed inset-0 z-[10000] flex items-center justify-center overflow-hidden bg-void px-6"
+      initial={{ opacity: 1 }}
+      animate={{ opacity: phase === "curtain" ? 0 : 1 }}
+      transition={{ duration: 0.75, ease: ease.brand }}
+      onAnimationComplete={() => { if (phase === "curtain") finish(); }}
+    >
+      <div className="entry-stage text-center">
+        <motion.h2
+          key={step}
+          aria-label={ENTRY_PHRASES[step]}
+          className={`entry-phrase font-syne font-extrabold uppercase ${step === 2 ? "entry-name text-acid" : "text-ink"}`}
+          initial={{ opacity: 0, y: 32 }}
+          animate={{ opacity: fading ? 0 : 1, y: fading ? -24 : 0 }}
+          transition={{ duration: fading ? 0.65 : 0.95, ease: ease.brand }}
+          onAnimationComplete={() => {
+            if (phase === "reveal") setPhase("hold");
+            if (phase === "fade") setPhase("gap");
+          }}
         >
-          {/* Ambient glow */}
-          <motion.div
-            className="pointer-events-none absolute inset-0"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1.2, ease: EASE }}
-            style={{
-              background:
-                "radial-gradient(circle at 50% 50%, hsl(var(--acid)/0.16) 0%, transparent 55%)",
-            }}
-          />
-          <motion.div
-            className="pointer-events-none absolute inset-0"
-            initial={{ scale: 1, opacity: 0.3 }}
-            animate={step >= 4 ? { scale: 1.15, opacity: 0.75 } : { scale: 1, opacity: 0.35 }}
-            transition={{ duration: 2.2, ease: EASE }}
-            style={{
-              background:
-                "radial-gradient(circle at 50% 50%, hsl(var(--acid)/0.10) 0%, transparent 60%)",
-            }}
-          />
-
-          {/* Each keyed step completes its own reveal, hold and fade. */}
-          <div className="relative flex min-h-[1.2em] w-full max-w-[1400px] items-center justify-center text-center">
-            <AnimatePresence mode="sync">
-              {step < 3 && (
-                <motion.h2
-                  key={`w-${step}`}
-                  className="font-syne font-extrabold uppercase text-ink"
-                  style={{ fontSize: "clamp(28px, 8.2vw, 96px)", lineHeight: 1 }}
-                >
-                  <StaggerText text={WORDS[step]} charDelay={0.025} duration={3.35} />
-                </motion.h2>
-              )}
-
-              {step === 3 && (
-                <motion.h2
-                  key="welcome"
-                  className="font-syne font-extrabold uppercase text-grad-acid"
-                  style={{
-                    fontSize: "clamp(22px, 5.2vw, 62px)",
-                    lineHeight: 1.05,
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  <StaggerText text={WELCOME} charDelay={0.018} duration={3.35} />
-                </motion.h2>
-              )}
-
-              {step === 4 && (
-                <motion.div
-                  key="name"
-                  className="flex w-full flex-col items-center"
-                  exit={{ opacity: 0, transition: { duration: 0.5, ease: EASE } }}
-                >
-                  {displayLines.map((line, i) => (
-                    <span
-                      key={line}
-                      className="block overflow-hidden pb-[0.12em]"
-                      style={{ lineHeight: 1 }}
-                    >
-                      <motion.span
-                        className="inline-block whitespace-nowrap font-syne font-extrabold uppercase text-ink"
-                        style={{
-                          fontSize: nameFontSize,
-                          letterSpacing: "-0.04em",
-                          lineHeight: 1,
-                        }}
-                        initial={{ y: "112%", opacity: 0 }}
-                        animate={{
-                          y: ["112%", "0%", "0%", "-112%"],
-                          opacity: [0, 1, 1, 0],
-                        }}
-                        transition={{
-                          delay: 0.06 + i * 0.12,
-                          duration: 3.5,
-                          times: [0, 0.2, 0.8, 1],
-                          ease: EASE,
-                        }}
-                      >
-                        {line}
-                      </motion.span>
-                    </span>
-                  ))}
-
-                  <motion.div
-                    className="mt-7 h-[2px] origin-left bg-acid glow-acid-sm"
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ delay: 0.5, duration: 1.0, ease: EASE }}
-                    style={{ width: 280 }}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Progress bar for the whole sequence */}
-          <motion.div
-            className="absolute bottom-[74px] left-1/2 h-[2px] w-[180px] -translate-x-1/2 overflow-hidden rounded-full bg-ink/10"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-          >
-            <motion.div
-              className="h-full w-full origin-left bg-acid"
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: totalMs / 1000, ease: "linear" }}
-            />
-          </motion.div>
-
-          <motion.div
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.7 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
-          >
-            Press any key to skip
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          {step === 2 ? <><span>EDHUBILLI</span>{" "}<span>SANDEEP</span>{" "}<span>KUMAR</span></> : ENTRY_PHRASES[step]}
+        </motion.h2>
+      </div>
+      <div aria-hidden="true" className="absolute bottom-16 flex items-center gap-3">
+        {ENTRY_PHRASES.map((phrase, index) => (
+          <span key={phrase} className={`entry-step h-px w-10 ${index <= step ? "bg-acid" : "bg-border"}`} />
+        ))}
+      </div>
+    </motion.div>
   );
 }
