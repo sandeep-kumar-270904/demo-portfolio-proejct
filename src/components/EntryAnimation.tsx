@@ -9,13 +9,14 @@ import { motion, AnimatePresence } from "framer-motion";
  *   → EDHUBILLI SANDEEP KUMAR → curtain lifts, site revealed.
  *
  * Each step animates in letter-by-letter, holds long enough to read,
- * then animates out before the next step mounts. Plays once per page load.
+ * then animates out before the next step mounts. Plays once per tab session.
  */
 
 const WORDS = ["DESIGNING.", "DEVELOPING.", "DELIVERING."];
 const WELCOME = "WELCOME TO MY PORTFOLIO";
 const FULL_NAME = "EDHUBILLI SANDEEP KUMAR";
 const FALLBACK = "SANDEEP";
+const SESSION_KEY = "portfolio-entry-played";
 
 // Every phrase owns its complete reveal → hold → fade timeline. The next
 // phrase cannot mount until this duration has finished.
@@ -81,7 +82,10 @@ function StaggerText({
 }
 
 export default function EntryAnimation() {
-  const [show, setShow] = useState(true);
+  const [show, setShow] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.sessionStorage.getItem(SESSION_KEY) !== "1";
+  });
   const [step, setStep] = useState(0);
   const [vw, setVw] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth : 1280
@@ -95,6 +99,8 @@ export default function EntryAnimation() {
 
   useEffect(() => {
     if (!show) return;
+
+    window.sessionStorage.setItem(SESSION_KEY, "1");
 
     const reduced =
       typeof window !== "undefined" &&
