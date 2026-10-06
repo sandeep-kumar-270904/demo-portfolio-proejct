@@ -23,6 +23,15 @@ export default function Cursor() {
   const dotRef = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<CursorState>("default");
   const [enabled, setEnabled] = useState(false);
+  const lastPointer = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (!enabled || !dotRef.current || !ringRef.current) return;
+    const transform = `translate3d(${lastPointer.current.x}px, ${lastPointer.current.y}px, 0) translate(-50%, -50%)`;
+    dotRef.current.style.transform = transform;
+    ringRef.current.style.transform = transform;
+    document.body.classList.add("custom-cursor-active");
+  }, [enabled]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -40,15 +49,9 @@ export default function Cursor() {
       }
       target.x = e.clientX;
       target.y = e.clientY;
+      lastPointer.current = { x: e.clientX, y: e.clientY };
       if (!document.body.classList.contains("custom-cursor-active")) {
         setEnabled(true);
-        requestAnimationFrame(() => {
-          if (dotRef.current && ringRef.current) {
-            dotRef.current.style.transform = `translate3d(${target.x}px, ${target.y}px, 0) translate(-50%, -50%)`;
-            ringRef.current.style.transform = dotRef.current.style.transform;
-            document.body.classList.add("custom-cursor-active");
-          }
-        });
       }
       if (dotRef.current) {
         dotRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
