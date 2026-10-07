@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ease } from "@/lib/motion";
 import { useActiveSection } from "@/hooks/useActiveSection";
 
 const links = [
@@ -23,6 +27,7 @@ const titleMap: Record<string, string> = {
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const reduce = useReducedMotion();
   const active = useActiveSection(
     ["top", "about", "projects", "skills", "experience", "opensource", "contact"],
     titleMap
@@ -40,11 +45,8 @@ export default function Nav() {
       {/* spacer so the fixed capsule never sits on top of content */}
       <div aria-hidden className="h-[80px] w-full" />
       <header
-        className={`fixed left-1/2 top-4 z-50 h-[46px] -translate-x-1/2 rounded-full border border-white/10 bg-void/70 backdrop-blur-2xl backdrop-saturate-150 transition-all duration-[400ms] [transition-timing-function:cubic-bezier(0.4,0,0.2,1)] ${
-          scrolled
-            ? "shadow-[0_8px_32px_rgba(0,0,0,0.45),0_0_0_1px_hsl(var(--acid)/0.08)]"
-            : "shadow-[0_4px_18px_rgba(0,0,0,0.25)]"
-        }`}
+        data-scrolled={scrolled}
+        className="nav-capsule fixed left-1/2 top-4 z-50 h-[46px] -translate-x-1/2 rounded-full border border-border bg-void/70 backdrop-blur-2xl backdrop-saturate-150"
       >
         <nav className="flex h-full items-center gap-1 px-2.5">
           <ul className="hidden items-center gap-1 lg:flex">
@@ -52,25 +54,25 @@ export default function Nav() {
               const isActive = active === l.id;
               return (
                 <li key={l.href}>
-                  <a
-                    href={l.href}
+                  <Link
+                    to={l.href}
                     className={`group relative inline-flex items-center rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
                       isActive ? "text-acid" : "text-muted-foreground hover:text-ink"
                     }`}
                   >
                     {l.label}
-                    <span
-                      className={`absolute -bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-acid glow-acid-sm transition-opacity duration-300 ${
-                        isActive ? "opacity-100" : "opacity-0"
-                      }`}
-                    />
-                  </a>
+                    {isActive && <motion.span
+                      layoutId={reduce ? undefined : "nav-active-dot"}
+                      className="absolute bottom-0 left-[calc(50%-2px)] h-1 w-1 rounded-full bg-acid glow-acid-sm"
+                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                    />}
+                  </Link>
                 </li>
               );
             })}
           </ul>
 
-          <div className="flex items-center gap-2 lg:ml-2 lg:border-l lg:border-white/10 lg:pl-2">
+          <div className="flex items-center gap-2 lg:ml-2 lg:border-l lg:border-border lg:pl-2">
             <a
               href="#contact"
               className="hidden md:inline-flex items-center rounded-full bg-acid px-3.5 py-1.5 font-syne text-[12px] font-bold text-void transition-all hover:-translate-y-0.5 hover:glow-acid"
@@ -78,54 +80,50 @@ export default function Nav() {
               Hire Me →
             </a>
 
-            <button
+            <Button
+              variant="ghost" size="icon"
               aria-label="Open menu"
+              aria-expanded={open}
+              aria-controls="portfolio-mobile-menu"
               onClick={() => setOpen(true)}
               className="lg:hidden px-2 text-ink"
             >
               <Menu size={20} />
-            </button>
+            </Button>
           </div>
         </nav>
       </header>
 
-      {/* Mobile menu */}
-      <div
-        className={`fixed inset-0 z-[60] bg-void transition-transform duration-500 lg:hidden ${
-          open ? "translate-x-0" : "translate-x-full"
-        }`}
+      <AnimatePresence>
+      {open && <motion.div
+        id="portfolio-mobile-menu"
+        role="dialog" aria-modal="true" aria-label="Navigation"
+        data-lenis-prevent
+        initial={reduce ? false : { opacity: 0, y: -18 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -12 }}
+        transition={{ duration: reduce ? 0 : 0.4, ease: ease.brand }}
+        className="fixed inset-0 z-[60] overflow-y-auto bg-void lg:hidden"
+        onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }}
       >
         <div className="flex h-[66px] items-center justify-between px-6">
-          <span className="font-syne text-[18px] font-extrabold">
-            SANDEEP<span className="text-acid">.</span>
-          </span>
-          <button aria-label="Close menu" onClick={() => setOpen(false)} className="text-ink">
-            <X size={22} />
-          </button>
+          <span className="font-syne text-[18px] font-extrabold">SANDEEP<span className="text-acid">.</span></span>
+          <Button variant="ghost" size="icon" autoFocus aria-label="Close menu" onClick={() => setOpen(false)}><X size={22} /></Button>
         </div>
         <ul className="flex flex-col gap-6 px-8 pt-12">
-          {links.map((l) => (
-            <li key={l.href}>
-              <a
-                href={l.href}
-                onClick={() => setOpen(false)}
-                className="font-syne text-[40px] font-extrabold leading-none tracking-tight text-ink hover:text-acid transition-colors"
-              >
-                {l.label}
-              </a>
-            </li>
-          ))}
-          <li className="pt-6">
-            <a
-              href="#contact"
-              onClick={() => setOpen(false)}
-              className="inline-flex items-center rounded-lg bg-acid px-5 py-3 font-syne text-[14px] font-bold text-void"
+          {links.map((l, index) => (
+            <motion.li key={l.href}
+              initial={reduce ? false : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: reduce ? 0 : 0.45, delay: reduce ? 0 : index * 0.045, ease: ease.brand }}
             >
-              Hire Me →
-            </a>
-          </li>
+              <Link to={l.href} onClick={() => setOpen(false)} className="font-syne text-[36px] font-extrabold leading-none text-ink transition-colors hover:text-acid">{l.label}</Link>
+            </motion.li>
+          ))}
+          <li className="pt-6"><Button asChild><Link to="/#contact" onClick={() => setOpen(false)}>Hire Me →</Link></Button></li>
         </ul>
-      </div>
+      </motion.div>}
+      </AnimatePresence>
     </>
   );
 }
