@@ -122,9 +122,11 @@
   .entry-name { font-size: 52px; }
   .entry-name span { display: inline-block; }
   .entry-step { transition: background-color 400ms var(--motion-ease); }
-  .nav-capsule { box-shadow: var(--nav-shadow); transition: box-shadow 400ms var(--motion-ease), background-color 400ms var(--motion-ease); }
+  .nav-capsule { box-shadow: var(--nav-shadow); transition: top 400ms var(--motion-ease), box-shadow 400ms var(--motion-ease), background-color 400ms var(--motion-ease); }
+  body:has([data-availability-banner]) .nav-capsule { top: 56px; }
   .nav-capsule[data-scrolled="true"] { box-shadow: var(--nav-shadow-scrolled); }
   @media (max-width: 767px) {
+    body:has([data-availability-banner]) .nav-capsule { top: 72px; }
     .entry-phrase { font-size: 42px; }
     .entry-name { font-size: 36px; }
     .entry-name span { display: block; }

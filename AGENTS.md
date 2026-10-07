@@ -4,3 +4,4 @@
 - Keep live visitor presence in one shared channel per browser tab so route-transition overlap cannot double-subscribe or fragment the displayed count.
 
 - Gate public route mounting behind the completion-driven intro; advance each phrase only after reveal, hold, and fade finish so page animations never race the intro.
+- Use Lenis as the only animated scroll engine, with native touch, nested scrolling, and live reduced-motion fallback to avoid competing scroll easing.

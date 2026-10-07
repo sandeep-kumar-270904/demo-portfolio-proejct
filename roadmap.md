@@ -3,6 +3,6 @@
 - [x] Connect project cards to detail heroes with shared-layout expansion.
 - [x] Animate the existing scrollable milestone timeline and progress line.
 - [x] Verify desktop/mobile, reduced motion, project navigation, and tests.
-- [ ] Replace the flashing intro with a strictly sequential DESIGNING → DEVELOPING → EDHUBILLI SANDEEP KUMAR opening; reveal the portfolio only after completion.
-- [ ] Refine coordinated site-wide scrolling, reveals, navigation, and interactions with reduced-motion support.
-- [ ] Verify intro timing, navigation, scrolling, and automated tests in the live website.
+- [x] Replace the flashing intro with a strictly sequential DESIGNING → DEVELOPING → EDHUBILLI SANDEEP KUMAR opening; reveal the portfolio only after completion.
+- [x] Refine coordinated site-wide scrolling, reveals, navigation, and interactions with reduced-motion support.
+- [x] Verify intro timing, navigation, scrolling, and automated tests in the live website (17 tests passed; certificates currently have no content to display).
