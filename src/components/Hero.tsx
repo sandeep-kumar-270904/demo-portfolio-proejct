@@ -165,11 +165,11 @@ export default function Hero() {
             </span>
           </h1>
 
-          <motion.p style={{ y: copyY }} className="mt-8 max-w-[540px] text-[17px] leading-[1.8] text-ink-2">
+          <motion.p style={{ y: copyY }} className="reveal mt-8 max-w-[540px] text-[17px] leading-[1.8] text-ink-2">
             {t("hero_subtitle")}
           </motion.p>
 
-          <div className="mt-9 flex flex-wrap items-center gap-4">
+          <div className="reveal mt-9 flex flex-wrap items-center gap-4">
             <MagneticButton>
               <a
                 href="#projects"
@@ -193,7 +193,7 @@ export default function Hero() {
             </a>
           </div>
 
-          <div className="mt-12 grid grid-cols-3 divide-x divide-soft-2 border-y border-soft-2 py-6">
+          <div className="reveal mt-12 grid grid-cols-3 divide-x divide-soft-2 border-y border-soft-2 py-6">
             <div className="pr-6"><Stat value={12} suffix="+" label="Projects Shipped" start={inView} /></div>
             <div className="px-6"><Stat value={3} suffix="+" label="Years Building" start={inView} /></div>
             <div className="pl-6"><Stat value={42} suffix="%" label="Perf Improvement" start={inView} /></div>
@@ -206,7 +206,7 @@ export default function Hero() {
           style={{ y: termY, x: termX, scale: termScale, translateZ: 0 }}
         >
           <motion.div style={{ y: termTiltY }}>
-            <Terminal />
+            <div className="reveal"><Terminal /></div>
           </motion.div>
         </motion.div>
       </motion.div>

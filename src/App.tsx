@@ -55,8 +55,9 @@ const App = () => (
       <SmoothScroll />
       <Cursor />
       <ClickSound />
-      <EntryAnimation />
-      <AnimatedRoutes />
+       <EntryAnimation>
+         <AnimatedRoutes />
+       </EntryAnimation>
 
       </BrowserRouter>
     </TooltipProvider>
