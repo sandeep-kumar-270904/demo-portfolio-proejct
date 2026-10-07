@@ -16,7 +16,7 @@ export default function SmoothScroll() {
       try { id = decodeURIComponent(location.hash.slice(1)); } catch { return; }
       const element = document.getElementById(id);
       if (element) {
-        if (engine.current) engine.current.scrollTo(element, { offset: -90, duration: 1.15 });
+        if (engine.current) { engine.current.resize(); engine.current.scrollTo(element, { offset: 0, duration: 1.15 }); }
         else element.scrollIntoView({ behavior: "auto" });
       } else if (++attempts < 120) frame = requestAnimationFrame(scroll);
     };
@@ -60,7 +60,7 @@ export default function SmoothScroll() {
       if (!element) return;
       event.preventDefault();
       window.history.pushState(null, "", url.hash);
-      if (lenis) lenis.scrollTo(element, { offset: -90, duration: 1.15 });
+      if (lenis) { lenis.resize(); lenis.scrollTo(element, { offset: 0, duration: 1.15 }); }
       else element.scrollIntoView({ behavior: "auto" });
     };
     configure();

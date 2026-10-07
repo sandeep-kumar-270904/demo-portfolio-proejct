@@ -165,8 +165,8 @@ export default function Hero() {
             </span>
           </h1>
 
-          <motion.p style={{ y: copyY }} className="reveal mt-8 max-w-[540px] text-[17px] leading-[1.8] text-ink-2">
-            {t("hero_subtitle")}
+          <motion.p style={{ y: copyY }} className="mt-8 max-w-[540px] text-[17px] leading-[1.8] text-ink-2">
+            <span className="reveal block">{t("hero_subtitle")}</span>
           </motion.p>
 
           <div className="reveal mt-9 flex flex-wrap items-center gap-4">
