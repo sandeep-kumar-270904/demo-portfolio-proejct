@@ -32,7 +32,7 @@ export default function AvailabilityBanner() {
     : `Currently booked — next availability ${availableUntil}`;
 
   return (
-    <div className={`relative z-[55] w-full border-b ${ring}`}>
+    <div data-availability-banner className={`relative z-[55] w-full border-b ${ring}`}>
       <div className="mx-auto flex max-w-[1320px] items-center justify-center gap-3 px-6 py-2">
         <span className="relative flex h-1.5 w-1.5">
           <span className={`absolute inline-flex h-full w-full animate-sonar rounded-full ${dot}`} />
