@@ -3,18 +3,21 @@ import { motion } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import { ease } from "@/lib/motion";
 
-export const ENTRY_SESSION_KEY = "portfolio-entry-sequential-v3";
-export const ENTRY_PHRASES = ["DESIGNING", "DEVELOPING", "EDHUBILLI SANDEEP KUMAR"];
-export const ENTRY_HOLD_MS = [2400, 2400, 2800];
+/** Stored in localStorage: the intro plays on a visitor's first open only, never on refresh. */
+export const ENTRY_SESSION_KEY = "portfolio-entry-first-visit-v4";
+export const ENTRY_PHRASES = ["DESIGNING", "DEVELOPING", "WELCOME"];
+export const ENTRY_HOLD_MS = [2200, 2200, 2600];
+/** Empty pause between phrases so each one is clearly separate. */
+export const ENTRY_GAP_MS = 550;
 type Phase = "reveal" | "hold" | "fade" | "gap" | "curtain";
 
 function shouldPlay(pathname: string) {
-  if (pathname !== "/" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
-  try { return sessionStorage.getItem(ENTRY_SESSION_KEY) !== "1"; }
+  if (pathname !== "/") return false;
+  try { return localStorage.getItem(ENTRY_SESSION_KEY) !== "1"; }
   catch { return true; }
 }
 
-/** The page is mounted only after all three phrases and the final fade finish. */
+/** The portfolio is mounted only after all three phrases and the final fade finish. */
 export default function EntryAnimation({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const [playing, setPlaying] = useState(() => shouldPlay(pathname));
@@ -22,7 +25,7 @@ export default function EntryAnimation({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<Phase>("reveal");
 
   const finish = () => {
-    try { sessionStorage.setItem(ENTRY_SESSION_KEY, "1"); } catch { /* Storage is optional. */ }
+    try { localStorage.setItem(ENTRY_SESSION_KEY, "1"); } catch { /* Storage is optional. */ }
     setPlaying(false);
   };
 
@@ -30,20 +33,15 @@ export default function EntryAnimation({ children }: { children: ReactNode }) {
     if (!playing) return;
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
     const skip = (event: KeyboardEvent) => { if (event.key === "Escape") finish(); };
-    const reduce = () => { if (preference.matches) finish(); };
     window.addEventListener("keydown", skip);
-    preference.addEventListener("change", reduce);
     return () => {
       document.body.style.overflow = overflow;
       window.removeEventListener("keydown", skip);
-      preference.removeEventListener("change", reduce);
     };
   }, [playing]);
 
-  // Hold begins AFTER the reveal actually completes, not at page-load time.
-  // Returning from a background tab gets a fresh readable hold, never a flash.
+  // Hold begins only after the reveal completes; a background tab pauses the clock.
   useEffect(() => {
     if (!playing || (phase !== "hold" && phase !== "gap")) return;
     let timer = 0;
@@ -56,7 +54,7 @@ export default function EntryAnimation({ children }: { children: ReactNode }) {
           setStep(step + 1);
           setPhase("reveal");
         } else setPhase("curtain");
-      }, phase === "hold" ? ENTRY_HOLD_MS[step] : 180);
+      }, phase === "hold" ? ENTRY_HOLD_MS[step] : ENTRY_GAP_MS);
     };
     schedule();
     document.addEventListener("visibilitychange", schedule);
@@ -68,6 +66,7 @@ export default function EntryAnimation({ children }: { children: ReactNode }) {
 
   if (!playing) return <>{children}</>;
   const fading = phase === "fade" || phase === "gap" || phase === "curtain";
+  const isWelcome = step === ENTRY_PHRASES.length - 1;
   return (
     <motion.div
       data-testid="portfolio-intro"
@@ -76,24 +75,35 @@ export default function EntryAnimation({ children }: { children: ReactNode }) {
       className="entry-screen fixed inset-0 z-[10000] flex items-center justify-center overflow-hidden bg-void px-6"
       initial={{ opacity: 1 }}
       animate={{ opacity: phase === "curtain" ? 0 : 1 }}
-      transition={{ duration: 0.75, ease: ease.brand }}
+      transition={{ duration: 0.8, ease: ease.brand }}
       onAnimationComplete={() => { if (phase === "curtain") finish(); }}
     >
       <div className="entry-stage text-center">
         <motion.h2
           key={step}
           aria-label={ENTRY_PHRASES[step]}
-          className={`entry-phrase font-syne font-extrabold uppercase ${step === 2 ? "entry-name text-acid" : "text-ink"}`}
-          initial={{ opacity: 0, y: 32 }}
-          animate={{ opacity: fading ? 0 : 1, y: fading ? -24 : 0 }}
-          transition={{ duration: fading ? 0.65 : 0.95, ease: ease.brand }}
+          className={`entry-phrase font-syne font-extrabold uppercase ${isWelcome ? "text-acid" : "text-ink"}`}
+          initial={{ opacity: 0, y: 28, filter: "blur(8px)" }}
+          animate={{ opacity: fading ? 0 : 1, y: fading ? -20 : 0, filter: fading ? "blur(6px)" : "blur(0px)" }}
+          transition={{ duration: fading ? 0.7 : 1, ease: ease.brand }}
           onAnimationComplete={() => {
             if (phase === "reveal") setPhase("hold");
             if (phase === "fade") setPhase("gap");
           }}
         >
-          {step === 2 ? <><span>EDHUBILLI</span>{" "}<span>SANDEEP</span>{" "}<span>KUMAR</span></> : ENTRY_PHRASES[step]}
+          {ENTRY_PHRASES[step]}
         </motion.h2>
+        {isWelcome && (
+          <motion.p
+            aria-hidden="true"
+            className="mt-4 font-mono text-xs uppercase tracking-[0.3em] text-ink-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: fading ? 0 : 1 }}
+            transition={{ duration: 0.7, delay: fading ? 0 : 0.35, ease: ease.brand }}
+          >
+            to the portfolio of Edhubilli Sandeep Kumar
+          </motion.p>
+        )}
       </div>
       <div aria-hidden="true" className="absolute bottom-16 flex items-center gap-3">
         {ENTRY_PHRASES.map((phrase, index) => (

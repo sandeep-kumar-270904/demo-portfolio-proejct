@@ -6,13 +6,14 @@ import type { ReactNode } from "react";
 vi.mock("framer-motion", () => ({
   motion: {
     div: ({ children, onAnimationComplete, initial, animate, transition, ...props }: { children?: ReactNode; onAnimationComplete?: () => void; initial?: unknown; animate?: unknown; transition?: unknown }) => <div {...props} onTransitionEnd={onAnimationComplete}>{children}</div>,
+    p: ({ children, initial, animate, transition, ...props }: { children?: ReactNode; initial?: unknown; animate?: unknown; transition?: unknown }) => <p {...props}>{children}</p>,
     h2: ({ children, onAnimationComplete, initial, animate, transition, ...props }: { children?: ReactNode; onAnimationComplete?: () => void; initial?: unknown; animate?: unknown; transition?: unknown }) => <h2 {...props} onTransitionEnd={onAnimationComplete}>{children}</h2>,
   },
 }));
-import EntryAnimation, { ENTRY_HOLD_MS, ENTRY_PHRASES, ENTRY_SESSION_KEY } from "@/components/EntryAnimation";
+import EntryAnimation, { ENTRY_GAP_MS, ENTRY_HOLD_MS, ENTRY_PHRASES, ENTRY_SESSION_KEY } from "@/components/EntryAnimation";
 
 const mount = (path = "/") => render(<MemoryRouter initialEntries={[path]}><EntryAnimation><main>Portfolio</main></EntryAnimation></MemoryRouter>);
-beforeEach(() => { sessionStorage.clear(); vi.useFakeTimers(); });
+beforeEach(() => { localStorage.clear(); vi.useFakeTimers(); });
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 describe("readable sequential intro", () => {
@@ -30,17 +31,17 @@ describe("readable sequential intro", () => {
       act(() => vi.advanceTimersByTime(1));
       expect(screen.getByTestId("portfolio-intro")).toHaveAttribute("data-phase", "fade");
       fireEvent.transitionEnd(screen.getByRole("heading"));
-      act(() => vi.advanceTimersByTime(180));
+      act(() => vi.advanceTimersByTime(ENTRY_GAP_MS));
     });
     expect(screen.queryByRole("main")).toBeNull();
-    expect(sessionStorage.getItem(ENTRY_SESSION_KEY)).toBeNull();
+    expect(localStorage.getItem(ENTRY_SESSION_KEY)).toBeNull();
     fireEvent.transitionEnd(screen.getByTestId("portfolio-intro"));
     expect(screen.getByRole("main")).toBeInTheDocument();
-    expect(sessionStorage.getItem(ENTRY_SESSION_KEY)).toBe("1");
+    expect(localStorage.getItem(ENTRY_SESSION_KEY)).toBe("1");
   });
 
   it("does not replay a completed session", () => {
-    sessionStorage.setItem(ENTRY_SESSION_KEY, "1");
+    localStorage.setItem(ENTRY_SESSION_KEY, "1");
     mount();
     expect(screen.getByRole("main")).toBeInTheDocument();
   });
