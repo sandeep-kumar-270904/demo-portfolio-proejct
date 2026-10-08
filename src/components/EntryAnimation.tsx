@@ -84,7 +84,7 @@ export default function EntryAnimation({ children }: { children: ReactNode }) {
         <motion.h2
           key={step}
           aria-label={ENTRY_PHRASES[step]}
-          className={`entry-phrase font-syne font-extrabold uppercase ${isWelcome ? "text-acid" : "text-ink"}`}
+          className={`entry-phrase font-syne font-extrabold uppercase entry-shine ${isWelcome ? "entry-shine--acid" : "entry-shine--ink"}`}
           initial={{ opacity: 0, y: 28, filter: "blur(8px)" }}
           animate={{ opacity: fading ? 0 : 1, y: fading ? -20 : 0, filter: fading ? "blur(6px)" : "blur(0px)" }}
           transition={{ duration: fading ? 0.4 : 0.85, ease: ease.brand }}
