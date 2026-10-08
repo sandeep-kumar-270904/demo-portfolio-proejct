@@ -101,7 +101,7 @@ export default function EntryAnimation({ children }: { children: ReactNode }) {
             className="mt-4 font-mono text-xs uppercase tracking-[0.3em] text-ink-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: fading ? 0 : 1 }}
-            transition={{ duration: 0.7, delay: fading ? 0 : 0.35, ease: ease.brand }}
+            transition={{ duration: 0.5, delay: fading ? 0 : 0.3, ease: ease.brand }}
           >
             to the portfolio of Edhubilli Sandeep Kumar
           </motion.p>
