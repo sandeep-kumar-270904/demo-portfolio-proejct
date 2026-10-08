@@ -10,7 +10,7 @@ const corsHeaders = {
 const USERNAME = Deno.env.get("GITHUB_USERNAME") || "sandeep-kumar-270904";
 const GH = "https://api.github.com";
 const TTL_MS = 60 * 60 * 1000; // 1 hour
-const CACHE_ID = `github-stats:${USERNAME}`;
+const CACHE_ID = `github-stats-v2:${USERNAME}`;
 
 const headers: Record<string, string> = {
   "User-Agent": "lovable-portfolio",
@@ -207,6 +207,17 @@ serve(async (req) => {
         html_url: r.html_url,
       }));
 
+    // Most recently updated repositories shown as cards in the section
+    const recentRepos = own.slice(0, 6).map((r) => ({
+      name: r.name,
+      description: r.description,
+      language: r.language,
+      stargazers_count: r.stargazers_count || 0,
+      forks_count: r.forks_count || 0,
+      html_url: r.html_url,
+      pushed_at: r.pushed_at,
+    }));
+
     const payload = {
       user: {
         login: user.login,
@@ -228,6 +239,7 @@ serve(async (req) => {
       latest,
       activity,
       pinnedRepos,
+      recentRepos,
       cachedAt: new Date().toISOString(),
     };
 
