@@ -35,12 +35,13 @@ export type GitHubStats = {
   latest: { name: string; description: string | null; html_url: string; pushed_at: string; language: string | null } | null;
   activity: ActivityItem[];
   pinnedRepos?: PinnedRepo[];
+  recentRepos?: (PinnedRepo & { pushed_at?: string })[];
   stale?: boolean;
   fallback?: boolean;
   cachedAt: string;
 };
 
-const LS_KEY = "gh-stats-cache-v2";
+const LS_KEY = "gh-stats-cache-v3";
 
 export function useGitHubStats() {
   const [data, setData] = useState<GitHubStats | null>(() => {

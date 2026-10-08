@@ -56,6 +56,7 @@ export default function GitHub() {
 
   const activity = data?.activity ?? [];
   const latest = data?.latest ?? null;
+  const repos = (data?.recentRepos?.length ? data.recentRepos : data?.pinnedRepos ?? []).slice(0, 6);
 
   return (
     <section id="github" className="relative bg-void px-6 py-14 lg:py-24">
@@ -209,6 +210,44 @@ export default function GitHub() {
             )}
           </div>
         </div>
+
+        {repos.length > 0 && (
+          <div className="mt-10">
+            <div className="reveal flex items-end justify-between gap-4">
+              <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">Repositories</div>
+              {data?.user?.html_url && (
+                <a href={`${data.user.html_url}?tab=repositories`} target="_blank" rel="noreferrer" className="font-mono text-[11px] uppercase tracking-widest text-acid hover:underline">
+                  View all on GitHub →
+                </a>
+              )}
+            </div>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {repos.map((r, i) => (
+                <a
+                  key={r.name}
+                  href={r.html_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="reveal float-hover flex flex-col rounded-2xl border border-soft-2 bg-card p-5 transition-colors hover:border-acid/30"
+                >
+                  <div className="truncate font-syne text-base font-bold text-ink">{r.name}</div>
+                  <div className="mt-1.5 line-clamp-2 min-h-[2.5rem] text-sm text-ink-2">{r.description || "No description yet."}</div>
+                  <div className="mt-4 flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                    {r.language && (
+                      <span className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full" style={{ background: LANG_COLORS[i % LANG_COLORS.length] }} />
+                        {r.language}
+                      </span>
+                    )}
+                    <span>★ {r.stargazers_count}</span>
+                    <span>⑂ {r.forks_count}</span>
+                    {"pushed_at" in r && typeof r.pushed_at === "string" && <span className="ml-auto">{timeAgo(r.pushed_at)}</span>}
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

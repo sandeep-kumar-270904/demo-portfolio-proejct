@@ -31,6 +31,8 @@ export default function EntryAnimation({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!playing) return;
+    // Mark as seen as soon as it starts, so refreshing never replays it.
+    try { localStorage.setItem(ENTRY_SESSION_KEY, "1"); } catch { /* Storage is optional. */ }
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const skip = (event: KeyboardEvent) => { if (event.key === "Escape") finish(); };
