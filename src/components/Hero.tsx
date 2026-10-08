@@ -55,6 +55,54 @@ function WordReveal({
   );
 }
 
+// Typing-style character-by-character reveal with a blinking caret, used for the name line.
+function TypeReveal({
+  text,
+  className,
+  charClassName,
+  baseDelay = 0,
+  charDelay = 0.045,
+}: {
+  text: string;
+  className?: string;
+  charClassName?: string;
+  baseDelay?: number;
+  charDelay?: number;
+}) {
+  const reduce = useReducedMotion();
+  const chars = Array.from(text ?? "");
+  const total = baseDelay + chars.length * charDelay;
+  if (reduce)
+    return (
+      <span className={className}>
+        <span className={charClassName}>{text}</span>
+      </span>
+    );
+  return (
+    <span className={className} aria-label={text}>
+      {chars.map((c, i) => (
+        <motion.span
+          key={i}
+          aria-hidden="true"
+          className={`inline-block will-change-transform ${charClassName ?? ""}`}
+          initial={{ opacity: 0, y: "0.35em", filter: "blur(4px)" }}
+          animate={{ opacity: 1, y: "0em", filter: "blur(0px)" }}
+          transition={{ duration: 0.32, ease: ease.brand, delay: baseDelay + i * charDelay }}
+        >
+          {c === " " ? " " : c}
+        </motion.span>
+      ))}
+      <motion.span
+        aria-hidden="true"
+        className="name-caret"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: [0, 1, 1, 0] }}
+        transition={{ duration: total + 2.2, times: [0, 0.02, 0.85, 1], ease: "linear" }}
+      />
+    </span>
+  );
+}
+
 function Stat({ value, suffix = "", label, start }: { value: number; suffix?: string; label: string; start: boolean }) {
   const v = useCounter(value, 1400, start);
   return (
@@ -161,7 +209,7 @@ export default function Hero() {
               <WordReveal text={t("hero_line2")} className="block text-stroke" baseDelay={0.35} />
             </span>
             <span className="block overflow-hidden">
-              <WordReveal text={t("hero_line3")} className="block" wordClassName="text-grad-acid" baseDelay={0.7} />
+              <TypeReveal text={t("hero_line3")} className="block" charClassName="text-grad-acid" baseDelay={0.7} />
             </span>
           </h1>
 
