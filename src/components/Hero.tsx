@@ -97,14 +97,7 @@ function TypeReveal({
         className="name-caret"
         initial={{ opacity: 0 }}
         animate={{ opacity: [0, 1, 1, 0] }}
-        transition={{
-          duration: 1.6,
-          delay: baseDelay,
-          times: [0, 0.05, 0.9, 1],
-          repeat: 2,
-          repeatDelay: 0,
-        }}
-        style={{ animationDelay: `${total}s` }}
+        transition={{ duration: total + 2.2, times: [0, 0.02, 0.85, 1], ease: "linear" }}
       />
     </span>
   );
@@ -216,7 +209,7 @@ export default function Hero() {
               <WordReveal text={t("hero_line2")} className="block text-stroke" baseDelay={0.35} />
             </span>
             <span className="block overflow-hidden">
-              <WordReveal text={t("hero_line3")} className="block" wordClassName="text-grad-acid" baseDelay={0.7} />
+              <TypeReveal text={t("hero_line3")} className="block" charClassName="text-grad-acid" baseDelay={0.7} />
             </span>
           </h1>
 
