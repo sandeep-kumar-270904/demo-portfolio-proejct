@@ -34,7 +34,7 @@ describe("readable sequential intro", () => {
       act(() => vi.advanceTimersByTime(ENTRY_GAP_MS));
     });
     expect(screen.queryByRole("main")).toBeNull();
-    expect(localStorage.getItem(ENTRY_SESSION_KEY)).toBeNull();
+    expect(localStorage.getItem(ENTRY_SESSION_KEY)).toBe("1");
     fireEvent.transitionEnd(screen.getByTestId("portfolio-intro"));
     expect(screen.getByRole("main")).toBeInTheDocument();
     expect(localStorage.getItem(ENTRY_SESSION_KEY)).toBe("1");

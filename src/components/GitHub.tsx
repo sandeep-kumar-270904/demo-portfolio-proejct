@@ -241,7 +241,7 @@ export default function GitHub() {
                     )}
                     <span>★ {r.stargazers_count}</span>
                     <span>⑂ {r.forks_count}</span>
-                    {"pushed_at" in r && r.pushed_at && <span className="ml-auto">{timeAgo(r.pushed_at)}</span>}
+                    {"pushed_at" in r && typeof r.pushed_at === "string" && <span className="ml-auto">{timeAgo(r.pushed_at)}</span>}
                   </div>
                 </a>
               ))}
