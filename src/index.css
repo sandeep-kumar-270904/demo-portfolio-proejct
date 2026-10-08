@@ -204,6 +204,45 @@
     animation: gradient-sweep 7s ease infinite;
   }
 
+  /* One-shot shine sweep across intro phrases as they appear */
+  @keyframes shine-sweep {
+    from { background-position: 130% 0; }
+    to { background-position: -30% 0; }
+  }
+  .entry-shine {
+    background-image: linear-gradient(
+      100deg,
+      var(--shine-base) 30%,
+      var(--shine-glow) 50%,
+      var(--shine-base) 70%
+    );
+    background-size: 260% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  .entry-shine--ink { --shine-base: hsl(var(--ink)); --shine-glow: hsl(var(--acid)); }
+  .entry-shine--acid { --shine-base: hsl(var(--acid)); --shine-glow: hsl(0 0% 100%); }
+  @media (prefers-reduced-motion: no-preference) {
+    .entry-shine { animation: shine-sweep 1.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both; }
+  }
+
+  /* Typing-style caret for the hero name reveal */
+  @keyframes caret-blink {
+    0%, 45% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+  .name-caret {
+    display: inline-block;
+    width: 0.09em;
+    height: 0.82em;
+    margin-left: 0.06em;
+    vertical-align: -0.06em;
+    background: hsl(var(--acid));
+    animation: caret-blink 0.9s step-end infinite;
+  }
+
   /* Subtle mesh shift used by hero */
   @keyframes mesh-shift {
     0%, 100% { background-position: 0% 0%; }
