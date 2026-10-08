@@ -7,8 +7,8 @@ import { ease } from "@/lib/motion";
 export const ENTRY_SESSION_KEY = "portfolio-entry-first-visit-v4";
 export const ENTRY_PHRASES = ["DESIGNING", "DEVELOPING", "WELCOME"];
 export const ENTRY_HOLD_MS = [2200, 2200, 2600];
-/** Empty pause between phrases so each one is clearly separate. */
-export const ENTRY_GAP_MS = 550;
+/** Short blank pause between phrases — just enough to separate them without feeling stuck. */
+export const ENTRY_GAP_MS = 220;
 type Phase = "reveal" | "hold" | "fade" | "gap" | "curtain";
 
 function shouldPlay(pathname: string) {
@@ -87,7 +87,7 @@ export default function EntryAnimation({ children }: { children: ReactNode }) {
           className={`entry-phrase font-syne font-extrabold uppercase ${isWelcome ? "text-acid" : "text-ink"}`}
           initial={{ opacity: 0, y: 28, filter: "blur(8px)" }}
           animate={{ opacity: fading ? 0 : 1, y: fading ? -20 : 0, filter: fading ? "blur(6px)" : "blur(0px)" }}
-          transition={{ duration: fading ? 0.7 : 1, ease: ease.brand }}
+          transition={{ duration: fading ? 0.4 : 0.85, ease: ease.brand }}
           onAnimationComplete={() => {
             if (phase === "reveal") setPhase("hold");
             if (phase === "fade") setPhase("gap");
