@@ -332,3 +332,30 @@
 .token.regex, .token.important, .token.variable { color: #febc2e; }
 .token.title, .token.bold { font-weight: 700; color: hsl(var(--acid)); }
 .token.italic { font-style: italic; }
+
+/* ---- Polish layer: link underlines, arrow nudges, heading mask reveal ---- */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  footer a:not(:has(svg:only-child)), #contact a:not(:has(svg:only-child)):not([class*="rounded"]) {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-repeat: no-repeat;
+    background-position: 100% 100%;
+    transition: background-size 420ms var(--motion-ease, cubic-bezier(0.16,1,0.3,1));
+  }
+  footer a:hover, #contact a:hover { background-size: 100% 1px; background-position: 0% 100%; }
+
+  a svg[class*="lucide-arrow"], button svg[class*="lucide-arrow"] {
+    transition: transform 320ms var(--motion-ease, cubic-bezier(0.16,1,0.3,1));
+  }
+  a:hover svg[class*="lucide-arrow-right"], button:hover svg[class*="lucide-arrow-right"] { transform: translateX(3px); }
+  a:hover svg[class*="lucide-arrow-up-right"], button:hover svg[class*="lucide-arrow-up-right"] { transform: translate(2px, -2px); }
+  a:hover svg[class*="lucide-arrow-left"], button:hover svg[class*="lucide-arrow-left"] { transform: translateX(-3px); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  section h2.reveal, section .reveal > h2 {
+    clip-path: inset(0 0 100% 0);
+    transition: clip-path 900ms var(--motion-ease, cubic-bezier(0.16,1,0.3,1)), opacity 780ms ease, transform 780ms var(--motion-ease, cubic-bezier(0.16,1,0.3,1));
+  }
+  section h2.reveal.is-visible, section .reveal.is-visible > h2 { clip-path: inset(0 0 -10% 0); }
+}

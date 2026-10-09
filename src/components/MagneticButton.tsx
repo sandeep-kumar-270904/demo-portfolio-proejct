@@ -1,29 +1,27 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
+import { motion, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
 
+/** Spring-based magnetic pull; inert on touch devices and with reduced motion. */
 export default function MagneticButton({ children, strength = 10 }: { children: ReactNode; strength?: number }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const reduce = useReducedMotion();
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const x = useSpring(mx, { stiffness: 220, damping: 18, mass: 0.4 });
+  const y = useSpring(my, { stiffness: 220, damping: 18, mass: 0.4 });
 
-  const onMove = (e: React.MouseEvent) => {
-    const el = ref.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height / 2;
-    const dx = (e.clientX - cx) / (r.width / 2);
-    const dy = (e.clientY - cy) / (r.height / 2);
-    setPos({ x: dx * strength, y: dy * strength });
+  const onMove = (e: React.PointerEvent) => {
+    if (reduce || e.pointerType !== "mouse") return;
+    const r = ref.current?.getBoundingClientRect();
+    if (!r) return;
+    mx.set(((e.clientX - (r.left + r.width / 2)) / (r.width / 2)) * strength);
+    my.set(((e.clientY - (r.top + r.height / 2)) / (r.height / 2)) * strength);
   };
+  const reset = () => { mx.set(0); my.set(0); };
 
   return (
-    <div
-      ref={ref}
-      onMouseMove={onMove}
-      onMouseLeave={() => setPos({ x: 0, y: 0 })}
-      className="inline-block transition-transform duration-300 ease-out will-change-transform"
-      style={{ transform: `translate(${pos.x}px, ${pos.y}px)` }}
-    >
+    <motion.div ref={ref} onPointerMove={onMove} onPointerLeave={reset} className="inline-block will-change-transform" style={{ x, y }}>
       {children}
-    </div>
+    </motion.div>
   );
 }
