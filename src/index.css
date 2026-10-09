@@ -344,6 +344,16 @@
   }
   footer a:hover, #contact a:hover { background-size: 100% 1px; background-position: 0% 100%; }
 
+  /* Nav capsule links: underline slides in from the left on hover */
+  .nav-capsule ul a {
+    background-image: linear-gradient(hsl(var(--acid)), hsl(var(--acid)));
+    background-size: 0% 1.5px;
+    background-repeat: no-repeat;
+    background-position: 0% 82%;
+    transition: background-size 380ms var(--motion-ease, cubic-bezier(0.16,1,0.3,1)), color 200ms ease;
+  }
+  .nav-capsule ul a:hover { background-size: 100% 1.5px; }
+
   a svg[class*="lucide-arrow"], button svg[class*="lucide-arrow"] {
     transition: transform 320ms var(--motion-ease, cubic-bezier(0.16,1,0.3,1));
   }
