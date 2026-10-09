@@ -7,6 +7,19 @@ import { useSiteCopy } from "@/hooks/useSiteCopy";
 import type { DbProject } from "@/data/projectsFallback";
 import { getProjectVisual } from "@/data/projectVisuals";
 import type { Project, ProjectCategory } from "@/data/projects";
+import { useScrollParallax } from "@/hooks/useScrollParallax";
+
+// Media layer with scroll-linked parallax; scaled up so the drift never shows edges.
+function ParallaxMedia({ children }: { children: React.ReactNode }) {
+  const { ref, y } = useScrollParallax<HTMLDivElement>(24);
+  return (
+    <div ref={ref} className="absolute inset-0 overflow-hidden">
+      <motion.div className="absolute inset-[-8%] will-change-transform" style={{ y }}>
+        {children}
+      </motion.div>
+    </div>
+  );
+}
 
 const CATEGORIES: ("All" | string)[] = ["All", "SaaS", "E-Commerce", "Dev Tools", "DevOps"];
 
@@ -50,7 +63,7 @@ function FeaturedCard({ p }: { p: Project }) {
     >
       <div className="grid grid-cols-1 lg:grid-cols-2">
         <motion.div layoutId={`project-media-${p.slug}`} className="media-zoom relative aspect-[5/4] overflow-hidden lg:aspect-auto" transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
-          {p.visual}
+          <ParallaxMedia>{p.visual}</ParallaxMedia>
           <div className="absolute inset-0 bg-gradient-to-t from-void/90 via-void/20 to-transparent" />
           <span className="absolute left-6 top-6 font-mono text-[11px] uppercase tracking-widest text-acid">
             {p.number}
@@ -109,7 +122,7 @@ function GridCard({ p, idx }: { p: Project; idx: number }) {
       style={{ transitionDelay: `${idx * 60}ms` }}
     >
         <motion.div layoutId={`project-media-${p.slug}`} className="media-zoom relative aspect-[4/3] overflow-hidden" transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
-        {p.visual}
+        <ParallaxMedia>{p.visual}</ParallaxMedia>
         <div className="absolute inset-0 bg-gradient-to-t from-void/80 to-transparent" />
         <span className="absolute left-5 top-5 font-mono text-[10px] uppercase tracking-widest text-acid">
           {p.number}
