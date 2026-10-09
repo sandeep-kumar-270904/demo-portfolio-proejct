@@ -13,6 +13,8 @@ type Phase = "reveal" | "hold" | "fade" | "gap" | "curtain";
 
 function shouldPlay(pathname: string) {
   if (pathname !== "/") return false;
+  // `/?intro` replays the intro on demand (useful for previewing it again).
+  if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("intro")) return true;
   try { return localStorage.getItem(ENTRY_SESSION_KEY) !== "1"; }
   catch { return true; }
 }
