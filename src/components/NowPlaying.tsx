@@ -17,12 +17,16 @@ export default function NowPlaying() {
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playlistRef = useRef<SongTrack[]>(playlist);
-  const isChangingRef = useRef(false);
+  const currentIndexRef = useRef(0);
   const bars = [1, 2, 3, 4];
 
   useEffect(() => {
     playlistRef.current = playlist;
   }, [playlist]);
+
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
 
   const resolveAudioUrl = (url?: string) => {
     const path = (url || "/audio/tadow.mp3").trim();
@@ -36,46 +40,69 @@ export default function NowPlaying() {
     return encodeURI(decodeURI(path));
   };
 
-  const changeTrack = useCallback((direction: number, autoPlay = true) => {
+  const playTrackAtIndex = useCallback((index: number) => {
     const list = playlistRef.current;
     if (list.length === 0) return;
-    if (isChangingRef.current) return;
-    isChangingRef.current = true;
+    const safeIndex = (index + list.length) % list.length;
+    const track = list[safeIndex];
+    const a = audioRef.current;
 
-    setCurrentIndex((prevIndex) => {
-      // Infinite loop in both directions
-      const nextIndex = (prevIndex + direction + list.length) % list.length;
-      const track = list[nextIndex];
-      const a = audioRef.current;
-      if (a) {
-        a.pause();
-        a.src = resolveAudioUrl(track.audioUrl);
-        a.load();
-        if (autoPlay) {
-          const playPromise = a.play();
-          if (playPromise !== undefined) {
-            playPromise
-              .then(() => setPlaying(true))
-              .catch(() => {
-                // If a track fails, automatically skip to next song in the loop
-                if (list.length > 1) {
-                  setTimeout(() => {
-                    isChangingRef.current = false;
-                    changeTrack(1, true);
-                  }, 800);
-                } else {
-                  setPlaying(false);
-                }
-              });
-          }
-        }
+    setCurrentIndex(safeIndex);
+    currentIndexRef.current = safeIndex;
+
+    if (!a) return;
+
+    try {
+      a.pause();
+      const targetSrc = resolveAudioUrl(track.audioUrl);
+      a.src = targetSrc;
+      a.load();
+      const promise = a.play();
+      if (promise !== undefined) {
+        promise
+          .then(() => setPlaying(true))
+          .catch((err) => {
+            console.warn(`Could not play "${track.title}":`, err);
+          });
       }
-      setTimeout(() => {
-        isChangingRef.current = false;
-      }, 300);
-      return nextIndex;
-    });
+    } catch (err) {
+      console.warn("Audio playback error:", err);
+    }
   }, []);
+
+  const playNext = useCallback(
+    (e?: React.MouseEvent) => {
+      e?.stopPropagation();
+      const list = playlistRef.current;
+      if (list.length <= 1) {
+        if (audioRef.current) {
+          audioRef.current.currentTime = 0;
+          audioRef.current.play().catch(() => {});
+        }
+        return;
+      }
+      const next = (currentIndexRef.current + 1) % list.length;
+      playTrackAtIndex(next);
+    },
+    [playTrackAtIndex]
+  );
+
+  const playPrev = useCallback(
+    (e?: React.MouseEvent) => {
+      e?.stopPropagation();
+      const list = playlistRef.current;
+      if (list.length <= 1) {
+        if (audioRef.current) {
+          audioRef.current.currentTime = 0;
+          audioRef.current.play().catch(() => {});
+        }
+        return;
+      }
+      const prev = (currentIndexRef.current - 1 + list.length) % list.length;
+      playTrackAtIndex(prev);
+    },
+    [playTrackAtIndex]
+  );
 
   useEffect(() => {
     const a = new Audio();
@@ -89,39 +116,31 @@ export default function NowPlaying() {
 
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
-    
-    // Auto-advance loop on track end
+
+    // Continuous loop on track end
     const onEnded = () => {
-      if (playlistRef.current.length > 1) {
-        changeTrack(1, true);
+      const list = playlistRef.current;
+      if (list.length > 1) {
+        const next = (currentIndexRef.current + 1) % list.length;
+        playTrackAtIndex(next);
       } else {
-        // Continuous loop for single track
         a.currentTime = 0;
         a.play().catch(() => setPlaying(false));
-      }
-    };
-
-    // If an error happens on current audio, auto-skip to keep loop going
-    const onError = () => {
-      if (playlistRef.current.length > 1) {
-        setTimeout(() => changeTrack(1, true), 1000);
       }
     };
 
     a.addEventListener("play", onPlay);
     a.addEventListener("pause", onPause);
     a.addEventListener("ended", onEnded);
-    a.addEventListener("error", onError);
 
     return () => {
       a.pause();
       a.removeEventListener("play", onPlay);
       a.removeEventListener("pause", onPause);
       a.removeEventListener("ended", onEnded);
-      a.removeEventListener("error", onError);
       audioRef.current = null;
     };
-  }, [changeTrack]);
+  }, [playTrackAtIndex]);
 
   const togglePlay = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -140,39 +159,9 @@ export default function NowPlaying() {
       } else {
         a.pause();
       }
-    } catch {
-      setPlaying(false);
-      // If play failed on current track, advance to next track in loop
-      if (playlist.length > 1) {
-        changeTrack(1, true);
-      }
+    } catch (err) {
+      console.warn("Toggle play error:", err);
     }
-  };
-
-  const playPrev = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    if (playlist.length <= 1) {
-      const a = audioRef.current;
-      if (a) {
-        a.currentTime = 0;
-        a.play().catch(() => {});
-      }
-      return;
-    }
-    changeTrack(-1, true);
-  };
-
-  const playNext = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    if (playlist.length <= 1) {
-      const a = audioRef.current;
-      if (a) {
-        a.currentTime = 0;
-        a.play().catch(() => {});
-      }
-      return;
-    }
-    changeTrack(1, true);
   };
 
   const currentTrack = playlist[currentIndex] || playlist[0];
