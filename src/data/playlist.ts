@@ -14,11 +14,6 @@ export const AUTO_PLAYLIST: SongTrack[] = [
     "audioUrl": "/audio/tadow.mp3"
   },
   {
-    "title": "Jawan Title Track",
-    "artist": "Anirudh & Raja Kumari",
-    "audioUrl": "/audio/jawan.m4a"
-  },
-  {
     "title": "Powerhouse",
     "artist": "Official Lyric Video Coolie Superstar Rajinikanth Sun Pictures Lokesh Anirudh(mp3 320k)",
     "audioUrl": "/audio/Powerhouse%20-%20Official%20Lyric%20Video%20_%20Coolie%20_%20Superstar%20Rajinikanth%20_%20Sun%20Pictures%20_%20Lokesh%20_%20Anirudh(MP3_320K).mp3"
