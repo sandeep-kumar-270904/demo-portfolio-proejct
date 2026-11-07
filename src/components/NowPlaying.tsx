@@ -33,7 +33,7 @@ export default function NowPlaying() {
     ) {
       return `https://sandeep-kumar-edhubilli-portfolio.lovable.app${path}`;
     }
-    return path;
+    return encodeURI(decodeURI(path));
   };
 
   const changeTrack = useCallback((direction: number, autoPlay = true) => {
@@ -104,7 +104,8 @@ export default function NowPlaying() {
     try {
       if (a.paused) {
         const targetSrc = resolveAudioUrl(track.audioUrl);
-        if (!a.src || (!a.src.includes(encodeURI(targetSrc)) && a.src !== targetSrc)) {
+        const resolvedHref = new URL(targetSrc, window.location.href).href;
+        if (!a.src || a.src !== resolvedHref) {
           a.src = targetSrc;
           a.load();
         }
@@ -122,13 +123,29 @@ export default function NowPlaying() {
 
   const playPrev = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (playlist.length <= 1) return;
+    if (playlist.length <= 1) {
+      const a = audioRef.current;
+      if (a) {
+        a.currentTime = 0;
+        a.play().catch(() => {});
+      }
+      toast.info("Add more songs to src/config.ts to switch between tracks!");
+      return;
+    }
     changeTrack(-1, true);
   };
 
   const playNext = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (playlist.length <= 1) return;
+    if (playlist.length <= 1) {
+      const a = audioRef.current;
+      if (a) {
+        a.currentTime = 0;
+        a.play().catch(() => {});
+      }
+      toast.info("Add more songs to src/config.ts to switch between tracks!");
+      return;
+    }
     changeTrack(1, true);
   };
 
@@ -143,10 +160,9 @@ export default function NowPlaying() {
         <button
           type="button"
           onClick={playPrev}
-          disabled={playlist.length <= 1}
           aria-label="Previous track"
-          title={playlist.length > 1 ? "Previous track" : "Add more songs in config.ts to enable"}
-          className="grid h-7 w-7 place-items-center rounded-lg text-ink-2 transition-all hover:bg-acid/10 hover:text-acid disabled:opacity-25 disabled:hover:bg-transparent disabled:hover:text-ink-2 disabled:cursor-not-allowed"
+          title="Previous track"
+          className="grid h-7 w-7 place-items-center rounded-lg text-ink-2 transition-all hover:bg-acid/10 hover:text-acid active:scale-95"
         >
           <SkipBack size={13} />
         </button>
@@ -164,10 +180,9 @@ export default function NowPlaying() {
         <button
           type="button"
           onClick={playNext}
-          disabled={playlist.length <= 1}
           aria-label="Next track"
-          title={playlist.length > 1 ? "Next track" : "Add more songs in config.ts to enable"}
-          className="grid h-7 w-7 place-items-center rounded-lg text-ink-2 transition-all hover:bg-acid/10 hover:text-acid disabled:opacity-25 disabled:hover:bg-transparent disabled:hover:text-ink-2 disabled:cursor-not-allowed"
+          title="Next track"
+          className="grid h-7 w-7 place-items-center rounded-lg text-ink-2 transition-all hover:bg-acid/10 hover:text-acid active:scale-95"
         >
           <SkipForward size={13} />
         </button>

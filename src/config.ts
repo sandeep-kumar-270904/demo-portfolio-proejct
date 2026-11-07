@@ -22,7 +22,7 @@ export const SITE = {
   spotifyTrackId: "1eyekkPRDDtR0Bm0EYjvgs",
   // Multiple songs playlist — add as many songs as you want!
   // To add a new song:
-  // 1. Put the .mp3 file into public/audio/ (e.g. public/audio/mysong.mp3)
+  // 1. Put the audio file into public/audio/
   // 2. Add an entry to this playlist array below:
   playlist: [
     {
@@ -30,12 +30,11 @@ export const SITE = {
       artist: "FKJ & Masego",
       audioUrl: "/audio/tadow.mp3",
     },
-    // Example:
-    // {
-    //   title: "My Second Song",
-    //   artist: "Artist Name",
-    //   audioUrl: "/audio/second-song.mp3",
-    // },
+    {
+      title: "Jawan Title Track",
+      artist: "Anirudh & Raja Kumari",
+      audioUrl: "/audio/JAWAN TITLE TRACK (Audio)_ Shah Rukh Khan _ Nayanthara _ Atlee _ Anirudh _ Raja Kumari(M4A_128K).m4a",
+    },
   ] as SongTrack[],
   // Single song fallback for backward compatibility
   nowPlaying: {
