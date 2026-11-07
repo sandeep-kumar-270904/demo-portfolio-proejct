@@ -77,12 +77,12 @@ export function syncAudioPlaylist() {
       .replace(/\[(audio|official.*?|128k|320k|lyrics|video|m4a_.*?)\]/gi, "")
       .trim();
 
-    // Check if format is "Artist - Title" or "Title - Artist"
+    // Check if format is "Song Title - Artist"
     if (cleaned.includes(" - ")) {
       const [p1, p2] = cleaned.split(" - ");
       tracks.push({
-        title: formatTitle(p2 || p1),
-        artist: formatTitle(p1),
+        title: formatTitle(p1),
+        artist: formatTitle(p2 || "Portfolio Music"),
         audioUrl,
       });
     } else {
