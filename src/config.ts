@@ -33,7 +33,7 @@ export const SITE = {
     {
       title: "Jawan Title Track",
       artist: "Anirudh & Raja Kumari",
-      audioUrl: "/audio/JAWAN TITLE TRACK (Audio)_ Shah Rukh Khan _ Nayanthara _ Atlee _ Anirudh _ Raja Kumari(M4A_128K).m4a",
+      audioUrl: "/audio/jawan.m4a",
     },
   ] as SongTrack[],
   // Single song fallback for backward compatibility

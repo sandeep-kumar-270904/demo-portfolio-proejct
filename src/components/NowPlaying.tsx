@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Play, Pause, SkipBack, SkipForward } from "lucide-react";
 import { SITE, SongTrack } from "@/config";
-import { toast } from "sonner";
 
 /**
  * "Now Playing" music player widget.
- * Supports multiple tracks with previous, play/pause, and next controls.
- * Seamlessly loops or auto-advances through the playlist in SITE.playlist (config.ts).
+ * Features an infinite loop playlist with previous, play/pause, and next controls.
+ * Seamlessly loops and auto-advances across all songs in SITE.playlist (src/config.ts).
  */
 export default function NowPlaying() {
   const playlist: SongTrack[] =
@@ -18,6 +17,7 @@ export default function NowPlaying() {
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playlistRef = useRef<SongTrack[]>(playlist);
+  const isChangingRef = useRef(false);
   const bars = [1, 2, 3, 4];
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function NowPlaying() {
   }, [playlist]);
 
   const resolveAudioUrl = (url?: string) => {
-    const path = url || "/audio/tadow.mp3";
+    const path = (url || "/audio/tadow.mp3").trim();
     if (
       typeof window !== "undefined" &&
       path.startsWith("/__l5e/") &&
@@ -39,8 +39,11 @@ export default function NowPlaying() {
   const changeTrack = useCallback((direction: number, autoPlay = true) => {
     const list = playlistRef.current;
     if (list.length === 0) return;
+    if (isChangingRef.current) return;
+    isChangingRef.current = true;
 
     setCurrentIndex((prevIndex) => {
+      // Infinite loop in both directions
       const nextIndex = (prevIndex + direction + list.length) % list.length;
       const track = list[nextIndex];
       const a = audioRef.current;
@@ -49,21 +52,34 @@ export default function NowPlaying() {
         a.src = resolveAudioUrl(track.audioUrl);
         a.load();
         if (autoPlay) {
-          a.play().catch(() => {
-            setPlaying(false);
-            toast.error(
-              `Unable to play "${track.title}". Check audio file at ${track.audioUrl}`
-            );
-          });
+          const playPromise = a.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => setPlaying(true))
+              .catch(() => {
+                // If a track fails, automatically skip to next song in the loop
+                if (list.length > 1) {
+                  setTimeout(() => {
+                    isChangingRef.current = false;
+                    changeTrack(1, true);
+                  }, 800);
+                } else {
+                  setPlaying(false);
+                }
+              });
+          }
         }
       }
+      setTimeout(() => {
+        isChangingRef.current = false;
+      }, 300);
       return nextIndex;
     });
   }, []);
 
   useEffect(() => {
     const a = new Audio();
-    a.preload = "none";
+    a.preload = "auto";
     a.volume = 0.7;
     const initialTrack = playlistRef.current[0];
     if (initialTrack) {
@@ -73,25 +89,36 @@ export default function NowPlaying() {
 
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
+    
+    // Auto-advance loop on track end
     const onEnded = () => {
       if (playlistRef.current.length > 1) {
         changeTrack(1, true);
       } else {
-        // Single song loop
+        // Continuous loop for single track
         a.currentTime = 0;
         a.play().catch(() => setPlaying(false));
+      }
+    };
+
+    // If an error happens on current audio, auto-skip to keep loop going
+    const onError = () => {
+      if (playlistRef.current.length > 1) {
+        setTimeout(() => changeTrack(1, true), 1000);
       }
     };
 
     a.addEventListener("play", onPlay);
     a.addEventListener("pause", onPause);
     a.addEventListener("ended", onEnded);
+    a.addEventListener("error", onError);
 
     return () => {
       a.pause();
       a.removeEventListener("play", onPlay);
       a.removeEventListener("pause", onPause);
       a.removeEventListener("ended", onEnded);
+      a.removeEventListener("error", onError);
       audioRef.current = null;
     };
   }, [changeTrack]);
@@ -115,9 +142,10 @@ export default function NowPlaying() {
       }
     } catch {
       setPlaying(false);
-      toast.error(
-        `Audio file missing. Upload ${track.audioUrl} to public/audio/ or configure it in src/config.ts`
-      );
+      // If play failed on current track, advance to next track in loop
+      if (playlist.length > 1) {
+        changeTrack(1, true);
+      }
     }
   };
 
@@ -129,7 +157,6 @@ export default function NowPlaying() {
         a.currentTime = 0;
         a.play().catch(() => {});
       }
-      toast.info("Add more songs to src/config.ts to switch between tracks!");
       return;
     }
     changeTrack(-1, true);
@@ -143,7 +170,6 @@ export default function NowPlaying() {
         a.currentTime = 0;
         a.play().catch(() => {});
       }
-      toast.info("Add more songs to src/config.ts to switch between tracks!");
       return;
     }
     changeTrack(1, true);
