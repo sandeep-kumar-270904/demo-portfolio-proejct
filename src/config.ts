@@ -1,10 +1,7 @@
-// Site-wide config — edit values here.
-export interface SongTrack {
-  title: string;
-  artist: string;
-  audioUrl: string;
-}
+import { AUTO_PLAYLIST, SongTrack } from "@/data/playlist";
+export type { SongTrack };
 
+// Site-wide config — edit values here.
 export const SITE = {
   name: "Edhubilli Sandeep Kumar",
   email: "edhubillisandeepkumar1234@gmail.com",
@@ -20,24 +17,11 @@ export const SITE = {
   // Spotify track to feature in the "Now Playing" widget.
   // "Tadow" — FKJ & Masego
   spotifyTrackId: "1eyekkPRDDtR0Bm0EYjvgs",
-  // Multiple songs playlist — add as many songs as you want!
-  // To add a new song:
-  // 1. Put the audio file into public/audio/
-  // 2. Add an entry to this playlist array below:
-  playlist: [
-    {
-      title: "Tadow",
-      artist: "FKJ & Masego",
-      audioUrl: "/audio/tadow.mp3",
-    },
-    {
-      title: "Jawan Title Track",
-      artist: "Anirudh & Raja Kumari",
-      audioUrl: "/audio/jawan.m4a",
-    },
-  ] as SongTrack[],
+  // Multiple songs playlist — automatically synced from public/audio/!
+  // Any song you drop into public/audio/ will be detected and added automatically.
+  playlist: AUTO_PLAYLIST,
   // Single song fallback for backward compatibility
-  nowPlaying: {
+  nowPlaying: AUTO_PLAYLIST[0] || {
     title: "Tadow",
     artist: "FKJ & Masego",
     audioUrl: "/audio/tadow.mp3",
