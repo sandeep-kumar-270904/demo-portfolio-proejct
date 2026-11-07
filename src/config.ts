@@ -1,4 +1,10 @@
 // Site-wide config — edit values here.
+export interface SongTrack {
+  title: string;
+  artist: string;
+  audioUrl: string;
+}
+
 export const SITE = {
   name: "Edhubilli Sandeep Kumar",
   email: "edhubillisandeepkumar1234@gmail.com",
@@ -14,11 +20,28 @@ export const SITE = {
   // Spotify track to feature in the "Now Playing" widget.
   // "Tadow" — FKJ & Masego
   spotifyTrackId: "1eyekkPRDDtR0Bm0EYjvgs",
+  // Multiple songs playlist — add as many songs as you want!
+  // To add a new song:
+  // 1. Put the .mp3 file into public/audio/ (e.g. public/audio/mysong.mp3)
+  // 2. Add an entry to this playlist array below:
+  playlist: [
+    {
+      title: "Tadow",
+      artist: "FKJ & Masego",
+      audioUrl: "/audio/tadow.mp3",
+    },
+    // Example:
+    // {
+    //   title: "My Second Song",
+    //   artist: "Artist Name",
+    //   audioUrl: "/audio/second-song.mp3",
+    // },
+  ] as SongTrack[],
+  // Single song fallback for backward compatibility
   nowPlaying: {
     title: "Tadow",
     artist: "FKJ & Masego",
-    // Hosted on Lovable CDN
-    audioUrl: "/__l5e/assets-v1/a1841f68-3723-4285-b96f-567f4b95f17e/tadow.mp3",
+    audioUrl: "/audio/tadow.mp3",
   },
   socials: {
     github: "https://github.com/sandeep-kumar-270904",

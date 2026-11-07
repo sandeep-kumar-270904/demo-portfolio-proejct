@@ -1,75 +1,211 @@
-import { useEffect, useRef, useState } from "react";
-import { Music2, Play, Pause } from "lucide-react";
-import { SITE } from "@/config";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { Play, Pause, SkipBack, SkipForward } from "lucide-react";
+import { SITE, SongTrack } from "@/config";
 import { toast } from "sonner";
 
 /**
- * "Now Playing" widget — original compact UI, but clicking it actually
- * plays the song from a local file (place an mp3 at /public/audio/tadow.mp3).
- * Falls back to a toast if the file isn't available.
+ * "Now Playing" music player widget.
+ * Supports multiple tracks with previous, play/pause, and next controls.
+ * Seamlessly loops or auto-advances through the playlist in SITE.playlist (config.ts).
  */
 export default function NowPlaying() {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playlist: SongTrack[] =
+    SITE.playlist && SITE.playlist.length > 0
+      ? SITE.playlist
+      : [SITE.nowPlaying];
+
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playlistRef = useRef<SongTrack[]>(playlist);
   const bars = [1, 2, 3, 4];
 
   useEffect(() => {
-    // On non-Lovable hosts (e.g. Vercel), Lovable's /__l5e/ CDN path doesn't
-    // resolve — fall back to the published Lovable domain so audio still plays.
-    let src = SITE.nowPlaying.audioUrl || "/audio/tadow.mp3";
-    if (typeof window !== "undefined" && src.startsWith("/__l5e/") && !/lovable\.app$/i.test(window.location.hostname)) {
-      src = `https://sandeep-kumar-edhubilli-portfolio.lovable.app${src}`;
+    playlistRef.current = playlist;
+  }, [playlist]);
+
+  const resolveAudioUrl = (url?: string) => {
+    const path = url || "/audio/tadow.mp3";
+    if (
+      typeof window !== "undefined" &&
+      path.startsWith("/__l5e/") &&
+      !/lovable\.app$/i.test(window.location.hostname)
+    ) {
+      return `https://sandeep-kumar-edhubilli-portfolio.lovable.app${path}`;
     }
-    const a = new Audio(src);
-    a.preload = "none";
-    a.loop = true;
-    a.volume = 0.7;
-    a.addEventListener("play", () => setPlaying(true));
-    a.addEventListener("pause", () => setPlaying(false));
-    a.addEventListener("ended", () => setPlaying(false));
-    audioRef.current = a;
-    return () => {
-      a.pause();
-      audioRef.current = null;
-    };
+    return path;
+  };
+
+  const changeTrack = useCallback((direction: number, autoPlay = true) => {
+    const list = playlistRef.current;
+    if (list.length === 0) return;
+
+    setCurrentIndex((prevIndex) => {
+      const nextIndex = (prevIndex + direction + list.length) % list.length;
+      const track = list[nextIndex];
+      const a = audioRef.current;
+      if (a) {
+        a.pause();
+        a.src = resolveAudioUrl(track.audioUrl);
+        a.load();
+        if (autoPlay) {
+          a.play().catch(() => {
+            setPlaying(false);
+            toast.error(
+              `Unable to play "${track.title}". Check audio file at ${track.audioUrl}`
+            );
+          });
+        }
+      }
+      return nextIndex;
+    });
   }, []);
 
-  const toggle = async () => {
+  useEffect(() => {
+    const a = new Audio();
+    a.preload = "none";
+    a.volume = 0.7;
+    const initialTrack = playlistRef.current[0];
+    if (initialTrack) {
+      a.src = resolveAudioUrl(initialTrack.audioUrl);
+    }
+    audioRef.current = a;
+
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    const onEnded = () => {
+      if (playlistRef.current.length > 1) {
+        changeTrack(1, true);
+      } else {
+        // Single song loop
+        a.currentTime = 0;
+        a.play().catch(() => setPlaying(false));
+      }
+    };
+
+    a.addEventListener("play", onPlay);
+    a.addEventListener("pause", onPause);
+    a.addEventListener("ended", onEnded);
+
+    return () => {
+      a.pause();
+      a.removeEventListener("play", onPlay);
+      a.removeEventListener("pause", onPause);
+      a.removeEventListener("ended", onEnded);
+      audioRef.current = null;
+    };
+  }, [changeTrack]);
+
+  const togglePlay = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     const a = audioRef.current;
     if (!a) return;
+    const track = playlist[currentIndex] || playlist[0];
     try {
       if (a.paused) {
+        const targetSrc = resolveAudioUrl(track.audioUrl);
+        if (!a.src || (!a.src.includes(encodeURI(targetSrc)) && a.src !== targetSrc)) {
+          a.src = targetSrc;
+          a.load();
+        }
         await a.play();
       } else {
         a.pause();
       }
     } catch {
-      toast.error("Audio file missing. Upload tadow.mp3 to public/audio/ or set SITE.nowPlaying.audioUrl in src/config.ts to a direct .mp3 URL.");
+      setPlaying(false);
+      toast.error(
+        `Audio file missing. Upload ${track.audioUrl} to public/audio/ or configure it in src/config.ts`
+      );
     }
   };
 
+  const playPrev = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (playlist.length <= 1) return;
+    changeTrack(-1, true);
+  };
+
+  const playNext = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (playlist.length <= 1) return;
+    changeTrack(1, true);
+  };
+
+  const currentTrack = playlist[currentIndex] || playlist[0];
+
   return (
-    <button
-      type="button"
-      onClick={toggle}
-      aria-label={playing ? "Pause Tadow" : "Play Tadow"}
-      className="group mt-6 inline-flex items-center gap-3 rounded-xl border border-soft-2 bg-card px-4 py-3 text-left transition-all hover:border-acid/50 hover:bg-acid/5"
+    <div
+      className="group mt-6 inline-flex items-center gap-3 rounded-xl border border-soft-2 bg-card px-3.5 py-2.5 text-left transition-all hover:border-acid/50 hover:bg-acid/5 select-none"
     >
-      <div className="relative grid h-9 w-9 place-items-center rounded-lg bg-acid/10 text-acid">
-        {playing ? <Pause size={16} /> : <Music2 size={16} />}
-        <span className="absolute inset-0 grid place-items-center opacity-0 transition-opacity group-hover:opacity-100">
-          {playing ? <Pause size={16} /> : <Play size={16} />}
-        </span>
+      {/* Controls cluster: Prev, Play/Pause, Next */}
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={playPrev}
+          disabled={playlist.length <= 1}
+          aria-label="Previous track"
+          title={playlist.length > 1 ? "Previous track" : "Add more songs in config.ts to enable"}
+          className="grid h-7 w-7 place-items-center rounded-lg text-ink-2 transition-all hover:bg-acid/10 hover:text-acid disabled:opacity-25 disabled:hover:bg-transparent disabled:hover:text-ink-2 disabled:cursor-not-allowed"
+        >
+          <SkipBack size={13} />
+        </button>
+
+        <button
+          type="button"
+          onClick={togglePlay}
+          aria-label={playing ? `Pause ${currentTrack.title}` : `Play ${currentTrack.title}`}
+          title={playing ? "Pause" : "Play"}
+          className="relative grid h-8 w-8 place-items-center rounded-lg bg-acid/10 text-acid transition-all hover:bg-acid/20 hover:scale-105 active:scale-95"
+        >
+          {playing ? <Pause size={15} /> : <Play size={15} className="ml-0.5" />}
+        </button>
+
+        <button
+          type="button"
+          onClick={playNext}
+          disabled={playlist.length <= 1}
+          aria-label="Next track"
+          title={playlist.length > 1 ? "Next track" : "Add more songs in config.ts to enable"}
+          className="grid h-7 w-7 place-items-center rounded-lg text-ink-2 transition-all hover:bg-acid/10 hover:text-acid disabled:opacity-25 disabled:hover:bg-transparent disabled:hover:text-ink-2 disabled:cursor-not-allowed"
+        >
+          <SkipForward size={13} />
+        </button>
       </div>
-      <div className="min-w-0">
-        <div className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
-          {playing ? "Now Playing" : "Click to Play"}
+
+      {/* Track info (click to toggle play/pause) */}
+      <div
+        onClick={togglePlay}
+        className="min-w-0 cursor-pointer"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            togglePlay();
+          }
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
+            {playing ? "Now Playing" : "Click to Play"}
+          </span>
+          {playlist.length > 1 && (
+            <span className="rounded bg-acid/10 px-1.5 py-0.5 font-mono text-[9px] font-medium text-acid">
+              {currentIndex + 1}/{playlist.length}
+            </span>
+          )}
         </div>
-        <div className="font-syne text-[13px] font-bold text-ink truncate">
-          {SITE.nowPlaying.title}{" "}
-          <span className="text-ink-2 font-medium">— {SITE.nowPlaying.artist}</span>
+        <div
+          className="font-syne text-[13px] font-bold text-ink truncate max-w-[170px] sm:max-w-[230px]"
+          title={`${currentTrack.title} — ${currentTrack.artist}`}
+        >
+          {currentTrack.title}{" "}
+          <span className="text-ink-2 font-medium">— {currentTrack.artist}</span>
         </div>
       </div>
+
+      {/* Equalizer animation */}
       <div className="ml-2 flex h-5 items-end gap-[2px]">
         {bars.map((b) => (
           <span
@@ -85,6 +221,6 @@ export default function NowPlaying() {
           />
         ))}
       </div>
-    </button>
+    </div>
   );
 }
