@@ -369,3 +369,146 @@
   }
   section h2.reveal.is-visible, section .reveal.is-visible > h2 { clip-path: inset(0 0 -10% 0); }
 }
+
+/* ==========================================================================
+   CINEMATIC INDUSTRIAL LUXURY — INTRO STYLES & DESIGN TOKENS
+   ========================================================================== */
+:root {
+  --intro-obsidian: #10100F;
+  --intro-charcoal-deep: #171614;
+  --intro-charcoal-warm: #211F1C;
+  --intro-charcoal-elevated: #292622;
+  --intro-bronze-dark: #34291E;
+
+  --intro-gold-antique: #C69B45;
+  --intro-gold-bright: #E5B747;
+  --intro-gold-champagne: #F2D18A;
+  --intro-gold-dark: #80602C;
+  --intro-bronze: #76502D;
+  --intro-copper: #A85C38;
+
+  --intro-amber-burnished: #E58B32;
+  --intro-amber-light: #F5B85C;
+  --intro-orange-burnt: #C86B2B;
+  --intro-amber-dark: #9D4D20;
+
+  --intro-crimson: #A51F2B;
+  --intro-crimson-deep: #681B22;
+  --intro-red-muted: #CE4245;
+
+  --intro-teal-deep: #164D50;
+  --intro-teal-muted: #397B78;
+  --intro-steel-industrial: #777C80;
+  --intro-silver-metal: #A8ADB0;
+  --intro-steel-dark: #55595A;
+
+  --intro-ivory-warm: #F2EBDD;
+  --intro-offwhite: #E9E5DC;
+  --intro-grey-secondary: #AAA69B;
+  --intro-grey-muted: #827D74;
+}
+
+/* Film Grain Texture */
+.intro-film-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
+}
+
+/* Metallic Light Sweep */
+.metallic-gold-sweep {
+  background: linear-gradient(
+    110deg,
+    #80602C 0%,
+    #C69B45 25%,
+    #F2D18A 50%,
+    #E5B747 75%,
+    #80602C 100%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: metallicSweep 6s ease-in-out infinite;
+}
+
+@keyframes metallicSweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Subtle Glitch Effects */
+.glitch-slice {
+  position: relative;
+}
+.glitch-slice::before,
+.glitch-slice::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  opacity: 0.8;
+}
+.glitch-slice::before {
+  left: 2px;
+  text-shadow: -2px 0 #A51F2B;
+  animation: glitch-anim-1 2.5s infinite linear alternate-reverse;
+}
+.glitch-slice::after {
+  left: -2px;
+  text-shadow: 2px 0 #164D50;
+  animation: glitch-anim-2 3s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim-1 {
+  0%, 90% { clip-path: inset(0 0 0 0); transform: translate(0); }
+  92% { clip-path: inset(20% 0 60% 0); transform: translate(-3px, 1px); }
+  94% { clip-path: inset(50% 0 10% 0); transform: translate(2px, -1px); }
+  96% { clip-path: inset(10% 0 80% 0); transform: translate(-1px, 2px); }
+  98%, 100% { clip-path: inset(0 0 0 0); transform: translate(0); }
+}
+
+@keyframes glitch-anim-2 {
+  0%, 88% { clip-path: inset(0 0 0 0); transform: translate(0); }
+  90% { clip-path: inset(60% 0 10% 0); transform: translate(3px, -1px); }
+  93% { clip-path: inset(10% 0 70% 0); transform: translate(-2px, 1px); }
+  97% { clip-path: inset(40% 0 30% 0); transform: translate(1px, -2px); }
+  100% { clip-path: inset(0 0 0 0); transform: translate(0); }
+}
+
+/* Typography Scale Clamps */
+.type-display-anton {
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(3.5rem, 10vw, 9.5rem);
+  line-height: 0.88;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+.type-condensed-bebas {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.5rem, 7vw, 6.5rem);
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.type-supporting-oswald {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(1.4rem, 3.5vw, 3.2rem);
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.type-editorial-playfair {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+}
+
+.type-mono-tech {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}

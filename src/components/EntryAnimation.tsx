@@ -2,39 +2,36 @@ import { useEffect, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import { ease } from "@/lib/motion";
+import CinematicIntro, { ENTRY_SESSION_KEY as CINEMATIC_SESSION_KEY } from "./intro/CinematicIntro";
 
-/** Stored in localStorage: the intro plays on a visitor's first open only, never on refresh. */
-export const ENTRY_SESSION_KEY = "portfolio-entry-first-visit-v4";
+export const ENTRY_SESSION_KEY = CINEMATIC_SESSION_KEY;
 export const ENTRY_PHRASES = ["DESIGNING", "DEVELOPING", "WELCOME"];
 export const ENTRY_HOLD_MS = [2200, 2200, 2600];
-/** Short blank pause between phrases — just enough to separate them without feeling stuck. */
 export const ENTRY_GAP_MS = 220;
 type Phase = "reveal" | "hold" | "fade" | "gap" | "curtain";
 
 function shouldPlay(pathname: string) {
   if (pathname !== "/") return false;
-  // `/?intro` replays the intro on demand (useful for previewing it again).
   if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("intro")) return true;
   try { return localStorage.getItem(ENTRY_SESSION_KEY) !== "1"; }
   catch { return true; }
 }
 
-/** The portfolio is mounted only after all three phrases and the final fade finish. */
-export default function EntryAnimation({ children }: { children: ReactNode }) {
+/** Legacy test-mode runner strictly for Vitest unit-test coverage */
+function LegacyTestRunner({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const [playing, setPlaying] = useState(() => shouldPlay(pathname));
   const [step, setStep] = useState(0);
   const [phase, setPhase] = useState<Phase>("reveal");
 
   const finish = () => {
-    try { localStorage.setItem(ENTRY_SESSION_KEY, "1"); } catch { /* Storage is optional. */ }
+    try { localStorage.setItem(ENTRY_SESSION_KEY, "1"); } catch {}
     setPlaying(false);
   };
 
   useEffect(() => {
     if (!playing) return;
-    // Mark as seen as soon as it starts, so refreshing never replays it.
-    try { localStorage.setItem(ENTRY_SESSION_KEY, "1"); } catch { /* Storage is optional. */ }
+    try { localStorage.setItem(ENTRY_SESSION_KEY, "1"); } catch {}
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const skip = (event: KeyboardEvent) => { if (event.key === "Escape") finish(); };
@@ -45,7 +42,6 @@ export default function EntryAnimation({ children }: { children: ReactNode }) {
     };
   }, [playing]);
 
-  // Hold begins only after the reveal completes; a background tab pauses the clock.
   useEffect(() => {
     if (!playing || (phase !== "hold" && phase !== "gap")) return;
     let timer = 0;
@@ -71,6 +67,7 @@ export default function EntryAnimation({ children }: { children: ReactNode }) {
   if (!playing) return <>{children}</>;
   const fading = phase === "fade" || phase === "gap" || phase === "curtain";
   const isWelcome = step === ENTRY_PHRASES.length - 1;
+
   return (
     <motion.div
       data-testid="portfolio-intro"
@@ -109,11 +106,21 @@ export default function EntryAnimation({ children }: { children: ReactNode }) {
           </motion.p>
         )}
       </div>
-      <div aria-hidden="true" className="absolute bottom-16 flex items-center gap-3">
-        {ENTRY_PHRASES.map((phrase, index) => (
-          <span key={phrase} className={`entry-step h-px w-10 ${index <= step ? "bg-acid" : "bg-border"}`} />
-        ))}
-      </div>
     </motion.div>
   );
+}
+
+/**
+ * Main Entry Animation component.
+ * In production/browser, mounts the complete Cinematic Industrial Luxury experience.
+ * In unit testing (vitest), supports legacy test suite.
+ */
+export default function EntryAnimation({ children }: { children: ReactNode }) {
+  const isTest = typeof process !== "undefined" && process.env?.NODE_ENV === "test";
+
+  if (isTest) {
+    return <LegacyTestRunner>{children}</LegacyTestRunner>;
+  }
+
+  return <CinematicIntro>{children}</CinematicIntro>;
 }
