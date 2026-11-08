@@ -10,19 +10,16 @@ import { introSound } from "./IntroSoundEngine";
 export const ENTRY_SESSION_KEY = "portfolio-entry-first-visit-v4";
 
 function shouldPlay(pathname: string): boolean {
-  if (pathname !== "/") return false;
-  // `/?intro` replays the intro on demand anytime
+  if (pathname !== "/" && pathname !== "") return false;
+  // `?skip` explicitly bypasses the intro
   if (
     typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).has("intro")
+    new URLSearchParams(window.location.search).has("skip")
   ) {
-    return true;
+    return false;
   }
-  try {
-    return localStorage.getItem(ENTRY_SESSION_KEY) !== "1";
-  } catch {
-    return true;
-  }
+  // By default, visiting the homepage always presents the cinematic introduction first
+  return true;
 }
 
 export default function CinematicIntro({ children }: { children: ReactNode }) {
@@ -36,7 +33,7 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
   const finish = () => {
     window.clearTimeout(timerRef.current);
     try {
-      localStorage.setItem(ENTRY_SESSION_KEY, "1");
+      localStorage.removeItem(ENTRY_SESSION_KEY);
     } catch {}
     setIsCurtainExit(true);
     setTimeout(() => {
@@ -46,16 +43,19 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    if (!isPlaying) return;
+    const handleReplay = () => {
+      window.clearTimeout(timerRef.current);
+      setCurrentActIndex(0);
+      setIsFadingOut(false);
+      setIsCurtainExit(false);
+      setIsPlaying(true);
+    };
+    window.addEventListener("replay-intro", handleReplay);
+    return () => window.removeEventListener("replay-intro", handleReplay);
+  }, []);
 
-    // Check prefers-reduced-motion
-    if (
-      typeof window !== "undefined" &&
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
-    ) {
-      finish();
-      return;
-    }
+  useEffect(() => {
+    if (!isPlaying) return;
 
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
