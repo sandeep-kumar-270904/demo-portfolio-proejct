@@ -26,7 +26,7 @@ export const AUTO_PLAYLIST: SongTrack[] = [
 ];
 
 export const INTRO_TRACK: SongTrack | null = {
-  "title": "Tadow",
-  "artist": "FKJ & Masego",
-  "audioUrl": "/audio/tadow.mp3"
+  "title": "Intro",
+  "artist": "Portfolio Music",
+  "audioUrl": "/audio/intro.mp3"
 };

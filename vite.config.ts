@@ -13,14 +13,29 @@ function autoAudioPlugin(): Plugin {
     },
     configureServer(server) {
       syncAudioPlaylist();
+
+      // Silently handle transient Windows EBUSY locks during file paste/copy
+      server.watcher.on("error", (err: unknown) => {
+        console.warn("[Watcher Warning (Safe)]:", (err as Error)?.message || err);
+      });
+
+      let debounceTimer: ReturnType<typeof setTimeout> | undefined;
       const audioFolder = path.resolve(__dirname, "public/audio");
       server.watcher.add(audioFolder);
       server.watcher.on("all", (_event, filePath) => {
         if (
-          filePath.includes(path.join("public", "audio")) ||
-          filePath.includes("public/audio")
+          filePath &&
+          (filePath.includes(path.join("public", "audio")) ||
+            filePath.includes("public/audio"))
         ) {
-          syncAudioPlaylist();
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => {
+            try {
+              syncAudioPlaylist();
+            } catch (err) {
+              console.warn("[Sync Audio Warning]:", err);
+            }
+          }, 350);
         }
       });
 

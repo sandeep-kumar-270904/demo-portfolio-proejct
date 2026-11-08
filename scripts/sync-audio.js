@@ -117,6 +117,12 @@ export function syncAudioPlaylist() {
     introTrack = tracks[0];
   }
 
+  // Filter dedicated intro track out of casual playlist if other full songs exist
+  const casualTracks = tracks.filter(
+    (t) => !decodeURIComponent(t.audioUrl).toLowerCase().includes("intro")
+  );
+  const finalPlaylist = casualTracks.length > 0 ? casualTracks : tracks;
+
   const content = `// AUTO-GENERATED FILE — DO NOT EDIT MANUALLY.
 // Automatically updated from files in /public/audio/
 
@@ -126,7 +132,7 @@ export interface SongTrack {
   audioUrl: string;
 }
 
-export const AUTO_PLAYLIST: SongTrack[] = ${JSON.stringify(tracks, null, 2)};
+export const AUTO_PLAYLIST: SongTrack[] = ${JSON.stringify(finalPlaylist, null, 2)};
 
 export const INTRO_TRACK: SongTrack | null = ${JSON.stringify(introTrack, null, 2)};
 `;
