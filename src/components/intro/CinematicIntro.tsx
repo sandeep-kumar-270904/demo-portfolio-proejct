@@ -26,7 +26,6 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const [isPlaying, setIsPlaying] = useState(() => shouldPlay(pathname));
   const [currentActIndex, setCurrentActIndex] = useState(0);
-  const [isFadingOut, setIsFadingOut] = useState(false);
   const [isCurtainExit, setIsCurtainExit] = useState(false);
   const timerRef = useRef<number>(0);
 
@@ -46,7 +45,6 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
     const handleReplay = () => {
       window.clearTimeout(timerRef.current);
       setCurrentActIndex(0);
-      setIsFadingOut(false);
       setIsCurtainExit(false);
       setIsPlaying(true);
     };
@@ -85,8 +83,6 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
       return;
     }
 
-    setIsFadingOut(false);
-
     // Trigger act-specific sound
     switch (act.theme) {
       case "attitude":
@@ -107,23 +103,13 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
         break;
     }
 
-    const holdDuration = act.durationMs;
-    const fadeOutLeadTime = 380; // Lead time for kinetic exit animation
-
-    // Schedule fade-out
     timerRef.current = window.setTimeout(() => {
-      setIsFadingOut(true);
-
-      // Advance to next act
-      timerRef.current = window.setTimeout(() => {
-        if (currentActIndex < CINEMATIC_ACTS.length - 1) {
-          setCurrentActIndex((prev) => prev + 1);
-        } else {
-          // Final act complete -> transition to homepage
-          finish();
-        }
-      }, fadeOutLeadTime);
-    }, holdDuration - fadeOutLeadTime);
+      if (currentActIndex < CINEMATIC_ACTS.length - 1) {
+        setCurrentActIndex((prev) => prev + 1);
+      } else {
+        finish();
+      }
+    }, act.durationMs);
 
     return () => {
       window.clearTimeout(timerRef.current);
@@ -142,14 +128,14 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
         {!isCurtainExit && (
           <motion.div
             data-testid="portfolio-intro"
-            data-phase={isFadingOut ? "fade" : "hold"}
+            data-phase="hold"
             data-step={currentActIndex}
             className="fixed inset-0 z-[99999] flex items-center justify-center overflow-hidden bg-[#10100F]"
             initial={{ opacity: 1 }}
             exit={{
               opacity: 0,
               scale: 1.04,
-              filter: "blur(6px)",
+              filter: "blur(8px)",
               transition: { duration: 0.75, ease: [0.16, 1, 0.3, 1] },
             }}
           >
@@ -159,8 +145,12 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
               ghostWord={currentAct.ghostWord}
             />
 
-            {/* Kinetic Typography Stage */}
-            <KineticActView act={currentAct} isFadingOut={isFadingOut} />
+            {/* Kinetic Typography Stage with smooth AnimatePresence transitions */}
+            <div className="relative z-10 flex min-h-[50vh] w-full max-w-6xl items-center justify-center px-4">
+              <AnimatePresence mode="wait">
+                <KineticActView key={currentAct.id} act={currentAct} />
+              </AnimatePresence>
+            </div>
 
             {/* Interactive HUD / Controls */}
             <IntroControls

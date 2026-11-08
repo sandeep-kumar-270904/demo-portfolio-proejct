@@ -1,146 +1,248 @@
 import { motion } from "framer-motion";
 import { StatementAct } from "./introConfig";
 
+const CINEMATIC_EASE = [0.16, 1, 0.3, 1];
+const SILKY_EASE = [0.22, 1, 0.36, 1];
+
 interface KineticActViewProps {
   act: StatementAct;
-  isFadingOut: boolean;
+  isFadingOut?: boolean;
 }
 
-export default function KineticActView({ act, isFadingOut }: KineticActViewProps) {
+/**
+ * Reusable Masked Word Component
+ * Clips the word inside an overflow-hidden wrapper and reveals with a fluid optical blur.
+ */
+function MaskedWord({
+  word,
+  className = "",
+  delay = 0,
+  duration = 0.85,
+  isHero = false,
+}: {
+  word: string;
+  className?: string;
+  delay?: number;
+  duration?: number;
+  isHero?: boolean;
+}) {
+  return (
+    <span className="inline-block overflow-hidden py-1">
+      <motion.span
+        className={`inline-block will-change-transform ${className}`}
+        initial={{
+          y: "125%",
+          opacity: 0,
+          filter: "blur(12px)",
+          scale: isHero ? 0.92 : 1,
+        }}
+        animate={{
+          y: "0%",
+          opacity: 1,
+          filter: "blur(0px)",
+          scale: 1,
+        }}
+        transition={{
+          duration,
+          delay,
+          ease: CINEMATIC_EASE,
+        }}
+      >
+        {word}
+      </motion.span>
+    </span>
+  );
+}
+
+/**
+ * Master Act View with AnimatePresence mode="wait" support
+ */
+export default function KineticActView({ act }: KineticActViewProps) {
+  const containerVariants = {
+    initial: {
+      opacity: 0,
+      y: 28,
+      scale: 0.98,
+      filter: "blur(14px)",
+    },
+    animate: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      filter: "blur(0px)",
+      transition: {
+        duration: 0.85,
+        ease: CINEMATIC_EASE,
+      },
+    },
+    exit: {
+      opacity: 0,
+      y: -24,
+      scale: 1.02,
+      filter: "blur(14px)",
+      transition: {
+        duration: 0.5,
+        ease: SILKY_EASE,
+      },
+    },
+  };
+
+  return (
+    <motion.div
+      key={act.id}
+      variants={containerVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      className="relative z-10 flex w-full flex-col items-center justify-center px-4 text-center select-none"
+    >
+      {renderActContent(act)}
+    </motion.div>
+  );
+}
+
+function renderActContent(act: StatementAct) {
   switch (act.theme) {
     case "attitude":
-      return <ActAttitude act={act} isFadingOut={isFadingOut} />;
+      return <ActAttitude act={act} />;
     case "mindset":
-      return <ActMindset act={act} isFadingOut={isFadingOut} />;
+      return <ActMindset act={act} />;
     case "engineering":
-      return <ActEngineering act={act} isFadingOut={isFadingOut} />;
+      return <ActEngineering act={act} />;
     case "creativity":
-      return <ActCreativity act={act} isFadingOut={isFadingOut} />;
+      return <ActCreativity act={act} />;
     case "identity":
-      return <ActIdentity act={act} isFadingOut={isFadingOut} />;
+      return <ActIdentity act={act} />;
     default:
       return null;
   }
 }
 
 /** ACT 01: ATTITUDE — "NOT HERE TO FOLLOW. HERE TO BUILD." */
-function ActAttitude({ act, isFadingOut }: { act: StatementAct; isFadingOut: boolean }) {
+function ActAttitude({ act }: { act: StatementAct }) {
   const wordsPrimary = act.primaryText.split(" ");
   const wordsSecondary = act.secondaryText.split(" ");
 
   return (
-    <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center select-none">
+    <div className="flex flex-col items-center justify-center">
       {/* Top Editorial Label */}
       <motion.div
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: isFadingOut ? 0 : 0.7, y: isFadingOut ? -12 : 0 }}
-        transition={{ duration: 0.6 }}
-        className="mb-4 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.3em] text-[#C69B45]"
+        initial={{ opacity: 0, y: -10, filter: "blur(6px)" }}
+        animate={{ opacity: 0.85, y: 0, filter: "blur(0px)" }}
+        transition={{ duration: 0.7, ease: CINEMATIC_EASE }}
+        className="mb-4 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.32em] text-[#C69B45]"
       >
-        <span className="h-px w-6 bg-[#C69B45]" />
+        <motion.span
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 0.7, ease: CINEMATIC_EASE }}
+          className="h-px w-8 bg-gradient-to-r from-transparent to-[#C69B45]"
+        />
         <span>MINDSET // DECLARATION</span>
-        <span className="h-px w-6 bg-[#C69B45]" />
+        <motion.span
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 0.7, ease: CINEMATIC_EASE }}
+          className="h-px w-8 bg-gradient-to-l from-transparent to-[#C69B45]"
+        />
       </motion.div>
 
       {/* Primary Statement */}
-      <div className="overflow-hidden">
-        <h2 className="flex flex-wrap justify-center gap-x-4 gap-y-1 font-['Anton'] text-[clamp(2.8rem,7vw,6.5rem)] uppercase leading-[0.95] tracking-tight text-[#AAA69B]">
-          {wordsPrimary.map((word, i) => (
-            <motion.span
-              key={i}
-              initial={{ y: "115%", opacity: 0 }}
-              animate={{ y: isFadingOut ? "-60%" : "0%", opacity: isFadingOut ? 0 : 1 }}
-              transition={{
-                duration: isFadingOut ? 0.35 : 0.7,
-                delay: isFadingOut ? 0 : i * 0.08,
-                ease: [0.16, 1, 0.3, 1],
-              }}
-              className="inline-block"
-            >
-              {word}
-            </motion.span>
-          ))}
-        </h2>
+      <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 sm:gap-x-4">
+        {wordsPrimary.map((word, i) => (
+          <MaskedWord
+            key={i}
+            word={word}
+            delay={i * 0.08}
+            className="font-['Anton'] text-[clamp(2.5rem,7vw,6.5rem)] uppercase leading-[0.95] tracking-tight text-[#AAA69B]"
+          />
+        ))}
       </div>
 
       {/* Secondary Bold Impact Statement */}
-      <div className="mt-2 overflow-hidden">
-        <h1 className="flex flex-wrap justify-center gap-x-4 gap-y-1 font-['Anton'] text-[clamp(3.8rem,11vw,10.5rem)] uppercase leading-[0.88] tracking-[-0.03em] text-[#F2EBDD]">
-          {wordsSecondary.map((word, i) => {
-            const isEmphasis = word.toUpperCase().includes("BUILD");
-            return (
-              <motion.span
-                key={i}
-                initial={{ y: "120%", scale: isEmphasis ? 0.8 : 1, opacity: 0 }}
-                animate={{
-                  y: isFadingOut ? "-70%" : "0%",
-                  scale: isFadingOut ? 0.95 : 1,
-                  opacity: isFadingOut ? 0 : 1,
-                }}
-                transition={{
-                  duration: isFadingOut ? 0.35 : 0.85,
-                  delay: isFadingOut ? 0 : 0.28 + i * 0.1,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                className={`inline-block ${isEmphasis ? "metallic-gold-sweep text-[#E5B747]" : ""}`}
-              >
-                {word}
-              </motion.span>
-            );
-          })}
-        </h1>
+      <div className="mt-2 flex flex-wrap justify-center gap-x-3 gap-y-1 sm:gap-x-5">
+        {wordsSecondary.map((word, i) => {
+          const isEmphasis = word.toUpperCase().includes("BUILD");
+          return (
+            <MaskedWord
+              key={i}
+              word={word}
+              delay={0.25 + i * 0.12}
+              isHero={isEmphasis}
+              className={`font-['Anton'] text-[clamp(3.8rem,11.5vw,10.5rem)] uppercase leading-[0.88] tracking-[-0.03em] ${
+                isEmphasis
+                  ? "metallic-gold-sweep text-[#E5B747] drop-shadow-[0_10px_35px_rgba(229,183,71,0.3)]"
+                  : "text-[#F2EBDD]"
+              }`}
+            />
+          );
+        })}
       </div>
 
       {/* Subtle gold line accent */}
       <motion.div
-        initial={{ scaleX: 0 }}
-        animate={{ scaleX: isFadingOut ? 0 : 1 }}
-        transition={{ duration: 0.9, delay: 0.45 }}
-        className="mt-6 h-[2px] w-24 bg-gradient-to-r from-transparent via-[#E5B747] to-transparent sm:w-44"
+        initial={{ scaleX: 0, opacity: 0 }}
+        animate={{ scaleX: 1, opacity: 1 }}
+        transition={{ duration: 0.9, delay: 0.45, ease: CINEMATIC_EASE }}
+        className="mt-6 h-[2px] w-28 bg-gradient-to-r from-transparent via-[#E5B747] to-transparent sm:w-48"
       />
     </div>
   );
 }
 
 /** ACT 02: MINDSET — "THINK BEYOND. QUESTION EVERYTHING." */
-function ActMindset({ act, isFadingOut }: { act: StatementAct; isFadingOut: boolean }) {
+function ActMindset({ act }: { act: StatementAct }) {
+  const wordsPrimary = act.primaryText.split(" ");
+  const wordsSecondary = act.secondaryText.split(" ");
+
   return (
-    <div className="relative z-10 flex flex-col items-center justify-center px-6 text-center select-none">
+    <div className="flex flex-col items-center justify-center px-4">
       {/* Editorial Label */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: isFadingOut ? 0 : 0.8, scale: isFadingOut ? 0.9 : 1 }}
-        className="mb-6 font-mono text-[10px] uppercase tracking-[0.3em] text-[#CE4245]"
+        initial={{ opacity: 0, scale: 0.9, filter: "blur(6px)" }}
+        animate={{ opacity: 0.9, scale: 1, filter: "blur(0px)" }}
+        transition={{ duration: 0.7, ease: CINEMATIC_EASE }}
+        className="mb-5 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-[#CE4245]"
       >
-        [ PERSPECTIVE // SHIFT ]
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#CE4245]" />
+        <span>[ PERSPECTIVE // SHIFT ]</span>
       </motion.div>
 
-      {/* Primary Statement with horizontal slice */}
-      <motion.h2
-        initial={{ x: -60, opacity: 0 }}
-        animate={{ x: isFadingOut ? 60 : 0, opacity: isFadingOut ? 0 : 1 }}
-        transition={{ duration: isFadingOut ? 0.35 : 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="font-['Space_Grotesk'] text-[clamp(2.5rem,6.5vw,6rem)] font-bold uppercase tracking-tight text-[#E9E5DC]"
-      >
-        {act.primaryText}
-      </motion.h2>
+      {/* Primary Statement */}
+      <div className="flex flex-wrap justify-center gap-x-3 sm:gap-x-4">
+        {wordsPrimary.map((word, i) => {
+          const isEmphasis = word.toUpperCase().includes("BEYOND");
+          return (
+            <MaskedWord
+              key={i}
+              word={word}
+              delay={i * 0.1}
+              className={`font-['Space_Grotesk'] text-[clamp(2.5rem,6.8vw,6rem)] font-bold uppercase tracking-tight ${
+                isEmphasis ? "text-[#F2D18A] drop-shadow-[0_0_25px_rgba(242,209,138,0.35)]" : "text-[#E9E5DC]"
+              }`}
+            />
+          );
+        })}
+      </div>
 
-      {/* Crimson Glitch Accent Statement */}
-      <motion.h1
-        initial={{ x: 60, opacity: 0 }}
-        animate={{ x: isFadingOut ? -60 : 0, opacity: isFadingOut ? 0 : 1 }}
-        transition={{ duration: isFadingOut ? 0.35 : 0.85, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-        className="glitch-slice mt-2 font-['Anton'] text-[clamp(3.5rem,10.5vw,9.5rem)] uppercase leading-[0.9] tracking-[-0.02em] text-[#CE4245]"
-        data-text={act.secondaryText}
-      >
-        {act.secondaryText}
-      </motion.h1>
+      {/* Crimson Accent Statement */}
+      <div className="mt-2 flex flex-wrap justify-center gap-x-3 sm:gap-x-5">
+        {wordsSecondary.map((word, i) => (
+          <MaskedWord
+            key={i}
+            word={word}
+            delay={0.25 + i * 0.12}
+            isHero={true}
+            className="glitch-slice font-['Anton'] text-[clamp(3.6rem,11vw,9.5rem)] uppercase leading-[0.9] tracking-[-0.02em] text-[#CE4245] drop-shadow-[0_8px_30px_rgba(206,66,69,0.3)]"
+          />
+        ))}
+      </div>
 
       <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isFadingOut ? 0 : 0.6 }}
-        transition={{ delay: 0.35 }}
-        className="mt-6 max-w-md font-mono text-xs uppercase tracking-[0.2em] text-[#AAA69B]"
+        initial={{ opacity: 0, y: 12, filter: "blur(6px)" }}
+        animate={{ opacity: 0.75, y: 0, filter: "blur(0px)" }}
+        transition={{ delay: 0.45, duration: 0.8, ease: CINEMATIC_EASE }}
+        className="mt-6 max-w-md font-mono text-xs uppercase tracking-[0.24em] text-[#AAA69B]"
       >
         Unconventional Architecture // Radical Ownership
       </motion.p>
@@ -149,101 +251,111 @@ function ActMindset({ act, isFadingOut }: { act: StatementAct; isFadingOut: bool
 }
 
 /** ACT 03: ENGINEERING — "NOT JUST WRITING CODE. ENGINEERING SOLUTIONS." */
-function ActEngineering({ act, isFadingOut }: { act: StatementAct; isFadingOut: boolean }) {
+function ActEngineering({ act }: { act: StatementAct }) {
+  const wordsPrimary = act.primaryText.split(" ");
+  const wordsSecondary = act.secondaryText.split(" ");
+
   return (
-    <div className="relative z-10 flex flex-col items-center justify-center px-6 text-center select-none">
+    <div className="flex flex-col items-center justify-center px-4">
       {/* Tech Header */}
       <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: isFadingOut ? 0 : 0.8, y: isFadingOut ? -8 : 0 }}
-        className="mb-4 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.25em] text-[#397B78]"
+        initial={{ opacity: 0, y: -8, filter: "blur(6px)" }}
+        animate={{ opacity: 0.85, y: 0, filter: "blur(0px)" }}
+        transition={{ duration: 0.65, ease: CINEMATIC_EASE }}
+        className="mb-4 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.26em] text-[#397B78]"
       >
         <span className="inline-block h-1.5 w-1.5 bg-[#397B78]" />
-        <span>SYSTEM DESIGN // CORE</span>
+        <span>SYSTEM DESIGN // CORE PROTOCOL</span>
         <span className="inline-block h-1.5 w-1.5 bg-[#397B78]" />
       </motion.div>
 
       {/* Supporting Text */}
-      <motion.h3
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: isFadingOut ? -20 : 0, opacity: isFadingOut ? 0 : 0.8 }}
-        transition={{ duration: isFadingOut ? 0.3 : 0.7 }}
-        className="font-['Oswald'] text-[clamp(1.6rem,4vw,3.5rem)] font-medium uppercase tracking-[0.08em] text-[#777C80]"
-      >
-        {act.primaryText}
-      </motion.h3>
+      <div className="flex flex-wrap justify-center gap-x-2.5 sm:gap-x-3.5">
+        {wordsPrimary.map((word, i) => (
+          <MaskedWord
+            key={i}
+            word={word}
+            delay={i * 0.07}
+            className="font-['Oswald'] text-[clamp(1.6rem,4vw,3.5rem)] font-medium uppercase tracking-[0.06em] text-[#827D74]"
+          />
+        ))}
+      </div>
 
       {/* Dominant Headline */}
-      <motion.h1
-        initial={{ scale: 0.9, opacity: 0, letterSpacing: "0.08em" }}
-        animate={{
-          scale: isFadingOut ? 1.05 : 1,
-          opacity: isFadingOut ? 0 : 1,
-          letterSpacing: isFadingOut ? "0.12em" : "-0.02em",
-        }}
-        transition={{ duration: isFadingOut ? 0.35 : 0.85, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-        className="mt-2 font-['Anton'] text-[clamp(3.4rem,9.5vw,9rem)] uppercase leading-[0.92] text-[#F2EBDD]"
-      >
-        <span className="text-[#397B78]">ENGINEERING</span>{" "}
-        <span className="text-[#F2EBDD]">SOLUTIONS.</span>
-      </motion.h1>
+      <div className="mt-2 flex flex-wrap justify-center gap-x-3 sm:gap-x-5">
+        {wordsSecondary.map((word, i) => {
+          const isEngineering = word.toUpperCase().includes("ENGINEER");
+          return (
+            <MaskedWord
+              key={i}
+              word={word}
+              delay={0.24 + i * 0.12}
+              isHero={true}
+              className={`font-['Anton'] text-[clamp(3.5rem,10vw,9.2rem)] uppercase leading-[0.92] ${
+                isEngineering
+                  ? "text-[#397B78] drop-shadow-[0_0_30px_rgba(57,123,120,0.4)]"
+                  : "text-[#F2EBDD]"
+              }`}
+            />
+          );
+        })}
+      </div>
 
+      {/* Telemetry chips */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: isFadingOut ? 0 : 0.7, scale: isFadingOut ? 0.9 : 1 }}
-        transition={{ delay: 0.4 }}
-        className="mt-6 flex items-center gap-4 rounded-md border border-[#777C80]/20 bg-[#171614]/60 px-4 py-1.5 font-mono text-[9px] uppercase tracking-[0.2em] text-[#AAA69B]"
+        initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
+        animate={{ opacity: 0.8, y: 0, filter: "blur(0px)" }}
+        transition={{ delay: 0.45, duration: 0.75, ease: CINEMATIC_EASE }}
+        className="mt-6 flex flex-wrap items-center justify-center gap-2 rounded-full border border-[#777C80]/30 bg-[#171614]/70 px-4 py-1.5 font-mono text-[9px] uppercase tracking-[0.22em] text-[#AAA69B] backdrop-blur-md"
       >
         <span>DISTRIBUTED SYSTEMS</span>
         <span className="text-[#397B78]">·</span>
         <span>HIGH PERFORMANCE</span>
         <span className="text-[#397B78]">·</span>
-        <span>RESILIENT CLOUD</span>
+        <span>RESILIENT ARCHITECTURE</span>
       </motion.div>
     </div>
   );
 }
 
 /** ACT 04: CREATIVITY — "LOGIC MEETS IMAGINATION. DESIGN. DEVELOP. CREATE." */
-function ActCreativity({ act, isFadingOut }: { act: StatementAct; isFadingOut: boolean }) {
+function ActCreativity({ act }: { act: StatementAct }) {
   return (
-    <div className="relative z-10 flex flex-col items-center justify-center px-6 text-center select-none">
+    <div className="flex flex-col items-center justify-center px-4">
       {/* Editorial Playfair Italic Accent */}
-      <motion.span
-        initial={{ opacity: 0, y: -14 }}
-        animate={{ opacity: isFadingOut ? 0 : 0.85, y: isFadingOut ? -14 : 0 }}
-        transition={{ duration: 0.7 }}
-        className="font-['Playfair_Display'] text-[clamp(1.8rem,4vw,3.2rem)] font-normal italic tracking-wide text-[#F2D18A]"
+      <motion.div
+        initial={{ opacity: 0, y: -16, filter: "blur(8px)" }}
+        animate={{ opacity: 0.95, y: 0, filter: "blur(0px)" }}
+        transition={{ duration: 0.85, ease: CINEMATIC_EASE }}
+        className="font-['Playfair_Display'] text-[clamp(1.8rem,4.5vw,3.4rem)] font-normal italic tracking-wide text-[#F2D18A] drop-shadow-[0_0_20px_rgba(242,209,138,0.25)]"
       >
         {act.primaryText}
-      </motion.span>
+      </motion.div>
 
-      {/* Triad Words: DESIGN. DEVELOP. CREATE. (Preserves original words!) */}
+      {/* Triad Words: DESIGN. DEVELOP. CREATE. */}
       <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-8">
         {["DESIGN.", "DEVELOP.", "CREATE."].map((w, i) => (
-          <motion.h1
+          <MaskedWord
             key={w}
-            initial={{ y: 40, opacity: 0 }}
-            animate={{ y: isFadingOut ? -30 : 0, opacity: isFadingOut ? 0 : 1 }}
-            transition={{
-              duration: isFadingOut ? 0.3 : 0.8,
-              delay: isFadingOut ? 0 : 0.15 + i * 0.15,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-            className={`font-['Anton'] text-[clamp(2.8rem,8vw,7.5rem)] uppercase leading-none tracking-tight ${
-              i === 2 ? "metallic-gold-sweep text-[#E5B747]" : "text-[#F2EBDD]"
+            word={w}
+            delay={0.2 + i * 0.16}
+            isHero={i === 2}
+            className={`font-['Anton'] text-[clamp(2.8rem,8.5vw,8rem)] uppercase leading-none tracking-tight ${
+              i === 2
+                ? "metallic-gold-sweep text-[#E5B747] drop-shadow-[0_10px_40px_rgba(229,183,71,0.35)]"
+                : i === 1
+                ? "text-[#AAA69B]"
+                : "text-[#F2EBDD]"
             }`}
-          >
-            {w}
-          </motion.h1>
+          />
         ))}
       </div>
 
       <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isFadingOut ? 0 : 0.6 }}
-        transition={{ delay: 0.55 }}
-        className="mt-6 font-mono text-xs uppercase tracking-[0.25em] text-[#AAA69B]"
+        initial={{ opacity: 0, y: 12, filter: "blur(6px)" }}
+        animate={{ opacity: 0.7, y: 0, filter: "blur(0px)" }}
+        transition={{ delay: 0.6, duration: 0.8, ease: CINEMATIC_EASE }}
+        className="mt-6 font-mono text-xs uppercase tracking-[0.26em] text-[#AAA69B]"
       >
         {act.subText}
       </motion.p>
@@ -252,59 +364,69 @@ function ActCreativity({ act, isFadingOut }: { act: StatementAct; isFadingOut: b
 }
 
 /** ACT 05: IDENTITY — "EDHUBILLI SANDEEP KUMAR // DEVELOPER. BUILDER. CREATOR." */
-function ActIdentity({ act, isFadingOut }: { act: StatementAct; isFadingOut: boolean }) {
+function ActIdentity({ act }: { act: StatementAct }) {
+  const nameParts = ["EDHUBILLI", "SANDEEP", "KUMAR"];
+
   return (
-    <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center select-none">
+    <div className="flex flex-col items-center justify-center px-4">
       {/* Eyebrow badge */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.85 }}
-        animate={{ opacity: isFadingOut ? 0 : 1, scale: isFadingOut ? 0.85 : 1 }}
-        transition={{ duration: 0.7 }}
-        className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#C69B45]/40 bg-[#171614]/80 px-4 py-1 backdrop-blur-md"
+        initial={{ opacity: 0, y: -12, scale: 0.9, filter: "blur(6px)" }}
+        animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+        transition={{ duration: 0.75, ease: CINEMATIC_EASE }}
+        className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#C69B45]/40 bg-[#171614]/85 px-4 py-1 backdrop-blur-md"
       >
-        <span className="h-2 w-2 rounded-full bg-[#E5B747] shadow-[0_0_8px_#E5B747]" />
+        <span className="h-2 w-2 rounded-full bg-[#E5B747] shadow-[0_0_10px_#E5B747]" />
         <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#F2EBDD]">
           FULL STACK ARCHITECT // PORTFOLIO
         </span>
       </motion.div>
 
       {/* The Master Name Reveal */}
-      <div className="overflow-hidden">
-        <motion.h1
-          initial={{ y: "115%", opacity: 0 }}
-          animate={{ y: isFadingOut ? "-50%" : "0%", opacity: isFadingOut ? 0 : 1 }}
-          transition={{ duration: isFadingOut ? 0.4 : 0.95, ease: [0.16, 1, 0.3, 1] }}
-          className="metallic-gold-sweep font-['Anton'] text-[clamp(3.6rem,11.5vw,10.5rem)] uppercase leading-[0.88] tracking-[-0.04em] text-[#E5B747]"
-          style={{
-            textShadow: "0 10px 40px rgba(198, 155, 69, 0.25)",
-          }}
-        >
-          {act.primaryText}
-        </motion.h1>
+      <div className="flex flex-wrap justify-center gap-x-3.5 sm:gap-x-6">
+        {nameParts.map((word, i) => (
+          <MaskedWord
+            key={i}
+            word={word}
+            delay={0.15 + i * 0.12}
+            isHero={true}
+            className="metallic-gold-sweep font-['Anton'] text-[clamp(3.5rem,11.5vw,10.5rem)] uppercase leading-[0.88] tracking-[-0.04em] text-[#E5B747] drop-shadow-[0_12px_45px_rgba(229,183,71,0.35)]"
+          />
+        ))}
       </div>
 
       {/* Subtitle Identity */}
       <motion.p
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: isFadingOut ? 0 : 0.9, y: isFadingOut ? -16 : 0 }}
-        transition={{ duration: 0.8, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-        className="mt-4 font-['Space_Grotesk'] text-[clamp(1rem,2.8vw,1.8rem)] font-medium uppercase tracking-[0.28em] text-[#F2EBDD]"
+        initial={{ opacity: 0, y: 16, filter: "blur(8px)" }}
+        animate={{ opacity: 0.95, y: 0, filter: "blur(0px)" }}
+        transition={{ duration: 0.85, delay: 0.45, ease: CINEMATIC_EASE }}
+        className="mt-5 font-['Space_Grotesk'] text-[clamp(1rem,2.8vw,1.8rem)] font-medium uppercase tracking-[0.3em] text-[#F2EBDD]"
       >
         {act.secondaryText}
       </motion.p>
 
       {/* Welcome Statement */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: isFadingOut ? 0 : 1, y: isFadingOut ? -20 : 0 }}
-        transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="mt-8 flex items-center gap-3"
+        initial={{ opacity: 0, y: 18, filter: "blur(8px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        transition={{ duration: 0.85, delay: 0.65, ease: CINEMATIC_EASE }}
+        className="mt-8 flex items-center gap-3 sm:gap-4"
       >
-        <span className="h-px w-10 bg-[#C69B45]/50 sm:w-20" />
-        <span className="rounded bg-[#C69B45]/15 px-3 py-1 font-mono text-xs uppercase tracking-[0.25em] text-[#E5B747]">
+        <motion.span
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 0.9, delay: 0.7, ease: CINEMATIC_EASE }}
+          className="h-px w-12 bg-gradient-to-r from-transparent to-[#C69B45] sm:w-24"
+        />
+        <span className="rounded-md border border-[#C69B45]/30 bg-[#C69B45]/15 px-3.5 py-1 font-mono text-xs uppercase tracking-[0.26em] text-[#E5B747] backdrop-blur-md">
           {act.subText}
         </span>
-        <span className="h-px w-10 bg-[#C69B45]/50 sm:w-20" />
+        <motion.span
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 0.9, delay: 0.7, ease: CINEMATIC_EASE }}
+          className="h-px w-12 bg-gradient-to-l from-transparent to-[#C69B45] sm:w-24"
+        />
       </motion.div>
     </div>
   );
