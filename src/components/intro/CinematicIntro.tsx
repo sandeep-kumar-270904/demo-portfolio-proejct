@@ -6,6 +6,7 @@ import IntroBackground from "./IntroBackground";
 import IntroControls from "./IntroControls";
 import KineticActView from "./KineticActView";
 import { introSound } from "./IntroSoundEngine";
+import { INTRO_TRACK } from "@/config";
 
 export const ENTRY_SESSION_KEY = "portfolio-entry-first-visit-v4";
 
@@ -27,6 +28,9 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
   const [isPlaying, setIsPlaying] = useState(() => shouldPlay(pathname));
   const [currentActIndex, setCurrentActIndex] = useState(0);
   const [isCurtainExit, setIsCurtainExit] = useState(false);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const userMutedRef = useRef(false);
   const timerRef = useRef<number>(0);
 
   const finish = () => {
@@ -34,11 +38,95 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
     try {
       localStorage.removeItem(ENTRY_SESSION_KEY);
     } catch {}
+
+    // Cinematic audio fade out
+    const audio = audioRef.current;
+    if (audio && !audio.paused) {
+      const step = audio.volume / 16;
+      const fadeTimer = window.setInterval(() => {
+        if (audio.volume > step) {
+          audio.volume -= step;
+        } else {
+          audio.volume = 0;
+          audio.pause();
+          window.clearInterval(fadeTimer);
+        }
+      }, 50);
+    }
+
     setIsCurtainExit(true);
     setTimeout(() => {
       setIsPlaying(false);
       document.body.style.overflow = "";
     }, 700);
+  };
+
+  // Intro music player lifecycle
+  useEffect(() => {
+    if (!isPlaying || !INTRO_TRACK?.audioUrl) return;
+
+    const audio = new Audio();
+    audio.src = encodeURI(decodeURI(INTRO_TRACK.audioUrl));
+    audio.preload = "auto";
+    audio.volume = 0.85;
+    audio.loop = true;
+    audioRef.current = audio;
+
+    const tryStartAudio = () => {
+      if (userMutedRef.current) return;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsAudioPlaying(true);
+            introSound.setMuted(false);
+          })
+          .catch(() => {
+            // Autoplay waiting for user gesture
+          });
+      }
+    };
+
+    // Attempt instant autoplay
+    tryStartAudio();
+
+    // User gesture handler to unlock audio on first interaction
+    const onUserGesture = () => {
+      if (audio.paused && !userMutedRef.current) {
+        tryStartAudio();
+      }
+    };
+
+    window.addEventListener("pointerdown", onUserGesture);
+    window.addEventListener("keydown", onUserGesture);
+    window.addEventListener("touchstart", onUserGesture);
+    window.addEventListener("click", onUserGesture);
+
+    return () => {
+      window.removeEventListener("pointerdown", onUserGesture);
+      window.removeEventListener("keydown", onUserGesture);
+      window.removeEventListener("touchstart", onUserGesture);
+      window.removeEventListener("click", onUserGesture);
+      audio.pause();
+      audioRef.current = null;
+    };
+  }, [isPlaying]);
+
+  const handleToggleSound = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused || !isAudioPlaying) {
+      userMutedRef.current = false;
+      audio.play().then(() => {
+        setIsAudioPlaying(true);
+        introSound.setMuted(false);
+      }).catch(() => {});
+    } else {
+      userMutedRef.current = true;
+      audio.pause();
+      setIsAudioPlaying(false);
+      introSound.setMuted(true);
+    }
   };
 
   useEffect(() => {
@@ -130,7 +218,15 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
             data-testid="portfolio-intro"
             data-phase="hold"
             data-step={currentActIndex}
-            className="fixed inset-0 z-[99999] flex items-center justify-center overflow-hidden bg-[#10100F]"
+            onClick={() => {
+              if (audioRef.current?.paused && !userMutedRef.current) {
+                audioRef.current.play().then(() => {
+                  setIsAudioPlaying(true);
+                  introSound.setMuted(false);
+                }).catch(() => {});
+              }
+            }}
+            className="fixed inset-0 z-[99999] flex items-center justify-center overflow-hidden bg-[#10100F] cursor-pointer"
             initial={{ opacity: 1 }}
             exit={{
               opacity: 0,
@@ -156,6 +252,9 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
             <IntroControls
               currentAct={currentActIndex}
               totalActs={CINEMATIC_ACTS.length}
+              isAudioPlaying={isAudioPlaying}
+              trackTitle={INTRO_TRACK ? `${INTRO_TRACK.title} - ${INTRO_TRACK.artist}` : undefined}
+              onToggleSound={handleToggleSound}
               onSkip={finish}
             />
           </motion.div>

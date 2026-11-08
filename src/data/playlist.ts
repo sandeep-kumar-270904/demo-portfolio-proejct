@@ -24,3 +24,9 @@ export const AUTO_PLAYLIST: SongTrack[] = [
     "audioUrl": "/audio/Yeshanagula%20-%20Video%20Song%20_%20The%20Paradise%20_%20Nani%20_%20Keerthy%20Suresh%20_%20Anirudh%20Ravichander%20_%20Srikanth(MP3_320K).mp3"
   }
 ];
+
+export const INTRO_TRACK: SongTrack | null = {
+  "title": "Tadow",
+  "artist": "FKJ & Masego",
+  "audioUrl": "/audio/tadow.mp3"
+};

@@ -94,12 +94,28 @@ export function syncAudioPlaylist() {
     }
   }
 
-  // Ensure Tadow is first if present
+  // Ensure Tadow is first in main playlist if present
   tracks.sort((a, b) => {
     if (a.title.toLowerCase().includes("tadow")) return -1;
     if (b.title.toLowerCase().includes("tadow")) return 1;
     return a.title.localeCompare(b.title);
   });
+
+  // Identify Intro Track:
+  // 1. Look for any file with 'intro' in the filename (e.g. intro.mp3, intro-theme.mp3, cinematic_intro.wav)
+  // 2. If no dedicated intro file is found, automatically use the first available song in the playlist
+  let introTrack = null;
+  for (const track of tracks) {
+    const raw = decodeURIComponent(track.audioUrl).toLowerCase();
+    if (raw.includes("intro") || track.title.toLowerCase().includes("intro")) {
+      introTrack = track;
+      break;
+    }
+  }
+
+  if (!introTrack && tracks.length > 0) {
+    introTrack = tracks[0];
+  }
 
   const content = `// AUTO-GENERATED FILE — DO NOT EDIT MANUALLY.
 // Automatically updated from files in /public/audio/
@@ -111,6 +127,8 @@ export interface SongTrack {
 }
 
 export const AUTO_PLAYLIST: SongTrack[] = ${JSON.stringify(tracks, null, 2)};
+
+export const INTRO_TRACK: SongTrack | null = ${JSON.stringify(introTrack, null, 2)};
 `;
 
   const outDir = path.dirname(OUTPUT_FILE);
