@@ -6,25 +6,34 @@ interface CalligraphyFlourishProps {
   delay?: number;
   width?: number;
   height?: number;
+  variant?: "flourish" | "signature";
 }
 
 /**
- * Expressive calligraphy underline / flourish.
- * Physically drawn with variable curvature and an active luminous pen tip.
+ * Expressive calligraphy underline & signature flourish.
+ * Physically drawn with authentic pen curvature and an active luminous pen tip
+ * that tracks the vector coordinates in real-time.
  */
 export default function CalligraphyFlourish({
   className = "",
   delay = 0.5,
-  width = 240,
-  height = 36,
+  width = 260,
+  height = 38,
+  variant = "flourish",
 }: CalligraphyFlourishProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const penTipRef = useRef<SVGGElement | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  // Flowing ornamental calligraphy curve with a loop and taper
+  // Variant paths:
+  // 1. "flourish": Graceful decorative underline with a double loop and gentle taper
+  // 2. "signature": Extended calligraphic flourish that flows across and curls underneath
   const flourishPath =
-    "M 10,18 C 50,6 100,28 150,14 C 190,4 210,24 195,30 C 180,34 170,18 190,14 C 210,10 230,22 238,20";
+    variant === "signature"
+      ? "M 12,20 C 55,8 95,30 145,16 C 185,6 208,26 194,32 C 180,36 168,20 188,14 C 212,8 245,24 270,18 C 290,14 310,24 328,18"
+      : "M 10,18 C 50,6 100,28 150,14 C 190,4 210,24 195,30 C 180,34 170,18 190,14 C 210,10 230,22 248,18";
+
+  const viewBox = variant === "signature" ? "0 0 340 40" : "0 0 260 38";
 
   useEffect(() => {
     const svg = svgRef.current;
@@ -38,7 +47,7 @@ export default function CalligraphyFlourish({
     const path = svg.querySelector<SVGPathElement>(".flourish-path");
     if (!path) return;
 
-    const length = path.getTotalLength() || 250;
+    const length = path.getTotalLength() || 280;
 
     if (prefersReducedMotion) {
       path.style.strokeDashoffset = "0";
@@ -58,14 +67,14 @@ export default function CalligraphyFlourish({
       onComplete: () => {
         setIsCompleted(true);
         if (penTip) {
-          gsap.to(penTip, { opacity: 0, duration: 0.3 });
+          gsap.to(penTip, { opacity: 0, duration: 0.35, ease: "power2.out" });
         }
       },
     });
 
     tl.to(path, {
       strokeDashoffset: 0,
-      duration: 1.1,
+      duration: 1.15,
       ease: "power2.inOut",
       onStart: () => {
         if (penTip) penTip.style.opacity = "1";
@@ -84,25 +93,25 @@ export default function CalligraphyFlourish({
     return () => {
       tl.kill();
     };
-  }, [delay]);
+  }, [delay, variant]);
 
   return (
-    <div className={`relative inline-block ${className}`}>
+    <div className={`relative inline-block ${className}`} aria-hidden="true">
       <svg
         ref={svgRef}
-        viewBox="0 0 250 38"
+        viewBox={viewBox}
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         style={{ width: `${width}px`, height: `${height}px` }}
         className={`transition-all duration-700 ${
-          isCompleted ? "drop-shadow-[0_0_12px_rgba(229,183,71,0.35)]" : ""
+          isCompleted ? "drop-shadow-[0_0_16px_rgba(229,183,71,0.45)]" : ""
         }`}
       >
         <defs>
-          <linearGradient id="flourish-gold" x1="0%" y1="0%" x2="100%" y2="0%">
+          <linearGradient id={`flourish-gold-${variant}`} x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#C69B45" stopOpacity="0.2" />
-            <stop offset="30%" stopColor="#E5B747" />
-            <stop offset="70%" stopColor="#F2D18A" />
+            <stop offset="25%" stopColor="#E5B747" />
+            <stop offset="65%" stopColor="#F2D18A" />
             <stop offset="100%" stopColor="#E58B32" stopOpacity="0.4" />
           </linearGradient>
         </defs>
@@ -110,16 +119,17 @@ export default function CalligraphyFlourish({
         <path
           d={flourishPath}
           className="flourish-path"
-          stroke="url(#flourish-gold)"
+          stroke={`url(#flourish-gold-${variant})`}
           strokeWidth="2.8"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
 
+        {/* Luminous Pen Tip that tracks the active drawing stroke */}
         <g ref={penTipRef} className="pointer-events-none">
-          <circle r="7" fill="rgba(242, 209, 138, 0.3)" />
-          <circle r="3" fill="#E5B747" />
-          <circle r="1.5" fill="#FFFFFF" />
+          <circle r="8" fill="rgba(242, 209, 138, 0.35)" />
+          <circle r="3.5" fill="#E5B747" />
+          <circle r="1.8" fill="#FFFFFF" />
         </g>
       </svg>
     </div>

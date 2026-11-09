@@ -15,10 +15,10 @@ export default function IntroControls({
   onSkip,
 }: IntroControlsProps) {
   return (
-    <div className="pointer-events-auto absolute inset-0 z-[25] p-6 sm:p-10 select-none">
+    <div className="pointer-events-none absolute inset-0 z-[25] p-6 sm:p-10 select-none">
       {/* Top Bar - Minimal, distraction-free with only the Skip button */}
       <div className="flex items-center justify-end">
-        {/* Skip Button */}
+        {/* Skip Button (pointer-events-auto so it receives clicks) */}
         <button
           type="button"
           onClick={(e) => {
@@ -26,7 +26,7 @@ export default function IntroControls({
             onSkip();
           }}
           aria-label="Skip introduction"
-          className="group flex h-8 items-center gap-2 rounded-lg border border-[#C69B45]/30 bg-[#171614]/80 px-3.5 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-[#AAA69B] backdrop-blur-md transition-all hover:border-[#E5B747] hover:bg-[#C69B45]/15 hover:text-[#F2EBDD] active:scale-95"
+          className="group pointer-events-auto flex h-8 items-center gap-2 rounded-lg border border-[#C69B45]/30 bg-[#171614]/80 px-3.5 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-[#AAA69B] backdrop-blur-md transition-all hover:border-[#E5B747] hover:bg-[#C69B45]/15 hover:text-[#F5F0E6] active:scale-95 cursor-pointer shadow-lg"
         >
           <span>SKIP</span>
           <span className="hidden text-[9px] text-[#827D74] sm:inline">[ESC]</span>
@@ -52,7 +52,7 @@ export default function IntroControls({
         </div>
 
         <div className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#827D74]/70">
-          ESK // PORTFOLIO
+          ESK // THE ART OF ARRIVAL
         </div>
       </div>
     </div>

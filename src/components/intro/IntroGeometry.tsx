@@ -17,30 +17,13 @@ export default function IntroGeometry({ actIndex }: { actIndex: number }) {
         <path d="M 16 0 L 16 16 L 0 16" fill="none" stroke="currentColor" strokeWidth="1.2" />
       </svg>
 
-      {/* Top and Bottom Technical Border Guides */}
-      <div className="absolute left-12 right-12 top-10 flex items-center justify-between opacity-30 sm:left-24 sm:right-24">
-        <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#C69B45]/30 to-transparent" />
-        <span className="mx-4 font-mono text-[9px] uppercase tracking-[0.25em] text-[#AAA69B]">
-          SEC.SYS // 0{actIndex + 1}
-        </span>
-        <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#C69B45]/30 to-transparent" />
-      </div>
-
-      <div className="absolute bottom-10 left-12 right-12 flex items-center justify-between opacity-30 sm:left-24 sm:right-24">
-        <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#777C80]/30 to-transparent" />
-        <span className="mx-4 font-mono text-[9px] uppercase tracking-[0.2em] text-[#827D74]">
-          LAT 17.728° N // LON 83.303° E
-        </span>
-        <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#777C80]/30 to-transparent" />
-      </div>
-
-      {/* Dynamic Geometric Ring / Polygon that shifts with each act */}
+      {/* Dynamic Geometric Ring / Polygon that shifts with each movement */}
       <motion.div
         key={actIndex}
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-        initial={{ opacity: 0, scale: 0.88, rotate: -8 }}
-        animate={{ opacity: 0.14, scale: 1, rotate: 0 }}
-        exit={{ opacity: 0, scale: 1.08, rotate: 8 }}
+        initial={{ opacity: 0, scale: 0.9, rotate: -6 }}
+        animate={{ opacity: 0.1, scale: 1, rotate: 0 }}
+        exit={{ opacity: 0, scale: 1.06, rotate: 6 }}
         transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
       >
         <svg width="420" height="420" viewBox="0 0 420 420" className="h-[280px] w-[280px] sm:h-[420px] sm:w-[420px]">
