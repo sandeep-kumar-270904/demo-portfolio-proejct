@@ -4,7 +4,7 @@ import IntroGeometry from "./IntroGeometry";
 
 interface IntroBackgroundProps {
   actIndex: number;
-  ghostWord: string;
+  ghostWord?: string;
 }
 
 const ACT_THEMES = [
@@ -83,20 +83,7 @@ export default function IntroBackground({ actIndex, ghostWord }: IntroBackground
         }}
       />
 
-      {/* LAYER 04: Ghost Typography (Bebas Neue oversized) */}
-      <div className="absolute inset-0 flex items-center justify-center overflow-hidden select-none">
-        <motion.span
-          key={ghostWord}
-          initial={{ opacity: 0, scale: 0.92, x: -40 }}
-          animate={{ opacity: 0.045, scale: 1, x: 0 }}
-          exit={{ opacity: 0, scale: 1.08, x: 40 }}
-          transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-          className="font-['Bebas_Neue'] text-[22vw] uppercase leading-none tracking-tight text-[#F2EBDD]"
-          style={{ willChange: "transform, opacity" }}
-        >
-          {ghostWord}
-        </motion.span>
-      </div>
+
 
       {/* LAYER 05: Canvas Particle Field */}
       <IntroCanvasParticles burstTrigger={actIndex} />

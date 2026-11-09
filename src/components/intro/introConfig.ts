@@ -23,7 +23,7 @@ export const CINEMATIC_ACTS: StatementAct[] = [
     ghostWord: "BUILD",
     theme: "attitude",
     fontFamily: "Anton",
-    durationMs: 3400,
+    durationMs: 3200,
   },
   {
     id: "act-02",
@@ -47,7 +47,7 @@ export const CINEMATIC_ACTS: StatementAct[] = [
     ghostWord: "ENGINEER",
     theme: "engineering",
     fontFamily: "Oswald",
-    durationMs: 3400,
+    durationMs: 3200,
   },
   {
     id: "act-04",
@@ -60,7 +60,7 @@ export const CINEMATIC_ACTS: StatementAct[] = [
     ghostWord: "CREATE",
     theme: "creativity",
     fontFamily: "Anton",
-    durationMs: 5600,
+    durationMs: 3600,
   },
   {
     id: "act-05",
@@ -73,6 +73,6 @@ export const CINEMATIC_ACTS: StatementAct[] = [
     ghostWord: "SANDEEP",
     theme: "identity",
     fontFamily: "Anton",
-    durationMs: 4400,
+    durationMs: 4200,
   },
 ];

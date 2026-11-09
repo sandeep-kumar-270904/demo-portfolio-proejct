@@ -1,7 +1,5 @@
 import { motion } from "framer-motion";
 import { StatementAct } from "./introConfig";
-import CursiveWord from "./handwriting/CursiveWord";
-import StrokeRevealWord from "./handwriting/StrokeRevealWord";
 import CalligraphyFlourish from "./handwriting/CalligraphyFlourish";
 
 const CINEMATIC_EASE = [0.16, 1, 0.3, 1];
@@ -14,7 +12,8 @@ interface KineticActViewProps {
 
 /**
  * Reusable Masked Word Component
- * Clips the word inside an overflow-hidden wrapper and reveals with a fluid optical blur.
+ * Clips each word inside an overflow-hidden wrapper and reveals with a fluid optical blur
+ * and liquid quintic easing, inspired by high-end cinematic lyric videos.
  */
 function MaskedWord({
   word,
@@ -37,7 +36,7 @@ function MaskedWord({
           y: "125%",
           opacity: 0,
           filter: "blur(12px)",
-          scale: isHero ? 0.92 : 1,
+          scale: isHero ? 0.94 : 1,
         }}
         animate={{
           y: "0%",
@@ -182,7 +181,7 @@ function ActAttitude({ act }: { act: StatementAct }) {
         })}
       </div>
 
-      {/* Physically drawn calligraphy underline flourish */}
+      {/* Physically drawn calligraphy flourish */}
       <CalligraphyFlourish delay={0.65} width={260} height={36} className="mt-2" />
     </div>
   );
@@ -318,74 +317,78 @@ function ActEngineering({ act }: { act: StatementAct }) {
 
 /**
  * ACT 04: CREATIVITY — "LOGIC MEETS IMAGINATION. DESIGN. DEVELOP. CREATE."
- * Combines bold cinematic reveal, subtle italic entrance,
- * and physical stroke-by-stroke handwriting + bold stroke-reveal mask.
+ * Clean, solid, beautiful typography with ultra-smooth liquid lyric animation.
  */
 function ActCreativity({ act }: { act: StatementAct }) {
   return (
     <div className="flex flex-col items-center justify-center px-4">
-      {/* 1. "LOGIC meets IMAGINATION" */}
-      <div className="flex flex-col items-center justify-center">
-        <div className="flex flex-wrap items-center justify-center gap-x-3">
-          {/* LOGIC appears through bold cinematic reveal */}
-          <MaskedWord
-            word="LOGIC"
-            delay={0.1}
-            className="font-['Anton'] text-[clamp(2.4rem,5.5vw,5rem)] uppercase tracking-tight text-[#F2EBDD]"
-          />
+      {/* 1. "LOGIC meets IMAGINATION." */}
+      <div className="flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-5 gap-y-2">
+        {/* LOGIC in bold, crisp Anton */}
+        <MaskedWord
+          word="LOGIC"
+          delay={0.12}
+          className="font-['Anton'] text-[clamp(2.6rem,6.2vw,5.6rem)] uppercase tracking-tight text-[#F2EBDD]"
+        />
 
-          {/* MEETS enters subtly with italic editorial flair */}
+        {/* meets in elegant Playfair Display Italic */}
+        <motion.span
+          initial={{ opacity: 0, y: 12, filter: "blur(8px)" }}
+          animate={{ opacity: 0.9, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 0.75, delay: 0.3, ease: CINEMATIC_EASE }}
+          className="font-['Playfair_Display'] text-[clamp(2rem,5vw,3.8rem)] font-normal italic text-[#AAA69B]"
+        >
+          meets
+        </motion.span>
+
+        {/* IMAGINATION in crystal-clear Playfair Display Italic with champagne glow */}
+        <span className="inline-block overflow-hidden py-1">
           <motion.span
-            initial={{ opacity: 0, y: 8, filter: "blur(6px)" }}
-            animate={{ opacity: 0.85, y: 0, filter: "blur(0px)" }}
-            transition={{ duration: 0.7, delay: 0.28, ease: CINEMATIC_EASE }}
-            className="font-['Playfair_Display'] text-[clamp(1.6rem,4vw,3.2rem)] font-normal italic text-[#AAA69B]"
+            initial={{ y: "120%", opacity: 0, filter: "blur(14px)" }}
+            animate={{ y: "0%", opacity: 1, filter: "blur(0px)" }}
+            transition={{ duration: 0.85, delay: 0.48, ease: CINEMATIC_EASE }}
+            className="inline-block font-['Playfair_Display'] text-[clamp(2.6rem,6.8vw,5.8rem)] font-normal italic tracking-wide text-[#F2D18A] drop-shadow-[0_0_30px_rgba(242,209,138,0.45)]"
           >
-            meets
+            Imagination.
           </motion.span>
-        </div>
-
-        {/* IMAGINATION is physically written onto the screen with continuous flowing strokes and glowing pen tip */}
-        <div className="-mt-1 sm:-mt-2 flex justify-center">
-          <CursiveWord delay={0.4} />
-        </div>
+        </span>
       </div>
 
       {/* 2. "DESIGN. DEVELOP. CREATE." */}
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-7 gap-y-2">
-        {/* DESIGN appears through a mask reveal */}
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-8 gap-y-2">
+        {/* DESIGN in bold Anton */}
         <MaskedWord
           word="DESIGN."
-          delay={1.8}
-          className="font-['Anton'] text-[clamp(2.2rem,6.5vw,5.8rem)] uppercase leading-none tracking-tight text-[#F2EBDD]"
+          delay={1.1}
+          className="font-['Anton'] text-[clamp(2.6rem,8vw,7rem)] uppercase leading-none tracking-tight text-[#F2EBDD]"
         />
 
-        {/* DEVELOP appears with a controlled scale animation */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, filter: "blur(8px)" }}
-          animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-          transition={{
-            duration: 0.75,
-            delay: 2.1,
-            ease: CINEMATIC_EASE,
-          }}
-          className="font-['Anton'] text-[clamp(2.2rem,6.5vw,5.8rem)] uppercase leading-none tracking-tight text-[#AAA69B]"
-        >
-          DEVELOP.
-        </motion.div>
+        {/* DEVELOP in bold Anton */}
+        <MaskedWord
+          word="DEVELOP."
+          delay={1.35}
+          className="font-['Anton'] text-[clamp(2.6rem,8vw,7rem)] uppercase leading-none tracking-tight text-[#AAA69B]"
+        />
 
-        {/* CREATE is physically drawn stroke by stroke with a glowing writing tip */}
-        <div className="inline-block">
-          <StrokeRevealWord delay={2.4} />
-        </div>
+        {/* CREATE in bold Anton with solid metallic gold sweep */}
+        <span className="inline-block overflow-hidden py-1">
+          <motion.span
+            initial={{ y: "120%", opacity: 0, filter: "blur(14px)", scale: 0.94 }}
+            animate={{ y: "0%", opacity: 1, filter: "blur(0px)", scale: 1 }}
+            transition={{ duration: 0.9, delay: 1.6, ease: CINEMATIC_EASE }}
+            className="inline-block metallic-gold-sweep font-['Anton'] text-[clamp(2.6rem,8.5vw,7.5rem)] uppercase leading-none tracking-tight text-[#E5B747] drop-shadow-[0_10px_45px_rgba(229,183,71,0.4)]"
+          >
+            CREATE.
+          </motion.span>
+        </span>
       </div>
 
       {/* Manifesto subtext */}
       <motion.p
         initial={{ opacity: 0, y: 12, filter: "blur(6px)" }}
-        animate={{ opacity: 0.7, y: 0, filter: "blur(0px)" }}
-        transition={{ delay: 3.4, duration: 0.85, ease: CINEMATIC_EASE }}
-        className="mt-5 font-mono text-xs uppercase tracking-[0.26em] text-[#AAA69B]"
+        animate={{ opacity: 0.75, y: 0, filter: "blur(0px)" }}
+        transition={{ delay: 2.2, duration: 0.8, ease: CINEMATIC_EASE }}
+        className="mt-6 font-mono text-xs uppercase tracking-[0.26em] text-[#AAA69B]"
       >
         {act.subText}
       </motion.p>

@@ -5,13 +5,21 @@ import { CINEMATIC_ACTS } from "./introConfig";
 import IntroBackground from "./IntroBackground";
 import IntroControls from "./IntroControls";
 import KineticActView from "./KineticActView";
-import { introSound } from "./IntroSoundEngine";
 import { INTRO_TRACK } from "@/config";
 
-export const ENTRY_SESSION_KEY = "portfolio-entry-first-visit-v4";
+export const ENTRY_SESSION_KEY = "portfolio_intro_session_viewed";
 
 function shouldPlay(pathname: string): boolean {
   if (pathname !== "/" && pathname !== "") return false;
+
+  // `?intro` explicitly forces intro replay anytime for testing/preview
+  if (
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).has("intro")
+  ) {
+    return true;
+  }
+
   // `?skip` explicitly bypasses the intro
   if (
     typeof window !== "undefined" &&
@@ -19,7 +27,18 @@ function shouldPlay(pathname: string): boolean {
   ) {
     return false;
   }
-  // By default, visiting the homepage always presents the cinematic introduction first
+
+  // Plays once when someone opens the website for the first time or opening
+  // them after closing tabs, but NOT on every refresh in the same tab.
+  try {
+    if (typeof window !== "undefined") {
+      const alreadyPlayedInTab = sessionStorage.getItem(ENTRY_SESSION_KEY);
+      if (alreadyPlayedInTab === "1") {
+        return false;
+      }
+    }
+  } catch {}
+
   return true;
 }
 
@@ -33,10 +52,19 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
   const userMutedRef = useRef(false);
   const timerRef = useRef<number>(0);
 
+  // Mark session storage as viewed so page refreshes in this tab skip the intro
+  useEffect(() => {
+    if (isPlaying) {
+      try {
+        sessionStorage.setItem(ENTRY_SESSION_KEY, "1");
+      } catch {}
+    }
+  }, [isPlaying]);
+
   const finish = () => {
     window.clearTimeout(timerRef.current);
     try {
-      localStorage.removeItem(ENTRY_SESSION_KEY);
+      sessionStorage.setItem(ENTRY_SESSION_KEY, "1");
     } catch {}
 
     // Cinematic audio fade out
@@ -61,7 +89,7 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
     }, 700);
   };
 
-  // Intro music player lifecycle
+  // Intro music player lifecycle — plays ONLY the user's intro.mp3
   useEffect(() => {
     if (!isPlaying || !INTRO_TRACK?.audioUrl) return;
 
@@ -79,7 +107,6 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
         playPromise
           .then(() => {
             setIsAudioPlaying(true);
-            introSound.setMuted(false);
           })
           .catch(() => {
             // Autoplay waiting for user gesture
@@ -90,7 +117,7 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
     // Attempt instant autoplay
     tryStartAudio();
 
-    // User gesture handler to unlock audio on first interaction
+    // Browser policy: unlock audio on first interaction anywhere
     const onUserGesture = () => {
       if (audio.paused && !userMutedRef.current) {
         tryStartAudio();
@@ -111,23 +138,6 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
       audioRef.current = null;
     };
   }, [isPlaying]);
-
-  const handleToggleSound = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (audio.paused || !isAudioPlaying) {
-      userMutedRef.current = false;
-      audio.play().then(() => {
-        setIsAudioPlaying(true);
-        introSound.setMuted(false);
-      }).catch(() => {});
-    } else {
-      userMutedRef.current = true;
-      audio.pause();
-      setIsAudioPlaying(false);
-      introSound.setMuted(true);
-    }
-  };
 
   useEffect(() => {
     const handleReplay = () => {
@@ -161,7 +171,7 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
     };
   }, [isPlaying]);
 
-  // Act timeline sequencer
+  // Act timeline sequencer (NO synthetic sound effects)
   useEffect(() => {
     if (!isPlaying || isCurtainExit) return;
 
@@ -169,26 +179,6 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
     if (!act) {
       finish();
       return;
-    }
-
-    // Trigger act-specific sound
-    switch (act.theme) {
-      case "attitude":
-        introSound.playBassImpact();
-        break;
-      case "mindset":
-        introSound.playGlitch();
-        break;
-      case "engineering":
-        introSound.playRiser();
-        break;
-      case "creativity":
-        introSound.playMetallicImpact();
-        break;
-      case "identity":
-        introSound.playBassImpact();
-        setTimeout(() => introSound.playMetallicImpact(), 400);
-        break;
     }
 
     timerRef.current = window.setTimeout(() => {
@@ -222,7 +212,6 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
               if (audioRef.current?.paused && !userMutedRef.current) {
                 audioRef.current.play().then(() => {
                   setIsAudioPlaying(true);
-                  introSound.setMuted(false);
                 }).catch(() => {});
               }
             }}
@@ -235,26 +224,20 @@ export default function CinematicIntro({ children }: { children: ReactNode }) {
               transition: { duration: 0.75, ease: [0.16, 1, 0.3, 1] },
             }}
           >
-            {/* 6-Layer Background Engine */}
-            <IntroBackground
-              actIndex={currentActIndex}
-              ghostWord={currentAct.ghostWord}
-            />
+            {/* Clean Atmospheric Background (No distracting ghost text) */}
+            <IntroBackground actIndex={currentActIndex} />
 
-            {/* Kinetic Typography Stage with smooth AnimatePresence transitions */}
+            {/* Kinetic Typography Stage with smooth lyric-style AnimatePresence transitions */}
             <div className="relative z-10 flex min-h-[50vh] w-full max-w-6xl items-center justify-center px-4">
               <AnimatePresence mode="wait">
                 <KineticActView key={currentAct.id} act={currentAct} />
               </AnimatePresence>
             </div>
 
-            {/* Interactive HUD / Controls */}
+            {/* Clean Minimal Controls (Only clean Skip button in top corner) */}
             <IntroControls
               currentAct={currentActIndex}
               totalActs={CINEMATIC_ACTS.length}
-              isAudioPlaying={isAudioPlaying}
-              trackTitle={INTRO_TRACK ? `${INTRO_TRACK.title} - ${INTRO_TRACK.artist}` : undefined}
-              onToggleSound={handleToggleSound}
               onSkip={finish}
             />
           </motion.div>
